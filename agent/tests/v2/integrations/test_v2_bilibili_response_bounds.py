@@ -223,7 +223,7 @@ def test_real_media_job_rejects_oversize_before_tail_and_can_explicitly_retry(tm
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             job = await instance.media.submit(agent, str(source["id"]), "subtitle", {})
-            failed = await _settle(instance, agent, job["id"])
+            failed = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             assert failed["state"] == "failed" and failed["error_code"] == "bilibili_response_too_large"
             assert body.reads == 2 and body.closed and responses[0].is_closed
             assert not instance.media._processor.calls

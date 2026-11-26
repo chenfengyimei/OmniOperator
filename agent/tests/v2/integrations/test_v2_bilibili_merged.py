@@ -127,7 +127,7 @@ def test_real_job_rejects_bad_merged_size_and_allows_explicit_new_work(tmp_path,
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             job = await instance.media.submit(agent, str(source["id"]), operation, {})
-            row = await _settle(instance, agent, job["id"])
+            row = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "bilibili_response_invalid"
             assert not published and not instance.media._processor.calls
             assert all(call.url.host != "cdn.bilivideo.com" for call in calls)
@@ -165,7 +165,7 @@ def test_real_job_uses_merged_backup_with_full_bytes_and_original_source(tmp_pat
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             job = await instance.media.submit(agent, str(source["id"]), operation, {})
-            assert (await _settle(instance, agent, job["id"]))["state"] == "done"
+            assert (await _settle(instance, agent, job["id"], wait_for_cleanup=True))["state"] == "done"
             assert inputs == [FULL]
             downloads = [call for call in calls if call.url.host == "cdn.bilivideo.com"]
             assert len(downloads) == 1 and str(downloads[0].url) == MERGED["url"]

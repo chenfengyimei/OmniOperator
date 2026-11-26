@@ -149,7 +149,7 @@ def test_real_asr_job_rejects_bad_codec_before_object_publication(tmp_path, monk
             with monkeypatch.context() as patch:
                 patch.setattr(instance.media._objects, "publish", publish)
                 job = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-                row = await _settle(instance, agent, job["id"])
+                row = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] in {
                 "media_transcript_unreadable",
                 "media_transcript_invalid",

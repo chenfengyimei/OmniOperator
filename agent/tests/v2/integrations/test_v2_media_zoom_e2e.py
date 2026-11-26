@@ -12,6 +12,7 @@ from omni_test_support.v2.media import (
     CHANNEL,
     FakeProcessor,
     _seed,
+    _settle,
 )
 from omni_test_support.v2.media_source import fixture as gateway_fixture
 from omni_test_support.v2.media_zoom import configure_image_policy, zoom_instance
@@ -71,15 +72,6 @@ async def only_action(instance, agent):
     actions = await instance.application.query("actions", agent)
     assert len(actions) == 1
     return actions[0]
-
-
-async def wait_job_terminal(instance, agent, job_id):
-    async with asyncio.timeout(8):
-        while True:
-            job = await instance.media.job(agent, job_id)
-            if job["state"] not in ("queued", "running"):
-                return job
-            await asyncio.sleep(0.02)
 
 
 # ---------- approval gate security ----------
@@ -167,7 +159,7 @@ def test_zoom_owner_cancel_during_job_cleans_up(tmp_path):
             run = await wait_state(instance.application, agent, run_id, {"cancelled"})
             assert run["state"] == "cancelled"
             processor.release.set()
-            job = await wait_job_terminal(instance, agent, job_id)
+            job = await _settle(instance, agent, job_id, timeout=8, wait_for_cleanup=True)
             assert job["state"] == "cancelled" and processor.cleaned
             assert not (instance.media._staging / job_id).exists()
             assert not (await instance.media.source(agent, source_id))["latest_frames_id"]
@@ -200,6 +192,7 @@ def test_zoom_credential_revision_cas_fails_job_without_artifact(tmp_path):
             action = await only_action(instance, agent)
             assert action["state"] == "error" and action["effect"] == "none"
             assert not (await instance.media.source(agent, source_id))["latest_frames_id"]
+            await _settle(instance, agent, jobs[0]["id"], wait_for_cleanup=True)
             assert not (instance.media._staging / str(jobs[0]["id"])).exists()
         finally:
             await instance.close()

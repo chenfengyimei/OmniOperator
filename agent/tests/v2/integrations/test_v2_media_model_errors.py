@@ -206,7 +206,7 @@ def test_real_job_records_model_missing_and_does_not_publish_until_explicit_new_
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             bad = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-            row = await _settle(instance, agent, bad["id"])
+            row = await _settle(instance, agent, bad["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "media_asr_model_missing"
             assert not (await instance.media.source(agent, str(source["id"])))["latest_transcript_id"]
             assert not (instance.media._staging / str(bad["id"])).exists()

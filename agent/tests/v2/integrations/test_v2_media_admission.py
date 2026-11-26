@@ -149,7 +149,7 @@ def test_admission_wait_and_processor_reclamation_share_one_budget(tmp_path, mon
         caller = asyncio.create_task(service._run_bounded(gate.wait()))
         await gate.entered.wait()
         loop = asyncio.get_running_loop()
-        clock, original_wait = [loop.time()], asyncio.wait
+        clock, original_wait = [float(int(loop.time()))], asyncio.wait
 
         async def wait(tasks, *, timeout):
             assert timeout == 30

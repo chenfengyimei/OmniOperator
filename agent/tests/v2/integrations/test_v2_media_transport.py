@@ -86,7 +86,7 @@ def test_pre_dispatch_rejection_is_failed_without_artifact_or_replaying_the_old_
             source = await instance.media.register(agent, str(config["id"]), BV)
             backend.failure = BusinessError(code, "Pre-dispatch rejection")
             submitted = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-            failed = await _settle(instance, agent, submitted["id"])
+            failed = await _settle(instance, agent, submitted["id"], wait_for_cleanup=True)
             assert failed["state"] == "failed" and failed["error_code"] == code
             assert not (await instance.media.source(agent, str(source["id"])))["latest_transcript_id"]
             assert not (instance.paths.control / "media-staging" / str(submitted["id"])).exists()

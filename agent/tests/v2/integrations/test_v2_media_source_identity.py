@@ -186,7 +186,7 @@ def test_real_media_jobs_never_publish_changed_video_under_registered_source(tmp
                 original = state[field]
                 state[field] = value
                 job = await instance.media.submit(agent, str(source["id"]), operation, {})
-                row = await _settle(instance, agent, job["id"])
+                row = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
                 assert row["state"] == "failed" and row["error_code"] == "bilibili_source_changed"
                 failed.append(job["id"])
                 assert not gateway.payloads and not instance.media._processor.calls

@@ -208,7 +208,7 @@ def test_real_media_job_never_publishes_malformed_or_partial_subtitle(tmp_path, 
                 value = {"object": "invented text"} if case == "bad_row" else "\ud800"
                 state["content"] = {"body": [{"content": "valid prefix"}, {"content": value}]}
             job = await instance.media.submit(agent, str(source["id"]), "subtitle", {})
-            failed = await _settle(instance, agent, job["id"])
+            failed = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             assert failed["state"] == "failed" and failed["error_code"] == "bilibili_response_invalid"
             assert not published and not instance.media._processor.calls
             assert all(body.closed for body in bodies)

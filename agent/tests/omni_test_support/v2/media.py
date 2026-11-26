@@ -181,11 +181,18 @@ async def _seed(i):
     return agent, config
 
 
-async def _settle(i, agent, job_id, timeout=20.0):
+async def _settle(i, agent, job_id, timeout=20.0, *, wait_for_cleanup=False):
     async with asyncio.timeout(timeout):
         while True:
             job = await i.media.job(agent, str(job_id))
             if job["state"] not in ("queued", "running"):
+                if wait_for_cleanup:
+                    # The terminal database receipt can precede the owner's finally block.
+                    owner = next((task for task in i.media._tasks if task.get_name() == f"media-job-{job_id}"), None)
+                    if owner is not None:
+                        await asyncio.wait((owner,))
+                        if not owner.cancelled():
+                            owner.result()
                 return job
             await asyncio.sleep(0.05)
 

@@ -315,7 +315,7 @@ def test_real_database_revocation_blocks_later_work_and_allows_explicit_rebind(t
                 patch.setattr(instance.media._objects, "publish", publish)
                 patch.setattr(instance.media, "_db", QueuedWrite())
                 job = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-                row = await _settle(instance, agent, job["id"])
+                row = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "bilibili_configuration_revoked"
             assert len(published) == (phase == "before_artifact_commit")
             assert len(gateway.downloads) == (phase != "after_streams")

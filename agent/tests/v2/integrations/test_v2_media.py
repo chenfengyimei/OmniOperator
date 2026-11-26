@@ -345,7 +345,9 @@ def test_media_service_registers_transcribes_and_serves_tool_windows(tmp_path):
             assert source["bvid"] == BV and source["duration_s"] == 600
             assert gateway.reads == [("video", BV)]
 
-            subtitle = await _settle(i, agent, (await i.media.submit(agent, str(source["id"]), "subtitle", {}))["id"])
+            subtitle = await _settle(
+                i, agent, (await i.media.submit(agent, str(source["id"]), "subtitle", {}))["id"], wait_for_cleanup=True
+            )
             assert subtitle["state"] == "done" and subtitle["operation"] == "subtitle"
             # Subtitle jobs never download stream bytes.
             assert not gateway.downloads
@@ -361,6 +363,7 @@ def test_media_service_registers_transcribes_and_serves_tool_windows(tmp_path):
                         {"model": "small", "device": "cpu", "compute_type": "int8"},
                     )
                 )["id"],
+                wait_for_cleanup=True,
             )
             assert asr["state"] == "done"
             assert gateway.downloads[-1][0].endswith("audio.m4s")
@@ -370,6 +373,7 @@ def test_media_service_registers_transcribes_and_serves_tool_windows(tmp_path):
                 i,
                 agent,
                 (await i.media.submit(agent, str(source["id"]), "frames", {"count": 3, "width": 320}))["id"],
+                wait_for_cleanup=True,
             )
             assert frames["state"] == "done"
             assert gateway.downloads[-1][0].endswith("video.m4s")

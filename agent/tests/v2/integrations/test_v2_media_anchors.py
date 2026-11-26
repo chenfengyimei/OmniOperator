@@ -197,7 +197,7 @@ def test_real_job_missing_pts_publishes_no_frame_artifact_and_explicit_new_job_s
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             failed = await instance.media.submit(agent, str(source["id"]), "frames", {"count": 1, "width": 320})
-            row = await _settle(instance, agent, failed["id"])
+            row = await _settle(instance, agent, failed["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "media_frame_timestamp_unusable"
             assert not (await instance.media.source(agent, str(source["id"])))["latest_frames_id"]
             assert not (instance.media._staging / str(failed["id"])).exists()

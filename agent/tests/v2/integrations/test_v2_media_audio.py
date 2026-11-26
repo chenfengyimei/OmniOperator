@@ -197,7 +197,7 @@ def test_audio_limit_is_a_durable_failed_job_without_artifact_and_allows_the_nex
             source = await instance.media.register(agent, str(config["id"]), BV)
             processor.failure = BusinessError("media_audio_duration_out_of_range", "audio_duration_out_of_range")
             submitted = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-            failed = await _settle(instance, agent, submitted["id"])
+            failed = await _settle(instance, agent, submitted["id"], wait_for_cleanup=True)
             assert failed["state"] == "failed" and failed["error_code"] == "media_audio_duration_out_of_range"
             view = await instance.media.source(agent, str(source["id"]))
             assert not view["latest_transcript_id"]

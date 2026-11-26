@@ -161,7 +161,7 @@ def test_real_asr_jobs_bound_output_before_publication_and_allow_explicit_new_wo
                 patch.setattr(Path, "open", observe)
                 patch.setattr(instance.media._objects, "publish", publish)
                 job = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-                row = await _settle(instance, agent, job["id"])
+                row = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             if case in {"over_limit", "wrong_kind"}:
                 assert row["state"] == "failed" and row["error_code"] == "media_transcript_unreadable"
                 assert not published

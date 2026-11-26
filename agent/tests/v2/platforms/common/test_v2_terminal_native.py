@@ -52,18 +52,25 @@ def test_native_terminal_unicode_resize_exit_and_verified_cleanup(tmp_path):
             assert native["pid"] and native["created"]
             assert psutil.Process(native["pid"]).create_time() == native["created"]
             await captured.resize(120, 40, str(uuid4()))
+            expected = "\u7ec8\u7aef_\u6d4b\u8bd5"
+            receipt = tmp_path / "receipt.txt"
             if sys.platform == "win32":
-                line = "chcp 65001>nul\r\necho \u7ec8\u7aef_\u6d4b\u8bd5> receipt.txt & type receipt.txt\r\n"
+                line = (
+                    f"chcp 65001>nul\r\necho {expected}> receipt.partial"
+                    " && move /y receipt.partial receipt.txt >nul && type receipt.txt\r\n"
+                )
             else:
-                line = "printf '\u7ec8\u7aef_\u6d4b\u8bd5\\n' > receipt.txt; cat receipt.txt\n"
+                line = (
+                    f"printf '{expected}\\n' > receipt.partial && mv receipt.partial receipt.txt && cat receipt.txt\n"
+                )
             assert await captured.write(line, str(uuid4())) == len(line.encode("utf-8"))
             output = ""
             async with asyncio.timeout(10):
-                while not (tmp_path / "receipt.txt").exists() or "\u7ec8\u7aef_\u6d4b\u8bd5" not in output:
+                while not receipt.is_file() or expected not in output:
                     block = await captured.read()
                     assert block and len(block) <= 4096
                     output += block
-            assert "\u7ec8\u7aef_\u6d4b\u8bd5" in (tmp_path / "receipt.txt").read_text(encoding="utf-8").strip()
+            assert receipt.read_text(encoding="utf-8").strip() == expected
             assert await captured.write("exit\r\n" if sys.platform == "win32" else "exit\n", str(uuid4())) > 0
             async with asyncio.timeout(10):
                 while await captured.read():

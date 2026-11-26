@@ -205,13 +205,13 @@ def test_real_job_rejects_generation_budget_without_artifact_and_explicit_new_jo
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             bad = await instance.media.submit(agent, str(source["id"]), "frames", {"count": 1, "width": 320})
-            row = await _settle(instance, agent, bad["id"])
+            row = await _settle(instance, agent, bad["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "media_sheet_invalid"
             assert not (await instance.media.source(agent, str(source["id"])))["latest_frames_id"]
             assert not (instance.media._staging / str(bad["id"])).exists()
             gateway.video = valid
             fresh = await instance.media.submit(agent, str(source["id"]), "frames", {"count": 1, "width": 320})
-            assert (await _settle(instance, agent, fresh["id"]))["state"] == "done"
+            assert (await _settle(instance, agent, fresh["id"], wait_for_cleanup=True))["state"] == "done"
             assert (await instance.media.job(agent, str(bad["id"])))["state"] == "failed"
             assert not (instance.media._staging / str(fresh["id"])).exists()
         finally:

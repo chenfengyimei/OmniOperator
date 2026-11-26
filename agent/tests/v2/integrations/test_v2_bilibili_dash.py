@@ -133,7 +133,7 @@ def test_real_job_rejects_bad_dash_before_download_and_allows_explicit_new_work(
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             job = await instance.media.submit(agent, str(source["id"]), operation, {})
-            row = await _settle(instance, agent, job["id"])
+            row = await _settle(instance, agent, job["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "bilibili_response_invalid"
             assert not published and not instance.media._processor.calls
             assert all(call.url.host != "cdn.bilivideo.com" for call in calls)

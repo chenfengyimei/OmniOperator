@@ -333,7 +333,7 @@ def test_real_media_job_rejects_bad_range_before_processing_and_allows_explicit_
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             bad = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-            row = await _settle(instance, agent, bad["id"])
+            row = await _settle(instance, agent, bad["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "media_download_failed"
             assert not processor.calls and len(calls) == 1
             assert not (await instance.media.source(agent, str(source["id"])))["latest_transcript_id"]

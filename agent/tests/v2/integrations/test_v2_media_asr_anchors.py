@@ -209,12 +209,12 @@ def test_real_job_missing_times_fails_without_transcript_and_new_explicit_job_su
             agent, config = await _seed(instance)
             source = await instance.media.register(agent, str(config["id"]), BV)
             bad = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-            row = await _settle(instance, agent, bad["id"])
+            row = await _settle(instance, agent, bad["id"], wait_for_cleanup=True)
             assert row["state"] == "failed" and row["error_code"] == "media_transcript_unusable"
             assert not (await instance.media.source(agent, str(source["id"])))["latest_transcript_id"]
             assert not (instance.media._staging / str(bad["id"])).exists()
             fresh = await instance.media.submit(agent, str(source["id"]), "transcribe", {})
-            assert (await _settle(instance, agent, fresh["id"]))["state"] == "done"
+            assert (await _settle(instance, agent, fresh["id"], wait_for_cleanup=True))["state"] == "done"
             assert (await instance.media.job(agent, str(bad["id"])))["state"] == "failed"
             latest = (await instance.media.source(agent, str(source["id"])))["latest_transcript_id"]
             result = await instance.media.transcript(agent, str(latest))
