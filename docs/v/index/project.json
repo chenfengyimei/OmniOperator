@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "source_sha256": "f707d4e93d7d59b6cd9993ae4ca69035e27d9c19f6110f4059e2b097a94f11c1",
+  "source_sha256": "2e89d829409b5b1a35b20e09999d7d0656356b30acd090a409d5ef302a93a3f1",
   "modules": [
     {
       "id": "v2-domain",
@@ -100,7 +100,7 @@
         "agent/src/omni/domain/verification_stop.py",
         "agent/src/omni/domain/visual_subagent.py"
       ],
-      "lines": 15154,
+      "lines": 15157,
       "dependencies": []
     },
     {
@@ -180,7 +180,7 @@
         "agent/src/omni/application/vision_services.py",
         "agent/src/omni/application/visual_subagent.py"
       ],
-      "lines": 15182,
+      "lines": 15236,
       "dependencies": [
         "v2-domain"
       ]
@@ -557,7 +557,7 @@
         "agent/src/omni/adapters/workers/windows_uia.cs",
         "agent/src/omni/adapters/workers/windows_uia.ps1"
       ],
-      "lines": 74037,
+      "lines": 74054,
       "dependencies": [
         "v2-application",
         "v2-domain"
@@ -627,7 +627,7 @@
         "agent/src/omni/composition/service_runner.py",
         "agent/src/omni/composition/serving.py"
       ],
-      "lines": 4511,
+      "lines": 4515,
       "dependencies": [
         "v2-adapters",
         "v2-application",
@@ -15271,7 +15271,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.context_repository",
-      "lines": 734,
+      "lines": 732,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.memory_organization_predicates",
@@ -15410,7 +15410,7 @@
         },
         {
           "name": "ContextRepositories.context_failure",
-          "line": 271,
+          "line": 269,
           "kind": "function",
           "parameters": [
             "self",
@@ -15426,7 +15426,7 @@
         },
         {
           "name": "ContextRepositories.prepare_summary",
-          "line": 290,
+          "line": 288,
           "kind": "function",
           "parameters": [
             "self",
@@ -15442,7 +15442,7 @@
         },
         {
           "name": "ContextRepositories.summary_call",
-          "line": 340,
+          "line": 338,
           "kind": "function",
           "parameters": [
             "self",
@@ -15458,7 +15458,7 @@
         },
         {
           "name": "ContextRepositories.settle_summary",
-          "line": 351,
+          "line": 349,
           "kind": "function",
           "parameters": [
             "self",
@@ -15476,7 +15476,7 @@
         },
         {
           "name": "ContextRepositories.finalize_context",
-          "line": 400,
+          "line": 398,
           "kind": "function",
           "parameters": [
             "self",
@@ -15504,7 +15504,7 @@
         },
         {
           "name": "ContextRepositories.run_context_report",
-          "line": 482,
+          "line": 480,
           "kind": "function",
           "parameters": [
             "self",
@@ -15518,7 +15518,7 @@
         },
         {
           "name": "ContextRepositories.session_context_overview",
-          "line": 559,
+          "line": 557,
           "kind": "function",
           "parameters": [
             "self",
@@ -15532,7 +15532,7 @@
         },
         {
           "name": "ContextRepositories.summary_get",
-          "line": 725,
+          "line": 723,
           "kind": "function",
           "parameters": [
             "self",
@@ -16069,7 +16069,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.delegation_repository",
-      "lines": 405,
+      "lines": 408,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.context_repository",
@@ -16082,12 +16082,12 @@
       "symbols": [
         {
           "name": "DelegationRepositories",
-          "line": 28,
+          "line": 29,
           "kind": "class"
         },
         {
           "name": "DelegationRepositories.delegation_related_sessions",
-          "line": 29,
+          "line": 30,
           "kind": "function",
           "parameters": [
             "self",
@@ -16101,7 +16101,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_link",
-          "line": 32,
+          "line": 33,
           "kind": "function",
           "parameters": [
             "self",
@@ -16115,7 +16115,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_children",
-          "line": 35,
+          "line": 36,
           "kind": "function",
           "parameters": [
             "self",
@@ -16129,7 +16129,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_create",
-          "line": 45,
+          "line": 46,
           "kind": "function",
           "parameters": [
             "self",
@@ -16142,12 +16142,12 @@
             "agent_id": "str",
             "parent_id": "str",
             "value": "Record",
-            "worker_tools": "tuple[str, ...] | None"
+            "worker_tools": "Mapping[str, str] | None"
           }
         },
         {
           "name": "DelegationRepositories.claim_delegated_runs",
-          "line": 237,
+          "line": 240,
           "kind": "function",
           "parameters": [
             "self",
@@ -16163,7 +16163,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_check_budget",
-          "line": 282,
+          "line": 285,
           "kind": "function",
           "parameters": [
             "self",
@@ -16179,7 +16179,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_result",
-          "line": 322,
+          "line": 325,
           "kind": "function",
           "parameters": [
             "self",
@@ -16195,7 +16195,7 @@
         },
         {
           "name": "DelegationRepositories.delegation_recover",
-          "line": 365,
+          "line": 368,
           "kind": "function",
           "parameters": [
             "self"
@@ -23045,7 +23045,7 @@
       "module": "v2-adapters",
       "version": "V2",
       "python_module": "omni.adapters.persistence.omniweave_repository",
-      "lines": 243,
+      "lines": 259,
       "imports": [
         "omni.adapters.persistence",
         "omni.adapters.persistence.repository_base",
@@ -23057,12 +23057,12 @@
       "symbols": [
         {
           "name": "OmniWeaveRepositories",
-          "line": 20,
+          "line": 21,
           "kind": "class"
         },
         {
           "name": "OmniWeaveRepositories.omniweave_observe",
-          "line": 21,
+          "line": 22,
           "kind": "function",
           "parameters": [
             "self",
@@ -23084,7 +23084,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_router",
-          "line": 77,
+          "line": 89,
           "kind": "function",
           "parameters": [
             "self",
@@ -23098,23 +23098,25 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_plan",
-          "line": 90,
+          "line": 102,
           "kind": "function",
           "parameters": [
             "self",
             "agent_id",
             "run_id",
-            "arguments"
+            "arguments",
+            "catalog"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
-            "arguments": "Record"
+            "arguments": "Record",
+            "catalog": "Mapping[str, str]"
           }
         },
         {
           "name": "OmniWeaveRepositories.omniweave_ticket",
-          "line": 128,
+          "line": 144,
           "kind": "function",
           "parameters": [
             "self",
@@ -23134,7 +23136,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_private_scope",
-          "line": 185,
+          "line": 201,
           "kind": "function",
           "parameters": [
             "self",
@@ -23150,7 +23152,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_worker_gate",
-          "line": 200,
+          "line": 216,
           "kind": "function",
           "parameters": [
             "self",
@@ -23164,7 +23166,7 @@
         },
         {
           "name": "OmniWeaveRepositories.omniweave_cancel",
-          "line": 234,
+          "line": 250,
           "kind": "function",
           "parameters": [
             "self",
@@ -50626,7 +50628,7 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.capabilities",
-      "lines": 119,
+      "lines": 129,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts"
@@ -50753,17 +50755,19 @@
             "self",
             "agent_id",
             "run_id",
-            "controls"
+            "controls",
+            "only_provider"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
-            "controls": "tuple[Capability, ...]"
+            "controls": "tuple[Capability, ...]",
+            "only_provider": "str | None"
           }
         },
         {
           "name": "CapabilityRegistry.owned_adapters",
-          "line": 118,
+          "line": 128,
           "kind": "function",
           "parameters": [
             "self"
@@ -53865,7 +53869,7 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.engine",
-      "lines": 1405,
+      "lines": 1444,
       "imports": [
         "omni.application.background_review",
         "omni.application.capabilities",
@@ -53885,6 +53889,7 @@
         "omni.domain.images",
         "omni.domain.memory_decay",
         "omni.domain.model_recovery",
+        "omni.domain.omniweave",
         "omni.domain.repetition",
         "omni.domain.routing",
         "omni.domain.settings",
@@ -53896,12 +53901,12 @@
       "symbols": [
         {
           "name": "Application",
-          "line": 77,
+          "line": 78,
           "kind": "class"
         },
         {
           "name": "Application.__init__",
-          "line": 80,
+          "line": 81,
           "kind": "function",
           "parameters": [
             "self",
@@ -53957,7 +53962,7 @@
         },
         {
           "name": "Application.attach",
-          "line": 146,
+          "line": 148,
           "kind": "function",
           "parameters": [
             "self",
@@ -53969,7 +53974,7 @@
         },
         {
           "name": "Application.attach_plugin",
-          "line": 150,
+          "line": 152,
           "kind": "function",
           "parameters": [
             "self",
@@ -53981,7 +53986,7 @@
         },
         {
           "name": "Application.attach_provider",
-          "line": 155,
+          "line": 157,
           "kind": "function",
           "parameters": [
             "self",
@@ -53997,7 +54002,7 @@
         },
         {
           "name": "Application.start",
-          "line": 162,
+          "line": 164,
           "kind": "function",
           "parameters": [
             "self"
@@ -54006,7 +54011,7 @@
         },
         {
           "name": "Application.submit_turn",
-          "line": 177,
+          "line": 179,
           "kind": "function",
           "parameters": [
             "self",
@@ -54032,7 +54037,7 @@
         },
         {
           "name": "Application.submit_turn.accept",
-          "line": 192,
+          "line": 194,
           "kind": "function",
           "parameters": [
             "u"
@@ -54043,7 +54048,7 @@
         },
         {
           "name": "Application.notify",
-          "line": 212,
+          "line": 214,
           "kind": "function",
           "parameters": [
             "self"
@@ -54052,7 +54057,7 @@
         },
         {
           "name": "Application.action_review_blockers",
-          "line": 215,
+          "line": 217,
           "kind": "function",
           "parameters": [
             "self",
@@ -54064,7 +54069,7 @@
         },
         {
           "name": "Application._dispatch",
-          "line": 237,
+          "line": 239,
           "kind": "function",
           "parameters": [
             "self"
@@ -54073,7 +54078,7 @@
         },
         {
           "name": "Application._completed",
-          "line": 286,
+          "line": 292,
           "kind": "function",
           "parameters": [
             "self",
@@ -54085,7 +54090,7 @@
         },
         {
           "name": "Application._trigger_review",
-          "line": 299,
+          "line": 306,
           "kind": "function",
           "parameters": [
             "self",
@@ -54103,7 +54108,7 @@
         },
         {
           "name": "Application._run",
-          "line": 306,
+          "line": 313,
           "kind": "function",
           "parameters": [
             "self",
@@ -54123,7 +54128,7 @@
         },
         {
           "name": "Application._run_owner_command",
-          "line": 349,
+          "line": 356,
           "kind": "function",
           "parameters": [
             "self",
@@ -54141,7 +54146,7 @@
         },
         {
           "name": "Application._turn",
-          "line": 368,
+          "line": 375,
           "kind": "function",
           "parameters": [
             "self",
@@ -54159,7 +54164,7 @@
         },
         {
           "name": "Application._execute_tool_round",
-          "line": 549,
+          "line": 588,
           "kind": "function",
           "parameters": [
             "self",
@@ -54189,7 +54194,7 @@
         },
         {
           "name": "Application._fallback_model",
-          "line": 630,
+          "line": 669,
           "kind": "function",
           "parameters": [
             "self",
@@ -54207,7 +54212,7 @@
         },
         {
           "name": "Application._call_turn_model",
-          "line": 653,
+          "line": 692,
           "kind": "function",
           "parameters": [
             "self",
@@ -54237,7 +54242,7 @@
         },
         {
           "name": "Application._discover",
-          "line": 700,
+          "line": 739,
           "kind": "function",
           "parameters": [
             "call",
@@ -54252,7 +54257,7 @@
         },
         {
           "name": "Application._finish_turn",
-          "line": 711,
+          "line": 750,
           "kind": "function",
           "parameters": [
             "self",
@@ -54272,7 +54277,7 @@
         },
         {
           "name": "Application._completion_nudge",
-          "line": 716,
+          "line": 755,
           "kind": "function",
           "parameters": [
             "self",
@@ -54288,7 +54293,7 @@
         },
         {
           "name": "Application._delegate",
-          "line": 728,
+          "line": 767,
           "kind": "function",
           "parameters": [
             "self",
@@ -54304,7 +54309,7 @@
         },
         {
           "name": "Application._cancel_join_children",
-          "line": 784,
+          "line": 823,
           "kind": "function",
           "parameters": [
             "self",
@@ -54318,7 +54323,7 @@
         },
         {
           "name": "Application._cancel_join_children.cancel",
-          "line": 785,
+          "line": 824,
           "kind": "function",
           "parameters": [
             "u"
@@ -54329,7 +54334,7 @@
         },
         {
           "name": "Application.delegations",
-          "line": 807,
+          "line": 846,
           "kind": "function",
           "parameters": [
             "self",
@@ -54343,7 +54348,7 @@
         },
         {
           "name": "Application.delegations.read",
-          "line": 808,
+          "line": 847,
           "kind": "function",
           "parameters": [
             "u"
@@ -54354,7 +54359,7 @@
         },
         {
           "name": "Application._todo_notice",
-          "line": 817,
+          "line": 856,
           "kind": "function",
           "parameters": [
             "self",
@@ -54370,7 +54375,7 @@
         },
         {
           "name": "Application.session_todos",
-          "line": 824,
+          "line": 863,
           "kind": "function",
           "parameters": [
             "self",
@@ -54384,7 +54389,7 @@
         },
         {
           "name": "Application._end_error",
-          "line": 827,
+          "line": 866,
           "kind": "function",
           "parameters": [
             "self",
@@ -54402,7 +54407,7 @@
         },
         {
           "name": "Application._end_error.end",
-          "line": 828,
+          "line": 867,
           "kind": "function",
           "parameters": [
             "u"
@@ -54413,7 +54418,7 @@
         },
         {
           "name": "Application._revision",
-          "line": 845,
+          "line": 884,
           "kind": "function",
           "parameters": [
             "value"
@@ -54424,7 +54429,7 @@
         },
         {
           "name": "Application._checkpoint",
-          "line": 850,
+          "line": 889,
           "kind": "function",
           "parameters": [
             "self",
@@ -54438,7 +54443,7 @@
         },
         {
           "name": "Application._clarify_wait",
-          "line": 856,
+          "line": 895,
           "kind": "function",
           "parameters": [
             "self",
@@ -54456,7 +54461,7 @@
         },
         {
           "name": "Application._batch_entry",
-          "line": 897,
+          "line": 936,
           "kind": "function",
           "parameters": [
             "self",
@@ -54474,7 +54479,7 @@
         },
         {
           "name": "Application._tool_message_content",
-          "line": 923,
+          "line": 962,
           "kind": "function",
           "parameters": [
             "self",
@@ -54496,7 +54501,7 @@
         },
         {
           "name": "Application._dispatch_call",
-          "line": 987,
+          "line": 1026,
           "kind": "function",
           "parameters": [
             "self",
@@ -54524,7 +54529,7 @@
         },
         {
           "name": "Application._execute_parallel",
-          "line": 1062,
+          "line": 1101,
           "kind": "function",
           "parameters": [
             "self",
@@ -54546,7 +54551,7 @@
         },
         {
           "name": "Application._execute",
-          "line": 1090,
+          "line": 1129,
           "kind": "function",
           "parameters": [
             "self",
@@ -54570,7 +54575,7 @@
         },
         {
           "name": "Application.query",
-          "line": 1166,
+          "line": 1205,
           "kind": "function",
           "parameters": [
             "self",
@@ -54589,7 +54594,7 @@
         },
         {
           "name": "Application.settings",
-          "line": 1171,
+          "line": 1210,
           "kind": "function",
           "parameters": [
             "self",
@@ -54601,7 +54606,7 @@
         },
         {
           "name": "Application.get_agent",
-          "line": 1174,
+          "line": 1213,
           "kind": "function",
           "parameters": [
             "self",
@@ -54613,7 +54618,7 @@
         },
         {
           "name": "Application.create_agent",
-          "line": 1177,
+          "line": 1216,
           "kind": "function",
           "parameters": [
             "self",
@@ -54625,7 +54630,7 @@
         },
         {
           "name": "Application.create_agent.create",
-          "line": 1182,
+          "line": 1221,
           "kind": "function",
           "parameters": [
             "uow"
@@ -54636,7 +54641,7 @@
         },
         {
           "name": "Application.rename_agent",
-          "line": 1193,
+          "line": 1232,
           "kind": "function",
           "parameters": [
             "self",
@@ -54652,7 +54657,7 @@
         },
         {
           "name": "Application.history",
-          "line": 1199,
+          "line": 1238,
           "kind": "function",
           "parameters": [
             "self",
@@ -54672,7 +54677,7 @@
         },
         {
           "name": "Application.save_settings",
-          "line": 1206,
+          "line": 1245,
           "kind": "function",
           "parameters": [
             "self",
@@ -54688,7 +54693,7 @@
         },
         {
           "name": "Application.run_configuration",
-          "line": 1212,
+          "line": 1251,
           "kind": "function",
           "parameters": [
             "self",
@@ -54702,7 +54707,7 @@
         },
         {
           "name": "Application.get_run",
-          "line": 1215,
+          "line": 1254,
           "kind": "function",
           "parameters": [
             "self",
@@ -54716,7 +54721,7 @@
         },
         {
           "name": "Application.get_run.report",
-          "line": 1216,
+          "line": 1255,
           "kind": "function",
           "parameters": [
             "u"
@@ -54727,7 +54732,7 @@
         },
         {
           "name": "Application.live_output",
-          "line": 1227,
+          "line": 1266,
           "kind": "function",
           "parameters": [
             "self",
@@ -54741,7 +54746,7 @@
         },
         {
           "name": "Application.pin_run",
-          "line": 1230,
+          "line": 1269,
           "kind": "function",
           "parameters": [
             "self",
@@ -54759,7 +54764,7 @@
         },
         {
           "name": "Application.run_retention",
-          "line": 1233,
+          "line": 1272,
           "kind": "function",
           "parameters": [
             "self",
@@ -54773,7 +54778,7 @@
         },
         {
           "name": "Application.audit_retention_preview",
-          "line": 1236,
+          "line": 1275,
           "kind": "function",
           "parameters": [
             "self",
@@ -54791,7 +54796,7 @@
         },
         {
           "name": "Application.event_retention_preview",
-          "line": 1243,
+          "line": 1282,
           "kind": "function",
           "parameters": [
             "self",
@@ -54809,7 +54814,7 @@
         },
         {
           "name": "Application.messages",
-          "line": 1250,
+          "line": 1289,
           "kind": "function",
           "parameters": [
             "self",
@@ -54823,7 +54828,7 @@
         },
         {
           "name": "Application.approvals",
-          "line": 1256,
+          "line": 1295,
           "kind": "function",
           "parameters": [
             "self",
@@ -54835,7 +54840,7 @@
         },
         {
           "name": "Application.approve",
-          "line": 1259,
+          "line": 1298,
           "kind": "function",
           "parameters": [
             "self",
@@ -54853,7 +54858,7 @@
         },
         {
           "name": "Application.clarifications",
-          "line": 1262,
+          "line": 1301,
           "kind": "function",
           "parameters": [
             "self",
@@ -54865,7 +54870,7 @@
         },
         {
           "name": "Application.respond_clarify",
-          "line": 1267,
+          "line": 1306,
           "kind": "function",
           "parameters": [
             "self",
@@ -54885,7 +54890,7 @@
         },
         {
           "name": "Application.cancel_clarify",
-          "line": 1274,
+          "line": 1313,
           "kind": "function",
           "parameters": [
             "self",
@@ -54903,7 +54908,7 @@
         },
         {
           "name": "Application.cancel",
-          "line": 1279,
+          "line": 1318,
           "kind": "function",
           "parameters": [
             "self",
@@ -54917,7 +54922,7 @@
         },
         {
           "name": "Application.cancel.cancel",
-          "line": 1280,
+          "line": 1319,
           "kind": "function",
           "parameters": [
             "u"
@@ -54928,7 +54933,7 @@
         },
         {
           "name": "Application.remember",
-          "line": 1292,
+          "line": 1331,
           "kind": "function",
           "parameters": [
             "self",
@@ -54954,7 +54959,7 @@
         },
         {
           "name": "Application.forget",
-          "line": 1317,
+          "line": 1356,
           "kind": "function",
           "parameters": [
             "self",
@@ -54970,7 +54975,7 @@
         },
         {
           "name": "Application.context",
-          "line": 1320,
+          "line": 1359,
           "kind": "function",
           "parameters": [
             "self",
@@ -54984,7 +54989,7 @@
         },
         {
           "name": "Application.context_report",
-          "line": 1323,
+          "line": 1362,
           "kind": "function",
           "parameters": [
             "self",
@@ -54998,7 +55003,7 @@
         },
         {
           "name": "Application.context_report.read",
-          "line": 1324,
+          "line": 1363,
           "kind": "function",
           "parameters": [
             "u"
@@ -55009,7 +55014,7 @@
         },
         {
           "name": "Application.session_context_overview",
-          "line": 1332,
+          "line": 1371,
           "kind": "function",
           "parameters": [
             "self",
@@ -55023,7 +55028,7 @@
         },
         {
           "name": "Application.summary",
-          "line": 1335,
+          "line": 1374,
           "kind": "function",
           "parameters": [
             "self",
@@ -55037,7 +55042,7 @@
         },
         {
           "name": "Application.erase_message",
-          "line": 1338,
+          "line": 1377,
           "kind": "function",
           "parameters": [
             "self",
@@ -55051,7 +55056,7 @@
         },
         {
           "name": "Application.search_memory",
-          "line": 1341,
+          "line": 1380,
           "kind": "function",
           "parameters": [
             "self",
@@ -55065,7 +55070,7 @@
         },
         {
           "name": "Application.memory_decay_state",
-          "line": 1351,
+          "line": 1390,
           "kind": "function",
           "parameters": [
             "self",
@@ -55077,7 +55082,7 @@
         },
         {
           "name": "Application.memory_decay",
-          "line": 1354,
+          "line": 1393,
           "kind": "function",
           "parameters": [
             "self",
@@ -55091,7 +55096,7 @@
         },
         {
           "name": "Application.health",
-          "line": 1357,
+          "line": 1396,
           "kind": "function",
           "parameters": [
             "self"
@@ -55100,7 +55105,7 @@
         },
         {
           "name": "Application.stop_accepting",
-          "line": 1366,
+          "line": 1405,
           "kind": "function",
           "parameters": [
             "self"
@@ -55109,7 +55114,7 @@
         },
         {
           "name": "Application.close",
-          "line": 1370,
+          "line": 1409,
           "kind": "function",
           "parameters": [
             "self",
@@ -59174,21 +59179,22 @@
       "module": "v2-application",
       "version": "V2",
       "python_module": "omni.application.omniweave",
-      "lines": 91,
+      "lines": 96,
       "imports": [
         "omni.application.ports",
         "omni.domain.contracts",
+        "omni.domain.delegation",
         "omni.domain.omniweave"
       ],
       "symbols": [
         {
           "name": "OmniWeaveService",
-          "line": 16,
+          "line": 17,
           "kind": "class"
         },
         {
           "name": "OmniWeaveService.web_admission",
-          "line": 21,
+          "line": 23,
           "kind": "function",
           "parameters": [
             "self",
@@ -59204,7 +59210,7 @@
         },
         {
           "name": "OmniWeaveService.web_admission.observe",
-          "line": 26,
+          "line": 28,
           "kind": "function",
           "parameters": [
             "unit",
@@ -59217,7 +59223,7 @@
         },
         {
           "name": "OmniWeaveService.tools_for_run",
-          "line": 41,
+          "line": 43,
           "kind": "function",
           "parameters": [
             "self",
@@ -59231,7 +59237,7 @@
         },
         {
           "name": "OmniWeaveService.invoke",
-          "line": 47,
+          "line": 49,
           "kind": "function",
           "parameters": [
             "self",
@@ -59249,7 +59255,7 @@
         },
         {
           "name": "OmniWeaveService.invoke.read_status",
-          "line": 54,
+          "line": 56,
           "kind": "function",
           "parameters": [
             "unit"
@@ -59260,7 +59266,7 @@
         },
         {
           "name": "OmniWeaveService.public_ticket",
-          "line": 75,
+          "line": 80,
           "kind": "function",
           "parameters": [
             "self",
@@ -59278,7 +59284,7 @@
         },
         {
           "name": "OmniWeaveService.require_public_scope",
-          "line": 82,
+          "line": 87,
           "kind": "function",
           "parameters": [
             "self",
@@ -59292,7 +59298,7 @@
         },
         {
           "name": "OmniWeaveService.close",
-          "line": 90,
+          "line": 95,
           "kind": "function",
           "parameters": [
             "self",
@@ -62345,7 +62351,7 @@
             "agent_id": "str",
             "parent_id": "str",
             "value": "Record",
-            "worker_tools": "tuple[str, ...] | None"
+            "worker_tools": "Mapping[str, str] | None"
           }
         },
         {
@@ -68190,12 +68196,14 @@
             "self",
             "agent_id",
             "run_id",
-            "arguments"
+            "arguments",
+            "catalog"
           ],
           "annotations": {
             "agent_id": "str",
             "run_id": "str",
-            "arguments": "Record"
+            "arguments": "Record",
+            "catalog": "Mapping[str, str]"
           }
         },
         {
@@ -78932,7 +78940,7 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features",
-      "lines": 151,
+      "lines": 152,
       "imports": [
         "omni.adapters.diagnostics",
         "omni.adapters.http_routes",
@@ -78983,27 +78991,27 @@
         },
         {
           "name": "WorkflowFeatureContext",
-          "line": 91,
+          "line": 92,
           "kind": "class"
         },
         {
           "name": "FeatureBinding",
-          "line": 99,
+          "line": 100,
           "kind": "class"
         },
         {
           "name": "FeaturePlugin",
-          "line": 108,
+          "line": 109,
           "kind": "class"
         },
         {
           "name": "InstalledFeatures",
-          "line": 113,
+          "line": 114,
           "kind": "class"
         },
         {
           "name": "InstalledFeatures.require",
-          "line": 119,
+          "line": 120,
           "kind": "function",
           "parameters": [
             "self",
@@ -79017,7 +79025,7 @@
         },
         {
           "name": "InstalledFeatures.start",
-          "line": 122,
+          "line": 123,
           "kind": "function",
           "parameters": [
             "self"
@@ -79026,7 +79034,7 @@
         },
         {
           "name": "require_service",
-          "line": 129,
+          "line": 130,
           "kind": "function",
           "parameters": [
             "services",
@@ -79041,7 +79049,7 @@
         },
         {
           "name": "install_features",
-          "line": 136,
+          "line": 137,
           "kind": "function",
           "parameters": [
             "plugins",
@@ -79534,7 +79542,7 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.features.omniweave",
-      "lines": 12,
+      "lines": 14,
       "imports": [
         "omni.application.capabilities",
         "omni.application.omniweave",
@@ -79864,7 +79872,7 @@
       "module": "v2-composition",
       "version": "V2",
       "python_module": "omni.composition.instance",
-      "lines": 682,
+      "lines": 683,
       "imports": [
         "omni.adapters.build_identity",
         "omni.adapters.credentials",
@@ -91194,7 +91202,7 @@
       "module": "v2-domain",
       "version": "V2",
       "python_module": "omni.domain.omniweave",
-      "lines": 131,
+      "lines": 134,
       "imports": [
         "omni.domain.contracts",
         "omni.domain.delegation"
@@ -91202,12 +91210,12 @@
       "symbols": [
         {
           "name": "WorkerTask",
-          "line": 77,
+          "line": 78,
           "kind": "class"
         },
         {
           "name": "checked_plan",
-          "line": 84,
+          "line": 85,
           "kind": "function",
           "parameters": [
             "value",
@@ -91220,7 +91228,7 @@
         },
         {
           "name": "_checked_task",
-          "line": 99,
+          "line": 100,
           "kind": "function",
           "parameters": [
             "value",
@@ -91233,14 +91241,14 @@
         },
         {
           "name": "invalid_plan",
-          "line": 124,
+          "line": 125,
           "kind": "function",
           "parameters": [],
           "annotations": {}
         },
         {
           "name": "checked_mode",
-          "line": 128,
+          "line": 129,
           "kind": "function",
           "parameters": [
             "value"

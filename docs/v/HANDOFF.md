@@ -16,7 +16,7 @@ uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 
 接手内核从「运行内核」「学习」「上下文」三个功能的入口查起。当前开发优先代码逻辑和提供者组装，使用已有环境和离线替身。KERNEL-EVAL 保留已采集的模型结果，另行安排真实评测。恢复、核验和评测规则见 [V2 内核合同](reference/KERNEL.md)。
 
-接手 OmniWeave 时查询 `--feature OWA`。从主会话受理、Router 的调度模式、Worker 依赖和后续邮箱与续接的任务作用域读起。[OWA 开发与交接](reference/OMNIWEAVE.md)
+接手 OmniWeave 时先读同步后的正式策划、技术规格和主设备交接提示词，再查询 `--feature OWA` 定位生产路径与回归。每批对照当前阶段的验收编号，已验证范围和剩余工作记入开发台账。[路线图](OMNIWEAVE-ROADMAP.md) · [技术规格 V1.0](architecture/OMNIWEAVE-ARCHITECTURE-SPEC-V1.0.md) · [主设备交接提示词](OMNIWEAVE-HANDOFF-PROMPT.md) · [现行实现和验证](reference/OMNIWEAVE.md)
 
 添加产品工具时查询 `--feature 能力注册`。接入传输或后端时分别查询「模型提供者」「渠道提供者」「平台提供者」。挂载、授权和关闭规则见 [V2 能力插件与组装](reference/CAPABILITY_PLUGINS.md)。
 

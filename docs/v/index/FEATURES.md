@@ -293,7 +293,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **应用服务**
 
-- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L177)
+- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L179)
 - [agent/src/omni/application/capabilities.py#CapabilityRegistry.capture](../../../agent/src/omni/application/capabilities.py#L106)
 
 **适配器与仓储**
@@ -344,7 +344,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 ## OmniWeave 主会话编排 (omniweave · V2)
 
-将所有者 Web 回合关联到 Ticket，在显式调度模式中从同一主会话规划和查询 Worker。
+将所有者 Web 回合关联到 Ticket，在启用模式中从固定的私有主会话规划和查询 Worker。
 
 **从这里读**
 
@@ -358,18 +358,19 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **应用服务**
 
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L21)
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L47)
-- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L177)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L23)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L49)
+- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L179)
+- [agent/src/omni/application/engine.py#Application._dispatch](../../../agent/src/omni/application/engine.py#L239)
 
 **适配器与仓储**
 
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L21)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L22)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0054.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0054.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0055.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py)
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L90)
-- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L237)
-- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.delegation_recover](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L365)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L102)
+- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L240)
+- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.delegation_recover](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L368)
 - [agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs](../../../agent/src/omni/adapters/persistence/lease_repository.py#L280)
 
 **组装点**

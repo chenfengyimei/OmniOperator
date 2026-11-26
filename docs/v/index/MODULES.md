@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f707d4e93d7d59b6cd9993ae4ca69035e27d9c19f6110f4059e2b097a94f11c1`。包含 65 个职责模块、926 个源码/界面文件。
+源码指纹：`2e89d829409b5b1a35b20e09999d7d0656356b30acd090a409d5ef302a93a3f1`。包含 65 个职责模块、926 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -57,7 +57,7 @@
 | [agent/src/omni/domain/model_reply.py](../../../agent/src/omni/domain/model_reply.py) | V2 | 62 | One tool-reply contract for all model transports; validation never repairs or dispatches calls. |
 | [agent/src/omni/domain/model_stream.py](../../../agent/src/omni/domain/model_stream.py) | V2 | 205 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../../agent/src/omni/domain/objects.py) | V2 | 44 | Immutable object identities and metadata constraints, independent of storage. |
-| [agent/src/omni/domain/omniweave.py](../../../agent/src/omni/domain/omniweave.py) | V2 | 131 | OmniWeave rollout modes and the canonical owner Web trigger contract. |
+| [agent/src/omni/domain/omniweave.py](../../../agent/src/omni/domain/omniweave.py) | V2 | 134 | OmniWeave rollout modes and the canonical owner Web trigger contract. |
 | [agent/src/omni/domain/people.py](../../../agent/src/omni/domain/people.py) | V2 | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
 | [agent/src/omni/domain/persona_growth.py](../../../agent/src/omni/domain/persona_growth.py) | V2 | 129 | Deterministic persona-growth rendering from approved reflection entries; no I/O. |
 | [agent/src/omni/domain/qq.py](../../../agent/src/omni/domain/qq.py) | V2 | 142 | Bounded OneBot text events and explicit conversation grants; no transport I/O. |
@@ -110,7 +110,7 @@
 | [agent/src/omni/application/android.py](../../../agent/src/omni/application/android.py) | V2 | 802 | Owner Android device grants, ephemeral observations and shared approved actions; no platform I/O. |
 | [agent/src/omni/application/background_review.py](../../../agent/src/omni/application/background_review.py) | V2 | 389 | Own one bounded post-turn reviewer per finished run; proposals stay pending until the owner decides. |
 | [agent/src/omni/application/bilibili.py](../../../agent/src/omni/application/bilibili.py) | V2 | 318 | Owner Bilibili queries and publication preparation; all sending remains in shared approvals/outbox. |
-| [agent/src/omni/application/capabilities.py](../../../agent/src/omni/application/capabilities.py) | V2 | 119 | Register capability providers and capture a deterministic per-run tool surface. |
+| [agent/src/omni/application/capabilities.py](../../../agent/src/omni/application/capabilities.py) | V2 | 129 | Register capability providers and capture a deterministic per-run tool surface. |
 | [agent/src/omni/application/clarify.py](../../../agent/src/omni/application/clarify.py) | V2 | 42 | Owner-facing clarification use cases; the model-side wait lives in the engine run coroutine. |
 | [agent/src/omni/application/configuration.py](../../../agent/src/omni/application/configuration.py) | V2 | 193 | Owner configuration use cases; import only previews and never starts an adapter. |
 | [agent/src/omni/application/context.py](../../../agent/src/omni/application/context.py) | V2 | 333 | Token-aware bounded compression; external calls never hold a transaction. |
@@ -124,7 +124,7 @@
 | [agent/src/omni/application/desktop_portal.py](../../../agent/src/omni/application/desktop_portal.py) | V2 | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/desktop_services.py](../../../agent/src/omni/application/desktop_services.py) | V2 | 18 | Group the desktop services that share the same owner view. |
 | [agent/src/omni/application/documents.py](../../../agent/src/omni/application/documents.py) | V2 | 378 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
-| [agent/src/omni/application/engine.py](../../../agent/src/omni/application/engine.py) | V2 | 1405 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
+| [agent/src/omni/application/engine.py](../../../agent/src/omni/application/engine.py) | V2 | 1444 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../../agent/src/omni/application/exchange_recovery.py) | V2 | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../../agent/src/omni/application/exchange_recovery_steps.py) | V2 | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../../agent/src/omni/application/exchange_steps.py) | V2 | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |
@@ -142,7 +142,7 @@
 | [agent/src/omni/application/model_calls.py](../../../agent/src/omni/application/model_calls.py) | V2 | 391 | One preflight, authorization and settlement path for model and compression calls. |
 | [agent/src/omni/application/model_output.py](../../../agent/src/omni/application/model_output.py) | V2 | 57 | Bounded previews owned by active model calls; durable messages remain the only completed output. |
 | [agent/src/omni/application/objects.py](../../../agent/src/omni/application/objects.py) | V2 | 140 | Object publication and access use cases; no filesystem paths or ORM objects. |
-| [agent/src/omni/application/omniweave.py](../../../agent/src/omni/application/omniweave.py) | V2 | 91 | Observe Web admissions and expose scoped planning controls to Router runs. |
+| [agent/src/omni/application/omniweave.py](../../../agent/src/omni/application/omniweave.py) | V2 | 96 | Observe Web admissions and expose scoped planning controls to Router runs. |
 | [agent/src/omni/application/operations.py](../../../agent/src/omni/application/operations.py) | V2 | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../../agent/src/omni/application/people.py) | V2 | 78 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
 | [agent/src/omni/application/persona.py](../../../agent/src/omni/application/persona.py) | V2 | 80 | Owner-only persona growth projection over the approved reflection ledger. |
@@ -244,12 +244,12 @@
 | [agent/src/omni/adapters/persistence/bilibili_repository.py](../../../agent/src/omni/adapters/persistence/bilibili_repository.py) | V2 | 365 | Immutable Bilibili form revisions and publications referencing the common delivery ledger. |
 | [agent/src/omni/adapters/persistence/clarify_repository.py](../../../agent/src/omni/adapters/persistence/clarify_repository.py) | V2 | 181 | Structured clarification requests that pause the current run for the owner and resume the same run. |
 | [agent/src/omni/adapters/persistence/configuration_repository.py](../../../agent/src/omni/adapters/persistence/configuration_repository.py) | V2 | 443 | Typed configuration revisions and Agent preferences; no connections, DDL or credentials. |
-| [agent/src/omni/adapters/persistence/context_repository.py](../../../agent/src/omni/adapters/persistence/context_repository.py) | V2 | 734 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |
+| [agent/src/omni/adapters/persistence/context_repository.py](../../../agent/src/omni/adapters/persistence/context_repository.py) | V2 | 732 | Revision-bound summaries and context provenance; all operations stay inside a short transaction. |
 | [agent/src/omni/adapters/persistence/credential_predicates.py](../../../agent/src/omni/adapters/persistence/credential_predicates.py) | V2 | 7 | One unreviewed credential authority predicate for diagnostics and retention guards. |
 | [agent/src/omni/adapters/persistence/credential_repository.py](../../../agent/src/omni/adapters/persistence/credential_repository.py) | V2 | 462 | Owner credential references, operation state and review; no native I/O or connection creation. |
 | [agent/src/omni/adapters/persistence/database.py](../../../agent/src/omni/adapters/persistence/database.py) | V2 | 190 | Bounded, single-writer database actor with isolated read connections. |
 | [agent/src/omni/adapters/persistence/delegation_authority.py](../../../agent/src/omni/adapters/persistence/delegation_authority.py) | V2 | 87 | Parent-source authority and session invalidation closure for single-level delegated runs. |
-| [agent/src/omni/adapters/persistence/delegation_repository.py](../../../agent/src/omni/adapters/persistence/delegation_repository.py) | V2 | 405 | Persist child admission, inherited authority, bounded budgets and recovery in the shared database. |
+| [agent/src/omni/adapters/persistence/delegation_repository.py](../../../agent/src/omni/adapters/persistence/delegation_repository.py) | V2 | 408 | Persist child admission, inherited authority, bounded budgets and recovery in the shared database. |
 | [agent/src/omni/adapters/persistence/delivery_predicates.py](../../../agent/src/omni/adapters/persistence/delivery_predicates.py) | V2 | 32 | Shared outbound pending/review predicates for dispatch, scheduling and maintenance queries. |
 | [agent/src/omni/adapters/persistence/delivery_repository.py](../../../agent/src/omni/adapters/persistence/delivery_repository.py) | V2 | 927 | Transactional outbound authority, FIFO ownership and immutable attempt observations. |
 | [agent/src/omni/adapters/persistence/deployed_instance.py](../../../agent/src/omni/adapters/persistence/deployed_instance.py) | V2 | 30 | Check an initialized service home without migrations or business recovery. |
@@ -335,7 +335,7 @@
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../../agent/src/omni/adapters/persistence/object_inventory.py) | V2 | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../../agent/src/omni/adapters/persistence/object_repository.py) | V2 | 211 | Object metadata, pins and real foreign-key references; never touches files. |
 | [agent/src/omni/adapters/persistence/offline_plans.py](../../../agent/src/omni/adapters/persistence/offline_plans.py) | V2 | 190 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
-| [agent/src/omni/adapters/persistence/omniweave_repository.py](../../../agent/src/omni/adapters/persistence/omniweave_repository.py) | V2 | 243 | Persist scoped OmniWeave admissions, execution plans and Worker dependencies. |
+| [agent/src/omni/adapters/persistence/omniweave_repository.py](../../../agent/src/omni/adapters/persistence/omniweave_repository.py) | V2 | 259 | Persist scoped OmniWeave admissions, execution plans and Worker dependencies. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../../agent/src/omni/adapters/persistence/operations_read.py) | V2 | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
 | [agent/src/omni/adapters/persistence/operations_repository.py](../../../agent/src/omni/adapters/persistence/operations_repository.py) | V2 | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
 | [agent/src/omni/adapters/persistence/people_repository.py](../../../agent/src/omni/adapters/persistence/people_repository.py) | V2 | 212 | People and manual account identities; personal documents reuse memory repositories. |
@@ -556,7 +556,7 @@
 | [agent/src/omni/composition/commands/maintenance.py](../../../agent/src/omni/composition/commands/maintenance.py) | V2 | 146 | Offline backup, restore, object and index maintenance. |
 | [agent/src/omni/composition/commands/operations.py](../../../agent/src/omni/composition/commands/operations.py) | V2 | 160 | Exclusive diagnostics and authenticated local diagnostic download. |
 | [agent/src/omni/composition/commands/retention.py](../../../agent/src/omni/composition/commands/retention.py) | V2 | 281 | Read, plan, apply and cancel offline retention work. |
-| [agent/src/omni/composition/features/__init__.py](../../../agent/src/omni/composition/features/__init__.py) | V2 | 151 | Install trusted features and expose their services to the tools and HTTP host. |
+| [agent/src/omni/composition/features/__init__.py](../../../agent/src/omni/composition/features/__init__.py) | V2 | 152 | Install trusted features and expose their services to the tools and HTTP host. |
 | [agent/src/omni/composition/features/action_reviews.py](../../../agent/src/omni/composition/features/action_reviews.py) | V2 | 15 | Bind review decisions to executor activity and the schedule notifier. |
 | [agent/src/omni/composition/features/android.py](../../../agent/src/omni/composition/features/android.py) | V2 | 31 | Construct the Android feature and advertise its approved tool surface. |
 | [agent/src/omni/composition/features/bilibili.py](../../../agent/src/omni/composition/features/bilibili.py) | V2 | 14 | Bind Bilibili reads and publication drafts to the shared channel provider. |
@@ -572,7 +572,7 @@
 | [agent/src/omni/composition/features/mcp.py](../../../agent/src/omni/composition/features/mcp.py) | V2 | 55 | Bind MCP authorization, transport recovery and the per-run capability provider. |
 | [agent/src/omni/composition/features/media.py](../../../agent/src/omni/composition/features/media.py) | V2 | 55 | Mount media processing, including recovery of jobs from the previous process. |
 | [agent/src/omni/composition/features/memory.py](../../../agent/src/omni/composition/features/memory.py) | V2 | 16 | Install memory indexing and organization with scoped instance dependencies. |
-| [agent/src/omni/composition/features/omniweave.py](../../../agent/src/omni/composition/features/omniweave.py) | V2 | 12 | Install the shared owner Web and Router capability service. |
+| [agent/src/omni/composition/features/omniweave.py](../../../agent/src/omni/composition/features/omniweave.py) | V2 | 14 | Install the shared owner Web and Router capability service. |
 | [agent/src/omni/composition/features/operations.py](../../../agent/src/omni/composition/features/operations.py) | V2 | 90 | Bind diagnostics, debug maintenance and runtime health to an owned service. |
 | [agent/src/omni/composition/features/people.py](../../../agent/src/omni/composition/features/people.py) | V2 | 15 | Bind person records and derived persona text to instance-owned storage. |
 | [agent/src/omni/composition/features/qq.py](../../../agent/src/omni/composition/features/qq.py) | V2 | 13 | Bind the QQ listener to the run dispatcher and the shared OneBot provider. |
@@ -581,7 +581,7 @@
 | [agent/src/omni/composition/features/terminals.py](../../../agent/src/omni/composition/features/terminals.py) | V2 | 21 | Bind terminal sessions and their review service to the same platform port. |
 | [agent/src/omni/composition/features/vision.py](../../../agent/src/omni/composition/features/vision.py) | V2 | 28 | Install visual analysis over the registered model, media and image services. |
 | [agent/src/omni/composition/http.py](../../../agent/src/omni/composition/http.py) | V2 | 228 | HTTP composition and owner bootstrap; tokens never appear in diagnostic output. |
-| [agent/src/omni/composition/instance.py](../../../agent/src/omni/composition/instance.py) | V2 | 682 | Build one isolated instance; never imports or opens the V1 runtime. |
+| [agent/src/omni/composition/instance.py](../../../agent/src/omni/composition/instance.py) | V2 | 683 | Build one isolated instance; never imports or opens the V1 runtime. |
 | [agent/src/omni/composition/lifecycle.py](../../../agent/src/omni/composition/lifecycle.py) | V2 | 164 | Own startup rollback and one shared shutdown budget; never dispatches business work. |
 | [agent/src/omni/composition/model_providers.py](../../../agent/src/omni/composition/model_providers.py) | V2 | 37 | Bind model transport ports and their instance lifetime. |
 | [agent/src/omni/composition/platform_providers.py](../../../agent/src/omni/composition/platform_providers.py) | V2 | 77 | Select the host platform's desktop and terminal bindings at startup. |

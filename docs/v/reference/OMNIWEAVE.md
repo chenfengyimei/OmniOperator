@@ -4,7 +4,7 @@
 
 2026-11-26 从 Gitee 和 GitHub 的 `v2` 回读 `d897f2867e4b0a25fe961075264854f002c1ee5b`，从该提交创建 `owa-tickets`。Windows 隔离空库的迁移头是 `v2_0053`，共 53 个修订和 151 张声明业务表，`integrity_check=ok`，`foreign_key_check` 无记录。同提交的 GitHub 全量验证 12 个作业通过，Windows 测试共 8753 项通过、10 项跳过。`1a2810ea` 的 8739 项离线通过属于更早的架构冻结。OWA 本批采用离线专项。[同提交全量基线](https://github.com/chenfengyimei/OmniOperator/actions/runs/45801704584) · [历史冻结证据](../evidence/plugin-architecture-final-2026-11-25.json)
 
-主设备检出未包含副设备策划和技术规格两份配套文件。首批使用所有者交接正文规定的 Phase 0–1 合同。
+首批按所有者发来的交接正文实现。2026-11-27，从 Gitee `owa-spec` 的 `788a7011` 同步三份正式文档到 `owa-tickets`，导入提交为 `5cd1c6a8`。后续以同步后的正式规格为准。[路线图](../OMNIWEAVE-ROADMAP.md) · [技术规格 V1.0](../architecture/OMNIWEAVE-ARCHITECTURE-SPEC-V1.0.md) · [主设备交接提示词](../OMNIWEAVE-HANDOFF-PROMPT.md)
 
 | 共用合同 | 生产入口 |
 |---|---|
@@ -33,20 +33,22 @@ Windows x64 候选 `4082ccacaa31918a22d06bdd6dbf6710e8467906` 的 40 个受影�
 
 ## Phase 2 Router 与任务依赖
 
-在隔离实例使用 `--omniweave-mode dispatch` 启用 Router。每条新受理增加一条作用域绑定的执行授权，过去的观察回执保持原决定。`observe` 记录受理，`off` 为默认配置。
+在隔离实例使用 `--omniweave-mode enabled` 启用 Router，已有 `dispatch` 选项继续可用。启用后每个 Agent 首次受理的所有者 Web 回合确定私有主会话。所有者可在既有会话内发送首条启用后的消息，也可用新会话开始。绑定从首个执行回执读取并跨重启保留。该主会话中的每条新受理增加一条作用域绑定的执行授权，其他 Web 会话沿用普通 V2 回合。`observe` 记录受理，`off` 为默认配置，重投沿用原决定。
 
 ```powershell
-uv run --no-sync omni-v2 --home .\temp\build\owa-dispatch serve --omniweave-mode dispatch
+uv run --no-sync omni-v2 --home .\temp\build\owa-enabled serve --omniweave-mode enabled
 ```
 
-- Router 在 `agent` 档可调用 `owa_plan` 提交至多四个 Worker。任务用计划内的键声明依赖。计划受理核对依赖无环、已提供的工具、可用队列容量和授权代次，在同一事务创建任务及原 V2 Run。计划回执即时返回，同一计划重投复用原 Ticket。
-- Worker 使用独立的内部 Session 和 `owa-workspaces/<run_id>`。能力由编排调用实际提供的工作区文件工具和任务声明共同限定。模型调用、预算、逐次批准、动作回执和资源清理沿用内核。前置任务失败、取消、中断或有待核查结果时，依赖任务结束。结果未知的写入进入现有动作核查。
+- Router 的能力目录和执行注册仅加载 OWA 编排提供者。`agent` 档可调用 `owa_plan` 提交至多四个 Worker，任务用计划内键声明依赖。准入核对无环、当前 Agent 策略、可信工具规格、队列容量和授权代次，在同一事务创建任务与 V2 Run。计划回执即时返回，同一计划重投复用原 Ticket。
+- Worker 使用独立的内部 Session 和 `owa-workspaces/<run_id>`。任务只可选装配时登记且当前策略允许的工作区文件工具。Worker 的上下文默认没有所有者的全局私有记忆和技能提示，新任务也不继承扩展、MCP 和技能目录。模型调用、预算、逐次批准、动作回执和资源清理沿用内核。前置任务失败、取消、中断或有待核查结果时，依赖任务结束。结果未知的写入进入现有动作核查。
 - Router 可以在原主会话继续接收新输入，并用 `owa_status` 查看本会话的 Ticket 状态和 Worker 提交的结果。现有 `/runs/{run_id}/cancel` 可取消根 Ticket，包括根 Run 已结束后仍在执行的 Worker。读 `GET /api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/tickets` 可按 `run_id` 或 `ticket_id` 查询进度。会话、Run、消息、摘要和事件的通用 Web 路径执行内部作用域检查。
-- `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。传统 `delegate_task` 和 OWA Worker 共用现有子任务容量与租约，Router 与普通回合保有独立的根回合执行容量。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
+- `v2_0055` 新建执行授权、任务和依赖三张表，数据库触发器校验 Worker 和依赖的 Ticket 绑定。Router、普通根回合和 OWA Worker 共用内核容量。默认容量为四时最多同时运行三个 OWA Worker，容量为一时串行轮转。`delegate_task` 保有既有并发额度，仍走原租约。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py) · [查询入口](../../../agent/src/omni/adapters/http_routes/omniweave.py)
 
 ### Phase 2 验收
 
 Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项 V28 历史种子碰到当时尚未建立的 Worker 表，在 `60a242df` 修正种子适配后复验 36 项全绿。两轮生产源码及依赖一致，合并去重后覆盖 379 项。已有 212 条 OpenAPI 路径的定义相同，新增一条进度查询。502 个文件的严格类型检查通过。空库、V53 和 V54 旧库副本均完成迁移核对。本批覆盖为离线专项。[Phase 2 验收证据](../evidence/owa-phase2-2026-11-26.json)
+
+正式规格对齐批 `57990c47` 在 Windows x64 的十个受影响文件中通过 109 项离线专项。包含三 Worker 阻塞时实际处理主会话、独立第四个 Worker 排队、伪造 Router 文件调用、Worker 私有记忆隔离、旧委派和重启回归。严格类型检查覆盖 502 个文件，零错误、零警告。迁移头为 `v2_0055`。[对齐批证据](../evidence/owa-spec-alignment-2026-11-27.json)
 
 ## Phase 3 续接边界
 
@@ -54,4 +56,4 @@ Windows x64 上对源码 `d40bf6b5` 跑了 43 个文件，373 项通过。一项
 
 源码 `8a422751` 的 46 项离线专项通过，覆盖跨 boot 领取、重复重启、未知调用保留、旧委派与内核检查点。迁移头为 `v2_0055`。[恢复专项证据](../evidence/owa-pre-dispatch-recovery-2026-11-26.json)
 
-接下来在 `owa_tasks` 的 Ticket 绑定上实现双向邮箱与版本化授权产物，再接主会话追加、已确认检查点的接续和 Router 在原会话交付。后续接长作业与 Watchdog、数字身体和外部事件。发布候选按实际 SHA 单独执行全量、升级回滚、真实平台和 72 小时常驻验收。
+正式规格剩余的前置开发是版本化 Worker Profile、根与执行 Mandate、每根八个执行 Ticket 的数据库限额，以及主会话的明确选定入口。随后实现同根同目标版本的持久邮箱、请求与回复、订阅和版本化授权对象，再接主会话追加、已确认检查点续接与 Router 原位交付。Phase 3 用校园助手离线场景验收。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。

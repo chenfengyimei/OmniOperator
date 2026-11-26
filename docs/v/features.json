@@ -284,7 +284,7 @@
       "Router Worker"
     ],
     "version": "V2",
-    "purpose": "将所有者 Web 回合关联到 Ticket，在显式调度模式中从同一主会话规划和查询 Worker。",
+    "purpose": "将所有者 Web 回合关联到 Ticket，在启用模式中从固定的私有主会话规划和查询 Worker。",
     "impact": "变更影响 Web 请求幂等、授权来源、主会话隔离、Worker 依赖、写入批准与取消。",
     "pages": [],
     "related": [
@@ -304,7 +304,8 @@
       "application": [
         "agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission",
         "agent/src/omni/application/omniweave.py#OmniWeaveService.invoke",
-        "agent/src/omni/application/engine.py#Application.submit_turn"
+        "agent/src/omni/application/engine.py#Application.submit_turn",
+        "agent/src/omni/application/engine.py#Application._dispatch"
       ],
       "adapters": [
         "agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe",
