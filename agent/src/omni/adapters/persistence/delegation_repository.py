@@ -20,7 +20,7 @@ from ...domain.delegation import (
     request,
     tool_hash,
 )
-from ...domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_TOOLS
+from ...domain.omniweave import OWA_PLAN, OWA_STATUS, WORKER_TASK_LIMIT, WORKER_TOOLS
 from . import schema as s
 from .context_repository import ContextRepositories
 from .delegation_authority import authorize, link, related_sessions
@@ -66,7 +66,8 @@ class DelegationRepositories(ContextRepositories):
         disabled = set(cast(list[str], cast(Record, current["value"])["disabled_tools"]))
         if parent["policy_epoch"] != current["policy_revision"] or source_tool.name in disabled:
             raise BusinessError("policy_changed", "Delegation policy changed")
-        if len(self.delegation_children(agent_id, parent_id)) >= MAX_CHILDREN:
+        child_limit = MAX_CHILDREN if worker_tools is None else WORKER_TASK_LIMIT
+        if len(self.delegation_children(agent_id, parent_id)) >= child_limit:
             raise BusinessError("delegation_child_limit", "This parent has reached its child limit")
         settings = unit.run_settings(agent_id, parent_id)
         parsed = request(value, cast(int, settings["call_reservation_micro"]))

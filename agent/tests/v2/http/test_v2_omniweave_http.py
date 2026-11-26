@@ -246,6 +246,8 @@ def _wait_tasks(client, base, receipt, expected):
 
 
 def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependencies(tmp_path):
+    extras = ("extra-a", "extra-b", "extra-c", "extra-d")
+
     class Model:
         def __init__(self):
             self.release = asyncio.Event()
@@ -261,7 +263,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
                 self.workspaces[goal] = settings["workspace"]
                 if goal == "join":
                     assert self.completed == {"alpha", "beta", "gamma"}
-                elif goal != "overflow":
+                elif goal in ("alpha", "beta", "gamma"):
                     self.waiting.add(goal)
                     if len(self.waiting) == 3:
                         self.started.set()
@@ -274,10 +276,11 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
                 plans = [json.loads(row["content"]) for row in messages if row["role"] == "tool"]
                 if len(plans) == 2:
                     assert plans[0]["ticket_id"] == plans[1]["ticket_id"]
-                    assert all(len(plan["tasks"]) == 4 for plan in plans)
+                    assert all(len(plan["tasks"]) == 8 for plan in plans)
                     return ModelReply("Work is queued", cost_micro=0)
                 tasks = [{"key": key, "goal": key} for key in ("alpha", "beta", "gamma")]
                 tasks.append({"key": "join", "goal": "join", "depends_on": ["alpha", "beta", "gamma"]})
+                tasks.extend({"key": key, "goal": key, "depends_on": ["join"]} for key in extras)
                 return ModelReply(
                     "Plan", (Invocation(f"plan-{len(plans)}", "owa_plan", {"tasks": tasks}),), cost_micro=0
                 )
@@ -306,6 +309,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         assert wait_run(client, base, root["run_id"])["state"] == "succeeded"
         assert model.started.wait(10), model.waiting
         states = {"alpha": "running", "beta": "running", "gamma": "running", "join": "queued"}
+        states.update(dict.fromkeys(extras, "queued"))
         ticket = _wait_tasks(client, base, root, states)
         child_rows = _rows(
             tmp_path,
@@ -313,7 +317,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         )
         child_runs = {run for run, _ in child_rows}
         child_sessions = {session for _, session in child_rows}
-        assert len(child_runs) == len(child_sessions) == 4
+        assert len(child_runs) == len(child_sessions) == 8
         assert {row["id"] for row in client.get(base + "/runs").json()["items"]}.isdisjoint(child_runs)
         assert {row["id"] for row in client.get(base + "/sessions").json()["items"]}.isdisjoint(child_sessions)
         assert client.get(base + f"/runs/{root['run_id']}/delegations").json() == {"items": []}
@@ -364,7 +368,7 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         _wait_tasks(client, base, overflow, {"overflow": "succeeded"})
         [(overflow_run,)] = _rows(tmp_path, "SELECT run_id FROM owa_tasks WHERE task_key='overflow'")
         child_runs.add(overflow_run)
-        assert len(set(model.workspaces.values())) == 5
+        assert len(set(model.workspaces.values())) == 9
         assert set(model.workspaces.values()) == {str(tmp_path / "owa-workspaces" / child) for child in child_runs}
 
 
@@ -376,15 +380,18 @@ def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path
             if messages[-1]["role"] == "tool":
                 replies = [row["content"] for row in messages if row["role"] == "tool"]
                 assert "dependency plan" in replies[0] and "current Agent policy" in replies[1]
-                assert "Unknown capability" in replies[2]
+                assert "Tool arguments do not match its schema" in replies[2]
+                assert "Unknown capability" in replies[3]
                 return ModelReply("No plan was admitted", cost_micro=0)
             tasks = [{"key": "ok", "goal": "task"}, {"key": "unoffered", "goal": "write", "tools": ["files_write"]}]
             cycle = [{"key": "cycle", "goal": "retry", "depends_on": ["cycle"]}]
+            overflow = [{"key": f"worker-{index}", "goal": "overflow"} for index in range(9)]
             return ModelReply(
                 "Plan",
                 (
                     Invocation("cyclic", "owa_plan", {"tasks": cycle}),
                     Invocation("denied", "owa_plan", {"tasks": tasks}),
+                    Invocation("overflow", "owa_plan", {"tasks": overflow}),
                     Invocation("forged", "files_read", {"path": "private.txt"}),
                 ),
                 cost_micro=0,

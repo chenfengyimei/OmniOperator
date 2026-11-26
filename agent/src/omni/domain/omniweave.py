@@ -8,7 +8,7 @@ from graphlib import CycleError, TopologicalSorter
 from typing import Literal, cast
 
 from .contracts import JSON, BusinessError, ToolSpec
-from .delegation import MAX_CHILDREN, TASK_PROPERTIES, request
+from .delegation import TASK_PROPERTIES, request
 
 OmniWeaveMode = Literal["off", "observe", "dispatch", "enabled"]
 OMNIWEAVE_MODES: tuple[OmniWeaveMode, ...] = ("off", "observe", "enabled", "dispatch")
@@ -16,6 +16,7 @@ OWNER_WEB_SOURCE = "owner_web"
 TRIGGER_VERSION = 1
 OBSERVE_DECISION = "observe"
 WORKER_TOOLS = ("files_list", "files_read", "files_search", "files_write", "files_patch")
+WORKER_TASK_LIMIT = 8
 WORKER_CONCURRENCY = 3
 _KEY = r"^[a-z][a-z0-9-]{0,31}$"
 _TASK_KEY: dict[str, JSON] = {"type": "string", "pattern": _KEY}
@@ -33,7 +34,7 @@ OWA_PLAN = ToolSpec(
             "tasks": {
                 "type": "array",
                 "minItems": 1,
-                "maxItems": MAX_CHILDREN,
+                "maxItems": WORKER_TASK_LIMIT,
                 "items": {
                     "type": "object",
                     "properties": {
@@ -41,7 +42,7 @@ OWA_PLAN = ToolSpec(
                         "key": _TASK_KEY,
                         "depends_on": {
                             "type": "array",
-                            "maxItems": MAX_CHILDREN - 1,
+                            "maxItems": WORKER_TASK_LIMIT - 1,
                             "uniqueItems": True,
                             "items": _TASK_KEY,
                         },
@@ -84,7 +85,7 @@ class WorkerTask:
 
 def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
     tasks = value.get("tasks")
-    if set(value) != {"tasks"} or not isinstance(tasks, list) or not 1 <= len(tasks) <= MAX_CHILDREN:
+    if set(value) != {"tasks"} or not isinstance(tasks, list) or not 1 <= len(tasks) <= WORKER_TASK_LIMIT:
         raise invalid_plan()
     result = [_checked_task(task, reservation) for task in tasks]
     graph = {task.key: task.needs for task in result}

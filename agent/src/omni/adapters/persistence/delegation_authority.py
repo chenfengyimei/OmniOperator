@@ -72,7 +72,7 @@ def authorize(repo: RepositoryBase, agent_id: str, child_id: str) -> None:
 
 
 def related_sessions(repo: RepositoryBase, agent_id: str, sessions: set[str]) -> set[str]:
-    # Depth is one and at most four children belong to a parent. Two passes
+    # Depth is one. Two passes
     # include a child's parent first, then all siblings of that same parent.
     result = set(sessions)
     for _ in range(2):
