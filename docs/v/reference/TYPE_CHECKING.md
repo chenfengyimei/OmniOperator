@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 518 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 调度链路。下方历史基线按当时的提交保留。
+当前显式清单为 519 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 调度链路。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -219,6 +219,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/persistence/migrations/versions/v0060.py` | 产物版本与订阅回执 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0061.py` | 目标版本谱系与旧授权退役 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0062.py` | 原会话交付及消息唯一回执 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0063.py` | 跨目标版本沿用与对等消息证据引用 |
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/persistence/terminal_repository.py` | 终端意图事务与不可变回执（对齐端口 Record、修订号 int 收窄、不启原生进程不存正文） |
 | `agent/src/omni/adapters/persistence/terminal_review_repository.py` | 终端 unknown 观测复核与可抹证据（对齐端口 Record、来源三元组显式、回执与原生生命周期不变、不授权重放） |
