@@ -16,6 +16,7 @@ from ..domain.omniweave import (
     PEER_TOOLS,
     WORKER_READ_TOOLS,
     WORKER_TOOLS,
+    GoalUpdate,
     OmniWeaveMode,
 )
 from ..domain.omniweave_artifacts import (
@@ -26,7 +27,7 @@ from ..domain.omniweave_artifacts import (
     checked_artifact,
 )
 from .objects import ObjectService
-from .ports import DatabasePort, Record, TurnAdmissionObserver, UnitOfWork
+from .ports import DatabasePort, Record, TurnAdmissionObserver, TurnCancellation, UnitOfWork
 
 
 @dataclass(frozen=True)
@@ -63,16 +64,20 @@ class OmniWeaveService:
 
         return {"enabled": True, "session_id": await self.database.write(select_main)}
 
-    def web_admission(self, agent_id: str, key: str, owner_token: str) -> TurnAdmissionObserver | None:
+    def web_admission(
+        self, agent_id: str, key: str, owner_token: str, goal_update: GoalUpdate | None = None
+    ) -> TurnAdmissionObserver | None:
+        if goal_update is not None and self.mode != "dispatch":
+            raise BusinessError("owa_dispatch_disabled", "Goal updates require OmniWeave dispatch", status=409)
         if self.mode == "off":
             return None
         digest = hashlib.sha256(owner_token.encode()).hexdigest()
 
-        def observe(unit: UnitOfWork, receipt: Record) -> None:
+        def observe(unit: UnitOfWork, receipt: Record) -> TurnCancellation | None:
             # A token revoked while the request waited for the writer cannot authorize a new Ticket.
             if not unit.token_valid(digest):
                 raise BusinessError("unauthenticated", "A valid owner token is required", status=401)
-            unit.omniweave_observe(
+            return unit.omniweave_observe(
                 agent_id,
                 key,
                 str(receipt["run_id"]),
@@ -80,6 +85,7 @@ class OmniWeaveService:
                 duplicate=receipt["duplicate"] is True,
                 dispatch=self.mode == "dispatch",
                 catalog=self._worker_catalog(),
+                goal_update=goal_update,
             )
 
         return observe
@@ -111,7 +117,12 @@ class OmniWeaveService:
             if router is None or router["cancelled_at"] or router["main_session_id"] != context.session_id:
                 raise BusinessError("owa_router_not_active", "Status is available from the owning main conversation")
             return unit.omniweave_ticket(
-                agent_id, context.session_id, str(arguments.get("ticket_id", "")), include_results=True
+                agent_id,
+                context.session_id,
+                str(
+                    arguments.get("ticket_id", "") or (router["root_ticket_id"] if router["goal_version"] != 1 else "")
+                ),
+                include_results=True,
             )
 
         try:
@@ -198,6 +209,11 @@ class OmniWeaveService:
         return await self.database.read(
             lambda unit: unit.omniweave_ticket(agent_id, session_id, ticket_id, run_id=run_id)
         )
+
+    async def ticket_options(self, agent_id: str, session_id: str) -> list[Record]:
+        if self.mode != "dispatch":
+            return []
+        return await self.database.read(lambda unit: unit.omniweave_ticket_options(agent_id, session_id))
 
     async def require_public_scope(self, agent_id: str, resources: Mapping[str, str]) -> None:
         if await self.database.read(

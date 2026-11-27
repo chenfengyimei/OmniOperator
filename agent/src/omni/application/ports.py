@@ -23,7 +23,7 @@ from ..domain.documents import DocumentText
 from ..domain.extensions import CapturedPackage
 from ..domain.metering import TokenEstimate
 from ..domain.objects import Blob
-from ..domain.omniweave import WorkerProfile
+from ..domain.omniweave import GoalUpdate, WorkerProfile
 from ..domain.omniweave_artifacts import ArtifactDraft
 from ..domain.qq import QQEvent
 from ..domain.recovery_authority import RecoveryAuthority
@@ -1007,6 +1007,7 @@ class UnitOfWork(Protocol):
         mode: str | None = None,
         skill_ids: tuple[str, ...] = (),
         skill_platform: str = "",
+        goal_update: GoalUpdate | None = None,
     ) -> Record: ...
     def omniweave_main_session(self, agent_id: str) -> str | None: ...
     def omniweave_select_main(self, agent_id: str, session_id: str | None) -> str: ...
@@ -1020,7 +1021,8 @@ class UnitOfWork(Protocol):
         duplicate: bool,
         dispatch: bool = False,
         catalog: Mapping[str, ToolSpec] | None = None,
-    ) -> None: ...
+        goal_update: GoalUpdate | None = None,
+    ) -> TurnCancellation | None: ...
     def omniweave_router(self, agent_id: str, run_id: str) -> Record | None: ...
     def omniweave_worker_tools(self, agent_id: str, run_id: str) -> tuple[ToolSpec, ...]: ...
     def omniweave_peer_command(self, agent_id: str, run_id: str, name: str, arguments: Record) -> Record: ...
@@ -1036,6 +1038,7 @@ class UnitOfWork(Protocol):
     def omniweave_plan(
         self, agent_id: str, run_id: str, arguments: Record, catalog: Mapping[str, ToolSpec]
     ) -> Record: ...
+    def omniweave_ticket_options(self, agent_id: str, session_id: str) -> list[Record]: ...
     def omniweave_ticket(
         self, agent_id: str, session_id: str, ticket_id: str = "", *, include_results: bool = False, run_id: str = ""
     ) -> Record: ...
@@ -1141,7 +1144,8 @@ class UnitOfWork(Protocol):
     def audit(self, agent_id: str, kind: str, operation_id: str | None, data: Record) -> str: ...
 
 
-TurnAdmissionObserver = Callable[[UnitOfWork, Record], None]
+TurnCancellation = tuple[list[str], list[str]]
+TurnAdmissionObserver = Callable[[UnitOfWork, Record], TurnCancellation | None]
 
 
 class DatabasePort(Protocol):

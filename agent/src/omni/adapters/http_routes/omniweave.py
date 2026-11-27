@@ -36,6 +36,10 @@ def omniweave_router(runtime: RuntimeLookup) -> APIRouter:
             str(agent_id), str(session_id), str(ticket_id) if ticket_id else "", str(run_id) if run_id else ""
         )
 
+    @router.get("/sessions/{session_id}/ticket-options")
+    async def ticket_options(agent_id: UUID, session_id: UUID, request: Request):
+        return {"items": await runtime(request).omniweave.ticket_options(str(agent_id), str(session_id))}
+
     @router.delete("/sessions/{session_id}/artifacts/{artifact_id}/shares/{reader_key}", status_code=204)
     async def revoke_artifact(agent_id: UUID, session_id: UUID, artifact_id: UUID, reader_key: str, request: Request):
         await runtime(request).omniweave.revoke_artifact(

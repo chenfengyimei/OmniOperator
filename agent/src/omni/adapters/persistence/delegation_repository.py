@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import cast
 
 from sqlalchemy import case, func, select, union_all, update
+from sqlalchemy.sql.selectable import CompoundSelect
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
@@ -34,6 +35,7 @@ from .context_repository import ContextRepositories
 from .delegation_authority import authorize, link, related_sessions
 from .omniweave_attempts import task_for_run
 from .omniweave_authority import mandate
+from .omniweave_goals import goal_runs
 
 
 class DelegationRepositories(ContextRepositories):
@@ -335,11 +337,18 @@ class DelegationRepositories(ContextRepositories):
         root = mandate(self, agent_id, parent_id) if execution and execution["mandate_required"] else None
         if first is None and root is None:
             return
-        children = self.delegation_children(agent_id, parent_id)
-        if root is not None:
-            limits = [([parent_id, *children], cast(int, root["budget_micro"]), cast(int, root["max_calls"]))]
+        limits: list[tuple[list[str] | CompoundSelect[tuple[str]], int, int]]
+        if root is not None and execution is not None:
+            limits = [
+                (
+                    goal_runs(agent_id, str(execution["root_ticket_id"])),
+                    cast(int, root["budget_micro"]),
+                    cast(int, root["max_calls"]),
+                )
+            ]
         else:
             assert first is not None
+            children = self.delegation_children(agent_id, parent_id)
             limits = [([parent_id, *children], cast(int, first["tree_budget_micro"]), ROOT_CALL_LIMIT)]
         if binding:
             task = task_for_run(self, agent_id, run_id) if root is not None else None

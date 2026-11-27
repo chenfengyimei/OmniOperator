@@ -7,12 +7,13 @@ from dataclasses import asdict
 from datetime import datetime, timedelta
 from typing import Literal, cast
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
-from ...application.ports import Record, UnitOfWork
+from ...application.ports import Record, TurnCancellation, UnitOfWork
 from ...domain.contracts import JSON, BusinessError, ToolSpec
 from ...domain.delegation import SUMMARY_CHARS, TREE_BUDGET, tool_hash
 from ...domain.omniweave import (
+    MAX_GOAL_VERSION,
     OBSERVE_DECISION,
     OWNER_WEB_SOURCE,
     REPLY_PEER,
@@ -21,6 +22,7 @@ from ...domain.omniweave import (
     ROOT_DEADLINE_S,
     TRIGGER_VERSION,
     WORKER_PROFILES,
+    GoalUpdate,
     checked_plan,
     goal_fingerprint,
     mandate_tool,
@@ -29,6 +31,7 @@ from ...domain.omniweave_artifacts import PUBLISH_ARTIFACT, READ_SHARED, SUBSCRI
 from . import schema as s
 from .omniweave_attempts import latest_run_id
 from .omniweave_authority import assert_mandate_action, mandate
+from .omniweave_goals import current_goal, prior_goal_blocker
 from .omniweave_mailbox import OmniWeaveMailboxRepositories, waiting_for_peer
 
 
@@ -135,10 +138,16 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
         duplicate: bool,
         dispatch: bool = False,
         catalog: Mapping[str, ToolSpec] | None = None,
-    ) -> None:
+        goal_update: GoalUpdate | None = None,
+    ) -> TurnCancellation | None:
         # Replays keep their original routing. Only explicit selections enable new Router turns.
-        if duplicate or (dispatch and self.omniweave_main_session(agent_id) != main_session_id):
-            return
+        if duplicate:
+            return None
+        selected = dispatch and self.omniweave_main_session(agent_id) == main_session_id
+        if goal_update is not None and not selected:
+            raise BusinessError("not_found", "Goal updates belong to the selected main conversation", status=404)
+        if dispatch and not selected:
+            return None
         private_session = select(s.run_delegations.c.id).where(s.run_delegations.c.child_session_id == main_session_id)
         channel_session = select(s.qq_bindings.c.id).where(s.qq_bindings.c.session_id == main_session_id)
         source = self.connection.execute(
@@ -163,7 +172,24 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             raise BusinessError("not_found", "Main Web conversation does not exist in this Agent space", status=404)
         owner_id = self._owa_owner()
         thread_id = self._owa_thread(agent_id, owner_id, main_session_id)
-        ticket = self._record(s.owa_tickets, {"thread_id": thread_id, "run_id": run_id}, agent_id)
+        unit = cast(UnitOfWork, self)
+        goal: Record = {}
+        cancellation = None
+        goal_version, goal_sha256 = 1, source.request_fingerprint
+        if goal_update is not None:
+            prior = self._owa_goal(agent_id, thread_id, goal_update)
+            prior_mandate = mandate(self, agent_id, str(prior["run_id"]))
+            goal_version = goal_update.expected_goal_version + 1
+            goal_sha256 = goal_fingerprint(
+                [prior_mandate["goal_sha256"] if prior_mandate else prior["payload_sha256"], source.request_fingerprint]
+            )
+            goal = {
+                "root_ticket_id": goal_update.ticket_id,
+                "goal_version": goal_version,
+            }
+        else:
+            prior = None
+        ticket = self._record(s.owa_tickets, {"thread_id": thread_id, "run_id": run_id, **goal}, agent_id)
         self._record(
             s.owa_triggers,
             {
@@ -176,8 +202,19 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             },
             agent_id,
         )
+        if prior is not None and goal_update is not None:
+            prior_run = str(prior["run_id"])
+            runs = [prior_run, *unit.delegation_children(agent_id, prior_run)]
+            unit.cancel(agent_id, prior_run)
+            outbound = [delivery for identity in runs for delivery in unit.delivery_cancel_run(agent_id, identity)]
+            cancellation = (outbound, runs)
+            unit.event(
+                agent_id,
+                run_id,
+                "omniweave.goal_updated",
+                {"ticket_id": goal_update.ticket_id, "goal_version": goal_version},
+            )
         if catalog is not None:
-            unit = cast(UnitOfWork, self)
             current = cast(Record, unit.settings(agent_id)["value"])
             disabled = set(cast(list[str], current["disabled_tools"]))
             self._record(
@@ -189,8 +226,8 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
                     "owner_id": owner_id,
                     "profile": "router",
                     "profile_version": 1,
-                    "goal_version": 1,
-                    "goal_sha256": source.request_fingerprint,
+                    "goal_version": goal_version,
+                    "goal_sha256": goal_sha256,
                     "policy_epoch": source.policy_epoch,
                     "history_epoch": self.connection.execute(select(s.history_identity.c.epoch)).scalar_one(),
                     "session_epoch": source.content_epoch,
@@ -207,11 +244,57 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             )
         if dispatch:
             self._record(s.owa_executions, {"ticket_id": ticket["id"], "mandate_required": True}, agent_id)
+        return cancellation
+
+    def _owa_goal(self, agent_id: str, thread_id: str, update: GoalUpdate) -> Record:
+        tickets, root = s.owa_tickets, s.owa_tickets.alias("goal_origin")
+        prior = (
+            self.connection.execute(
+                select(
+                    tickets.c.run_id,
+                    tickets.c.goal_version,
+                    s.owa_executions.c.cancelled_at,
+                    s.owa_triggers.c.payload_sha256,
+                )
+                .join(s.owa_executions, s.owa_executions.c.ticket_id == tickets.c.id)
+                .join(s.owa_triggers, s.owa_triggers.c.ticket_id == tickets.c.id)
+                .join(root, root.c.id == func.coalesce(tickets.c.root_ticket_id, tickets.c.id))
+                .join(s.runs, s.runs.c.id == root.c.run_id)
+                .join(s.messages, s.messages.c.id == s.runs.c.input_message_id)
+                .where(
+                    tickets.c.agent_id == agent_id,
+                    tickets.c.thread_id == thread_id,
+                    s.messages.c.deleted_at.is_(None),
+                    ((tickets.c.id == update.ticket_id) & tickets.c.root_ticket_id.is_(None))
+                    | (tickets.c.root_ticket_id == update.ticket_id),
+                )
+                .order_by(tickets.c.goal_version.desc())
+                .limit(1)
+            )
+            .mappings()
+            .first()
+        )
+        if prior is None:
+            raise BusinessError("not_found", "Ticket does not exist in this main conversation", status=404)
+        if prior["goal_version"] != update.expected_goal_version:
+            raise BusinessError(
+                "revision_conflict", "The Ticket goal has changed. Refresh before updating it.", status=409
+            )
+        if prior["cancelled_at"] is not None:
+            raise BusinessError("owa_ticket_cancelled", "A cancelled Ticket requires a new request", status=409)
+        if prior["goal_version"] >= MAX_GOAL_VERSION:
+            raise BusinessError("owa_goal_limit", "This Ticket has reached its goal version limit", status=409)
+        return cast(Record, dict(prior))
 
     def omniweave_router(self, agent_id: str, run_id: str) -> Record | None:
         row = (
             self.connection.execute(
-                select(s.owa_executions, s.owa_threads.c.main_session_id)
+                select(
+                    s.owa_executions,
+                    s.owa_threads.c.main_session_id,
+                    s.owa_tickets.c.goal_version,
+                    func.coalesce(s.owa_tickets.c.root_ticket_id, s.owa_tickets.c.id).label("root_ticket_id"),
+                )
                 .join(s.owa_tickets, s.owa_tickets.c.id == s.owa_executions.c.ticket_id)
                 .join(s.owa_threads, s.owa_threads.c.id == s.owa_tickets.c.thread_id)
                 .where(s.owa_tickets.c.agent_id == agent_id, s.owa_tickets.c.run_id == run_id)
@@ -231,8 +314,9 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
         tasks = checked_plan(arguments, cast(int, unit.run_settings(agent_id, run_id)["call_reservation_micro"]))
         fingerprint = goal_fingerprint(cast(list[JSON], [asdict(task) for task in tasks]))
         ticket_id, session_id = str(execution["ticket_id"]), str(execution["main_session_id"])
+        root_id = str(execution["root_ticket_id"])
         if execution["plan_sha256"] == fingerprint:
-            return self.omniweave_ticket(agent_id, session_id, ticket_id)
+            return self.omniweave_ticket(agent_id, session_id, root_id)
         if execution["plan_sha256"] is not None:
             raise BusinessError("owa_plan_conflict", "This Ticket already has a different Worker plan", status=409)
         root = mandate(self, agent_id, run_id)
@@ -336,14 +420,51 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
                     {"task_id": records[task.key]["id"], "needs_id": records[predecessor]["id"]},
                     agent_id,
                 )
-        unit.event(agent_id, run_id, "omniweave.planned", {"ticket_id": ticket_id, "task_count": len(tasks)})
-        return self.omniweave_ticket(agent_id, session_id, ticket_id)
+        unit.event(
+            agent_id,
+            run_id,
+            "omniweave.planned",
+            {"ticket_id": root_id, "task_count": len(tasks), "goal_version": execution["goal_version"]},
+        )
+        return self.omniweave_ticket(agent_id, session_id, root_id)
+
+    def omniweave_ticket_options(self, agent_id: str, session_id: str) -> list[Record]:
+        if self.omniweave_main_session(agent_id) != session_id:
+            raise BusinessError("not_found", "Ticket options belong to the selected main conversation", status=404)
+        tickets, root = s.owa_tickets, s.owa_tickets.alias("original_goal")
+        root_id = func.coalesce(tickets.c.root_ticket_id, tickets.c.id)
+        rows = self.connection.execute(
+            select(
+                root_id.label("ticket_id"),
+                tickets.c.goal_version,
+                func.substr(s.messages.c.content, 1, 80).label("title"),
+            )
+            .select_from(tickets)
+            .join(s.owa_threads, s.owa_threads.c.id == tickets.c.thread_id)
+            .join(s.owa_executions, s.owa_executions.c.ticket_id == tickets.c.id)
+            .join(root, root.c.id == root_id)
+            .join(s.runs, s.runs.c.id == root.c.run_id)
+            .join(s.messages, s.messages.c.id == s.runs.c.input_message_id)
+            .where(
+                tickets.c.agent_id == agent_id,
+                s.owa_threads.c.main_session_id == session_id,
+                s.owa_executions.c.plan_sha256.is_not(None) | (tickets.c.goal_version > 1),
+                s.owa_executions.c.cancelled_at.is_(None),
+                s.messages.c.deleted_at.is_(None),
+                current_goal(),
+            )
+            .order_by(tickets.c.created_at.desc(), tickets.c.id.desc())
+            .limit(50)
+        ).mappings()
+        return [cast(Record, dict(row)) for row in rows]
 
     def omniweave_ticket(
         self, agent_id: str, session_id: str, ticket_id: str = "", *, include_results: bool = False, run_id: str = ""
     ) -> Record:
+        tickets = s.owa_tickets
+        root_id = func.coalesce(tickets.c.root_ticket_id, tickets.c.id)
         query = (
-            select(s.owa_tickets, s.owa_executions.c.plan_sha256, s.owa_executions.c.cancelled_at)
+            select(tickets, s.owa_executions.c.plan_sha256, s.owa_executions.c.cancelled_at, root_id.label("public_id"))
             .join(s.owa_threads, s.owa_threads.c.id == s.owa_tickets.c.thread_id)
             .join(s.sessions, s.sessions.c.id == s.owa_threads.c.main_session_id)
             .outerjoin(s.owa_executions, s.owa_executions.c.ticket_id == s.owa_tickets.c.id)
@@ -351,14 +472,21 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
                 s.owa_tickets.c.agent_id == agent_id,
                 s.owa_threads.c.main_session_id == session_id,
                 s.sessions.c.deleted_at.is_(None),
+                current_goal(),
             )
         )
         if ticket_id:
-            query = query.where(s.owa_tickets.c.id == ticket_id)
+            query = query.where(root_id == ticket_id)
         elif run_id:
-            query = query.where(s.owa_tickets.c.run_id == run_id)
+            original = tickets.alias("requested_turn")
+            query = query.where(
+                root_id
+                == select(func.coalesce(original.c.root_ticket_id, original.c.id))
+                .where(original.c.agent_id == agent_id, original.c.run_id == run_id)
+                .scalar_subquery()
+            )
         else:
-            query = query.where(s.owa_executions.c.plan_sha256.is_not(None)).order_by(
+            query = query.where(s.owa_executions.c.plan_sha256.is_not(None) | (tickets.c.goal_version > 1)).order_by(
                 s.owa_tickets.c.created_at.desc(), s.owa_tickets.c.id.desc()
             )
         ticket = self.connection.execute(query.limit(1)).mappings().first()
@@ -395,8 +523,12 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
                 item["result_truncated"] = len(summary) > summary_limit or bool(result["summary_truncated"])
             tasks.append(item)
         return {
-            "ticket_id": ticket["id"],
+            "ticket_id": ticket["public_id"],
             "run_id": root_id,
+            "goal_version": ticket["goal_version"],
+            "prior_work": prior_goal_blocker(
+                self, agent_id, str(ticket["public_id"]), cast(int, ticket["goal_version"])
+            ),
             "plan_submitted": ticket["plan_sha256"] is not None,
             "cancel_requested": ticket["cancelled_at"] is not None,
             "tasks": tasks,
@@ -421,7 +553,13 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
     def omniweave_worker_gate(self, agent_id: str, run_id: str) -> Literal["legacy", "waiting", "blocked", "ready"]:
         task = (
             self.connection.execute(
-                select(s.owa_tasks.c.id, s.owa_tickets.c.run_id, s.owa_executions.c.cancelled_at)
+                select(
+                    s.owa_tasks.c.id,
+                    s.owa_tickets.c.run_id,
+                    s.owa_executions.c.cancelled_at,
+                    s.owa_tickets.c.root_ticket_id,
+                    s.owa_tickets.c.goal_version,
+                )
                 .join(s.owa_tickets, s.owa_tickets.c.id == s.owa_tasks.c.ticket_id)
                 .join(s.owa_executions, s.owa_executions.c.ticket_id == s.owa_tasks.c.ticket_id)
                 .join(s.owa_task_attempts, s.owa_task_attempts.c.task_id == s.owa_tasks.c.id)
@@ -434,6 +572,10 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             return "legacy"
         if task["cancelled_at"] is not None:
             return "blocked"
+        if task["root_ticket_id"] and prior_goal_blocker(
+            self, agent_id, str(task["root_ticket_id"]), cast(int, task["goal_version"])
+        ):
+            return "waiting"
         predecessor = s.owa_tasks.alias()
         needs = self.connection.execute(
             select(s.runs.c.id, s.runs.c.state)

@@ -40,6 +40,63 @@ def test_workbench_creates_and_reopens_the_explicit_owa_main_conversation(ui_bro
         context.close()
 
 
+@pytest.mark.parametrize("v2_server", ["omniweave"], indirect=True)
+def test_owa_composer_targets_the_chosen_ticket_and_preserves_a_conflicting_draft(ui_browser, v2_server):
+    url, token = v2_server
+    context = ui_browser.new_context()
+    try:
+        page = context.new_page()
+        connect(page, url, token)
+        agent = page.locator("#agents").input_value()
+        with httpx.Client(base_url=url, headers={"Authorization": "Bearer " + token}, timeout=10) as api:
+            base = f"/api/v1/agents/{agent}"
+            settings = api.get(base + "/settings").json()
+            config_url = base + "/configurations/" + settings["value"]["model_profile_id"]
+            profile = api.get(config_url).json()
+            assert api.put(
+                config_url,
+                json={
+                    **{k: profile[k] for k in ("name", "revision")},
+                    "enabled": True,
+                    "value": {**profile["value"], "model": "fake"},
+                },
+            ).is_success
+            page.get_by_role("button", name="创建 OWA 主会话", exact=True).click()
+            expect(page.locator("#sessions li.active")).to_have_count(1)
+            session = page.locator("#sessions li.active").get_attribute("data-id")
+            picker = page.locator("#owa-goal")
+            send = page.get_by_role("button", name="发送", exact=True)
+            for titles, title in enumerate(("校园助手", "采购助手"), start=2):
+                page.locator("#message").fill(title)
+                send.click()
+                expect(picker.locator("option")).to_have_count(titles, timeout=20000)
+            target = picker.locator("option").filter(has_text="校园助手").get_attribute("value")
+            picker.select_option(target)
+            page.locator("#message").fill("追加隐私说明")
+            observer = api.post(
+                base + "/turns",
+                json={
+                    "session_id": session,
+                    "key": "other-browser",
+                    "message": "另一窗口补充",
+                    "goal_update": {"ticket_id": target, "expected_goal_version": 1},
+                },
+            )
+            assert observer.status_code == 202, observer.text
+            with page.expect_response("**/turns") as stale:
+                send.click()
+            assert stale.value.status == 409
+            expect(page.locator("#message")).to_have_value("追加隐私说明")
+            expect(picker.locator("option:checked")).to_contain_text("校园助手」 · 第 2 版")
+            with page.expect_response("**/turns") as accepted:
+                send.click()
+            assert accepted.value.status == 202 and accepted.value.json()["session_id"] == session
+            expect(picker.locator("option:checked")).to_contain_text("校园助手」 · 第 3 版", timeout=20000)
+            expect(picker.locator("option").filter(has_text="采购助手")).to_contain_text("第 1 版")
+    finally:
+        context.close()
+
+
 def test_owner_can_create_switch_and_rename_a_space_without_copying_private_settings(ui_browser, v2_server):
     url, token = v2_server
     context = ui_browser.new_context(viewport={"width": 390, "height": 900})

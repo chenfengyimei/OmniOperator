@@ -29,7 +29,7 @@ from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS,
 from ..domain.images import model_tokens, references, zoom_part_id
 from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.model_recovery import ModelRejected
-from ..domain.omniweave import WORKER_CONCURRENCY, WORKER_INTERNAL_TOOL_NAMES
+from ..domain.omniweave import WORKER_CONCURRENCY, WORKER_INTERNAL_TOOL_NAMES, GoalUpdate
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import DISCOVER_TOOLS, REQUEST_MODE, discover, select_tools, tool_window
 from ..domain.routing import notice as route_notice
@@ -53,6 +53,7 @@ from .ports import (
     Record,
     RunCapabilityPort,
     TurnAdmissionObserver,
+    TurnCancellation,
     UnitOfWork,
 )
 from .reflections import REFLECTION, ReflectionService
@@ -187,11 +188,14 @@ class Application:
         skill_ids: tuple[str, ...] = (),
         *,
         admission_observer: TurnAdmissionObserver | None = None,
+        goal_update: GoalUpdate | None = None,
     ) -> Record:
         if self._closing or not self._ready:
             raise BusinessError("not_ready", "Application is not accepting work", status=503)
+        if goal_update is not None and admission_observer is None:
+            raise BusinessError("owa_dispatch_disabled", "Goal updates require OmniWeave dispatch", status=409)
 
-        def accept(u: UnitOfWork) -> Record:
+        def accept(u: UnitOfWork) -> tuple[Record, TurnCancellation | None]:
             receipt = u.accept_turn(
                 agent_id,
                 session_id,
@@ -202,14 +206,32 @@ class Application:
                 mode=mode,
                 skill_ids=skill_ids,
                 skill_platform=self._skills.platform if self._skills else "",
+                goal_update=goal_update,
             )
-            if admission_observer is not None:
-                admission_observer(u, receipt)
+            return receipt, admission_observer(u, receipt) if admission_observer is not None else None
+
+        async def commit() -> Record:
+            receipt, cancellation = await self._db.write(accept)
+            if cancellation is not None:
+                self._signal_cancelled_runs(*cancellation)
+            self._wake.set()
             return receipt
 
-        receipt = await self._db.write(accept)
-        self._wake.set()
-        return receipt
+        if goal_update is None:
+            return await commit()
+        # Once the transaction starts, a disconnected caller must not strand the cancelled executors.
+        admission = asyncio.create_task(commit())
+        try:
+            return await asyncio.shield(admission)
+        except asyncio.CancelledError:
+            while not admission.done():
+                try:
+                    await asyncio.wait({admission})
+                except asyncio.CancelledError:
+                    continue
+            if not admission.cancelled():
+                admission.exception()
+            raise
 
     def notify(self) -> None:
         self._wake.set()
@@ -839,7 +861,8 @@ class Application:
                 continue
         tasks = [self._active[child][1] for child in children if child in self._active]
         for task in tasks:
-            task.cancel()
+            if not task.cancelling():
+                task.cancel()
         group = asyncio.gather(*tasks, return_exceptions=True)
         while not group.done():
             try:
@@ -1325,11 +1348,14 @@ class Application:
             return u.delivery_cancel_run(agent_id, run_id), u.delegation_children(agent_id, run_id)
 
         outbound, children = await self._db.write(cancel)
+        self._signal_cancelled_runs(outbound, [run_id, *children])
+
+    def _signal_cancelled_runs(self, outbound: list[str], run_ids: list[str]) -> None:
         if self._delivery_cancellation:
             self._delivery_cancellation(outbound)
-        for identity in [run_id, *children]:
+        for identity in run_ids:
             item = self._active.get(identity)
-            if item:
+            if item and not item[1].cancelling():
                 item[1].cancel()
 
     async def remember(

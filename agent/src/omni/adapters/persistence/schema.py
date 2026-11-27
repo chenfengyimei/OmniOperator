@@ -713,10 +713,17 @@ owa_tickets = scoped(
     "owa_tickets",
     Column("thread_id", String(36), nullable=False),
     Column("run_id", String(36), nullable=False),
+    Column("root_ticket_id", String(36), ForeignKey("owa_tickets.id", ondelete="RESTRICT")),
+    Column("goal_version", Integer, nullable=False, server_default="1"),
     scoped_fk("thread_id", "owa_threads"),
     scoped_fk("run_id", "runs"),
     UniqueConstraint("run_id"),
+    CheckConstraint(
+        "(goal_version = 1 AND root_ticket_id IS NULL) OR (goal_version BETWEEN 2 AND 64 AND root_ticket_id IS NOT NULL)",
+        name="goal_lineage",
+    ),
 )
+Index("uq_owa_tickets_goal_version", owa_tickets.c.root_ticket_id, owa_tickets.c.goal_version, unique=True)
 owa_triggers = scoped(
     "owa_triggers",
     Column("ticket_id", String(36), nullable=False),

@@ -13,6 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from omni_test_support.v2.http import LocalModel
 from omni_test_support.v2.mcp_flow import wait_run
+from omni_test_support.v2.v2_action_review_helpers import review_request
 
 from omni.adapters.object_store import ObjectFiles
 from omni.adapters.persistence import schema as s
@@ -23,6 +24,7 @@ from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.primitives import SystemClock
 from omni.adapters.workers.client import WorkerClient
 from omni.composition.http import http_app
+from omni.domain.background_review import REVIEW_PROMPT
 from omni.domain.contracts import ActionResult, BusinessError, Effect, Invocation, ModelReply, Outcome
 
 
@@ -456,6 +458,192 @@ def test_router_accepts_new_input_while_three_workers_run_and_waits_for_dependen
         child_runs.add(overflow_run)
         assert len(set(model.workspaces.values())) == 9
         assert set(model.workspaces.values()) == {str(tmp_path / "owa-workspaces" / child) for child in child_runs}
+
+
+@pytest.mark.parametrize("unknown_write", [False, True])
+def test_main_goal_update_preserves_ticket_and_fences_previous_work(tmp_path, monkeypatch, unknown_write):
+    original = WorkerClient.invoke
+    observed = []
+    artifact = []
+
+    async def invoke(self, name, arguments, *, operation_id, context):
+        if name == "files_write":
+            observed.append(operation_id)
+            assert unknown_write, "A superseded approval must never reach the executor"
+            return ActionResult(Outcome.UNKNOWN, "", Effect.UNKNOWN, error_code="fixture_lost")
+        return await original(self, name, arguments, operation_id=operation_id, context=context)
+
+    monkeypatch.setattr(WorkerClient, "invoke", invoke)
+
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Original campus assistant", cost_micro=0)
+            goal = _worker_goal(messages)
+            last = messages[-1]
+            if goal == "approved write":
+                return ModelReply(
+                    "Propose write",
+                    (Invocation("write", "files_write", {"path": "old.txt", "content": "old revision"}),),
+                    cost_micro=0,
+                )
+            if goal == "publish early evidence":
+                if last["role"] == "tool":
+                    artifact.append(json.loads(last["content"])["artifact_id"])
+                    return ModelReply("Published", cost_micro=0)
+                draft = {
+                    "name": "old",
+                    "key": "old",
+                    "expected_version": 0,
+                    "readers": ["verify"],
+                    "text": "old evidence",
+                }
+                return ModelReply("Publish", (Invocation("publish", "publish_artifact", draft),), cost_micro=0)
+            if goal == "verify old evidence":
+                return ModelReply("Old verification", cost_micro=0)
+            if goal == "revision worker":
+                if last["role"] == "tool":
+                    assert "outside the authorized reader scope" in last["content"]
+                    return ModelReply("Revised verification", cost_micro=0)
+                assert "old evidence" not in str(messages)
+                return ModelReply(
+                    "Probe old reference",
+                    (Invocation("old", "read_shared", {"artifact_id": artifact[0]}),),
+                    cost_micro=0,
+                )
+            if goal == "new source":
+                return ModelReply("New scoped result", cost_micro=0)
+            if last["role"] == "tool":
+                receipt = json.loads(last["content"])
+                return ModelReply(f"Accepted goal version {receipt['goal_version']}", cost_micro=0)
+            assert last["role"] == "user"
+            assert {tool.name for tool in tools} == {"owa_plan", "owa_status"}
+            if last["content"] == "Original campus assistant":
+                tasks = [
+                    {"key": "writer", "goal": "approved write", "tools": ["files_write"]},
+                    {"key": "source", "goal": "publish early evidence", "artifact_readers": ["verify"]},
+                    {"key": "verify", "goal": "verify old evidence", "profile": "verification"},
+                ]
+            else:
+                assert last["content"].startswith("Add ")
+                assert any(row["content"] == "Original campus assistant" for row in messages)
+                tasks = [
+                    {"key": "source", "goal": "new source", "artifact_readers": ["verify"]},
+                    {"key": "verify", "goal": "revision worker", "profile": "verification"},
+                ]
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+
+    model = Model()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        url = base + "/turns"
+        root = client.post(
+            url, json={"key": "root", "session_id": session_id, "message": "Original campus assistant"}
+        ).json()
+        ticket = _wait_tasks(
+            client, base, root, {"writer": "waiting_approval", "source": "succeeded", "verify": "succeeded"}
+        )
+        options = base + f"/omniweave/sessions/{session_id}/ticket-options"
+        assert client.get(options).json()["items"] == [
+            {"ticket_id": ticket["ticket_id"], "goal_version": 1, "title": "Original campus assistant"}
+        ]
+        [approval] = client.get(base + "/approvals").json()["items"]
+        approve_url = base + f"/approvals/{approval['id']}"
+        decision = {"allowed": True, "policy_revision": approval["policy_revision"]}
+        assert ticket["goal_version"] == 1 and ticket["artifacts"][0]["artifact_id"] == artifact[0]
+        if unknown_write:
+            assert client.post(approve_url, json=decision).status_code == 200
+            _wait_tasks(client, base, root, {"writer": "failed", "source": "succeeded", "verify": "succeeded"})
+
+        update = {"ticket_id": ticket["ticket_id"], "expected_goal_version": 1}
+        data = {"session_id": session_id, "goal_update": update}
+        outside = client.post(
+            url, json={**data, "key": "outside", "session_id": str(uuid4()), "message": "Add outside"}
+        )
+        assert outside.status_code == 404
+        if not unknown_write:
+            record = Repositories._record
+
+            def fail_after_cancellation(self, table, values, agent_id=None):
+                if table is s.owa_executions:
+                    raise BusinessError("fixture_rollback", "Abort the final write", status=503)
+                return record(self, table, values, agent_id)
+
+            with monkeypatch.context() as failure:
+                failure.setattr(Repositories, "_record", fail_after_cancellation)
+                attempted = client.post(url, json={**data, "key": "rollback", "message": "Add after rollback"})
+                assert attempted.status_code == 503 and attempted.json()["error"]["code"] == "fixture_rollback"
+            assert client.get(base + "/approvals").json()["items"][0]["id"] == approval["id"]
+            assert _counts(tmp_path, "owa_tickets", "owa_triggers") == [1, 1]
+        entered = Barrier(2)
+
+        def submit(number):
+            payload = {**data, "key": f"append-{number}", "message": f"Add feature {number}"}
+            entered.wait(timeout=8)
+            return payload, client.post(url, json=payload)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            submissions = list(pool.map(submit, (1, 2)))
+        submissions.sort(key=lambda pair: pair[1].status_code)
+        (payload, accepted), (_, rejected) = submissions
+        assert accepted.status_code == 202 and rejected.status_code == 409
+        assert rejected.json()["error"]["code"] == "revision_conflict"
+        revised = accepted.json()
+        assert revised["session_id"] == session_id and revised["run_id"] != root["run_id"]
+        assert client.post(url, json=payload).json() == {**revised, "duplicate": True}
+        changed = client.post(url, json={**payload, "goal_update": {**update, "expected_goal_version": 2}})
+        assert changed.status_code == 409 and changed.json()["error"]["code"] == "idempotency_conflict"
+        assert wait_run(client, base, revised["run_id"])["state"] == "succeeded"
+        states = dict.fromkeys(("source", "verify"), "queued" if unknown_write else "succeeded")
+        current = _wait_tasks(client, base, root, states)
+        assert current["ticket_id"] == ticket["ticket_id"] and current["run_id"] == revised["run_id"]
+        assert current["goal_version"] == 2 and current["artifacts"] == []
+        assert {row["goal_version"] for row in current["tasks"]} == {2}
+        assert current["prior_work"] == ("needs_review" if unknown_write else None)
+        assert _rows(tmp_path, "SELECT root_ticket_id, goal_version FROM owa_tickets ORDER BY goal_version") == [
+            (None, 1),
+            (ticket["ticket_id"], 2),
+        ]
+        assert _counts(tmp_path, "owa_triggers", "owa_artifacts") == [2, 1]
+        assert client.get(base + "/approvals").json()["items"] == []
+        if not unknown_write:
+            stale = client.post(approve_url, json=decision)
+            assert stale.status_code == 409 and stale.json()["error"]["code"] == "approval_expired"
+            assert observed == []
+        else:
+            assert len(observed) == 1
+            review = client.get(base + f"/actions/{observed[0]}/review").json()
+            assert review["eligible"]
+        messages = client.get(base + f"/sessions/{session_id}/messages").json()["items"]
+        assert [row["content"] for row in messages if row["role"] == "user"] == [
+            "Original campus assistant",
+            payload["message"],
+        ]
+        assert messages[-1]["content"] == "Accepted goal version 2"
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        _authorize(client, tmp_path)
+        assert _wait_tasks(client, base, root, states)["goal_version"] == 2
+        if unknown_write:
+            review_url = base + f"/actions/{observed[0]}/review"
+            confirmed = client.post(review_url, json=review_request(client.get(review_url).json()))
+            assert confirmed.status_code == 200 and confirmed.json()["resolved"], confirmed.text
+            completed = _wait_tasks(client, base, root, dict.fromkeys(states, "succeeded"))
+            assert completed["prior_work"] is None and len(observed) == 1
+        assert client.post(base + f"/runs/{revised['run_id']}/cancel").json() == {"accepted": True}
+        cancelled = client.post(
+            url,
+            json={
+                **data,
+                "key": "cancelled",
+                "message": "Add after cancellation",
+                "goal_update": {**update, "expected_goal_version": 2},
+            },
+        )
+        assert cancelled.status_code == 409 and cancelled.json()["error"]["code"] == "owa_ticket_cancelled"
 
 
 def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path):

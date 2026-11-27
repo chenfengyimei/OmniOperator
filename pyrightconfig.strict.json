@@ -502,6 +502,7 @@
     "agent/src/omni/adapters/persistence/omniweave_attempts.py",
     "agent/src/omni/adapters/persistence/omniweave_mailbox.py",
     "agent/src/omni/adapters/persistence/omniweave_authority.py",
+    "agent/src/omni/adapters/persistence/omniweave_goals.py",
     "agent/src/omni/adapters/persistence/reflection_media.py",
     "agent/src/omni/adapters/persistence/reflection_repository.py",
     "agent/src/omni/application/reflections.py",

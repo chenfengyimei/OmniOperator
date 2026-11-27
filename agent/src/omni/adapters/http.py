@@ -60,6 +60,7 @@ from ..domain.capabilities import capability_report
 from ..domain.context import CONTEXT_CHARS, SUMMARY_CALLS_PER_TURN, SUMMARY_TRIGGER_MESSAGES
 from ..domain.contracts import BusinessError
 from ..domain.objects import MAX_OBJECT_BYTES
+from ..domain.omniweave import MAX_GOAL_VERSION, GoalUpdate
 from .diagnostics import bind_context
 from .http_events import PAGE_SIZE as EVENT_PAGE_SIZE
 from .http_events import EventStreams, continuation
@@ -264,6 +265,11 @@ class AgentRenameInput(AgentInput):
     revision: int = Field(ge=1, le=MAX_REVISION, strict=True)
 
 
+class GoalUpdateInput(StrictInput):
+    ticket_id: uuid.UUID
+    expected_goal_version: int = Field(ge=1, le=MAX_GOAL_VERSION, strict=True)
+
+
 class TurnInput(StrictInput):
     session_id: uuid.UUID | None = None
     key: str = Field(min_length=1, max_length=200)
@@ -271,6 +277,7 @@ class TurnInput(StrictInput):
     image_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
     mode: Literal["auto", "chat", "retrieval", "agent"] | None = None
     skill_ids: list[uuid.UUID] = Field(default_factory=cast(Callable[[], list[uuid.UUID]], list), max_length=4)
+    goal_update: GoalUpdateInput | None = None
 
 
 class ApprovalInput(StrictInput):
@@ -594,8 +601,17 @@ def create_app(
     async def turn(agent_id: uuid.UUID, data: TurnInput, request: Request):
         current = runtime(request)
         omniweave = current.feature_services.get("omniweave")
+        update = data.goal_update
+        goal = GoalUpdate(str(update.ticket_id), update.expected_goal_version) if update else None
+        if goal is not None:
+            if not isinstance(omniweave, OmniWeaveService):
+                raise BusinessError("owa_dispatch_disabled", "Goal updates require OmniWeave dispatch", status=409)
+            if data.session_id is None or not data.message.strip():
+                raise BusinessError(
+                    "owa_goal_input_required", "Goal updates need a main conversation and text", status=422
+                )
         observer = (
-            omniweave.web_admission(str(agent_id), data.key, request.headers.get("authorization", "")[7:])
+            omniweave.web_admission(str(agent_id), data.key, request.headers.get("authorization", "")[7:], goal)
             if isinstance(omniweave, OmniWeaveService)
             else None
         )
@@ -608,6 +624,7 @@ def create_app(
             data.mode,
             tuple(str(x) for x in data.skill_ids),
             admission_observer=observer,
+            goal_update=goal,
         )
 
     @router.get("/agents/{agent_id}/sessions")

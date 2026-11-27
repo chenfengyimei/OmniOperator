@@ -78,8 +78,8 @@ def test_v0052_upgrade_preserves_v0051_draft_and_enables_owner_review(tmp_path):
 
             command.upgrade(cfg, "head")
             command.upgrade(cfg, "head")
-            assert head(cfg) == "v2_0060"
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0060"
+            assert head(cfg) == "v2_0061"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0061"
             tables = set(inspect(connection).get_table_names())
             assert {
                 "reflection_media_links",

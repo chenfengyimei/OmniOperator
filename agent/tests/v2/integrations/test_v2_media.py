@@ -209,7 +209,7 @@ def test_v36_upgrade_registers_sources_and_bounds_jobs(tmp_path):
         db = Database(path, clock, ids)
         try:
             await db.write(lambda u: u.recover())
-            assert db.schema_version == "v2_0060" and len(s.metadata.tables) == 164
+            assert db.schema_version == "v2_0061" and len(s.metadata.tables) == 164
             agent, source = await _agent_and_source(db, tmp_path)
             view = await db.read(lambda u: u.media_source_get(agent, str(source["id"])))
             assert view["bvid"] == VIDEO["bvid"] and view["active_jobs"] == 0

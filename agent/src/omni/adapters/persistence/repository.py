@@ -21,6 +21,7 @@ from ...domain.contracts import (
     ToolSpec,
     check_transition,
 )
+from ...domain.omniweave import GoalUpdate
 from ...domain.run_recovery import arguments_digest
 from ...domain.verification_stop import completion_report
 from . import schema as s
@@ -236,6 +237,7 @@ class Repositories(
         mode: str | None = None,
         skill_ids: tuple[str, ...] = (),
         skill_platform: str = "",
+        goal_update: GoalUpdate | None = None,
     ) -> Record:
         if origin not in {"chat", "qq"}:
             raise BusinessError("invalid_turn_origin", "Unknown turn origin")
@@ -273,6 +275,11 @@ class Repositories(
                     **({"image_ids": images} if images else {}),
                     **({"mode": route_mode} if route_mode != "default" else {}),
                     **({"skill_ids": selected_skills} if selected_skills else {}),
+                    **(
+                        {"goal_update": [goal_update.ticket_id, goal_update.expected_goal_version]}
+                        if goal_update
+                        else {}
+                    ),
                 },
                 sort_keys=True,
             ).encode()

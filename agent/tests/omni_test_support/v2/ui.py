@@ -14,13 +14,21 @@ from playwright.sync_api import expect
 
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
-from omni.domain.contracts import ModelReply
+from omni.domain.contracts import Invocation, ModelReply
 from omni_test_support.paths import REPOSITORY_ROOT as REPOSITORY_ROOT
 
 
 class UiModel:
     async def complete(self, messages, tools, settings):
         return ModelReply("V2 test reply", cost_micro=0)
+
+
+class OwaUiModel(UiModel):
+    async def complete(self, messages, tools, settings):
+        if any(tool.name == "owa_plan" for tool in tools) and messages[-1]["role"] == "user":
+            tasks = [{"key": "research", "goal": "Inspect the request", "profile": "research"}]
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+        return await super().complete(messages, tools, settings)
 
 
 class ServerInfo(tuple):
@@ -64,10 +72,11 @@ def v2_server(tmp_path, request):
     from omni_test_support.v2.v2_delivery_helpers import FakePort
 
     credential_backend = _credential_fixture(request)
+    omniweave = getattr(request, "param", None) == "omniweave"
     app = http_app(
         tmp_path,
-        model=UiModel(),
-        omniweave_mode="enabled" if getattr(request, "param", None) == "omniweave" else "off",
+        model=OwaUiModel() if omniweave else UiModel(),
+        omniweave_mode="enabled" if omniweave else "off",
         delivery_ports={"qq": FakePort()} if getattr(request, "param", None) == "delivery" else None,
         credential_backend=credential_backend,
     )

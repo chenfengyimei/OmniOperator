@@ -24,8 +24,15 @@ WORKER_TASK_LIMIT = 8
 WORKER_CONCURRENCY = 3
 ROOT_DEADLINE_S = 24 * 60 * 60
 ROOT_CALL_LIMIT = 64
+MAX_GOAL_VERSION = 64
 _KEY = r"^[a-z][a-z0-9-]{0,31}$"
 _TASK_KEY: dict[str, JSON] = {"type": "string", "pattern": _KEY}
+
+
+@dataclass(frozen=True)
+class GoalUpdate:
+    ticket_id: str
+    expected_goal_version: int
 
 
 @dataclass(frozen=True)
