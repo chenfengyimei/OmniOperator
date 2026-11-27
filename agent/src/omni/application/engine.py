@@ -540,6 +540,12 @@ class Application:
                 eligible = select_tools(str(route["mode"]), baseline, escalate=may_promote)
                 tools = tool_window(eligible, settings["context_tokens"], exposed) if exposed is not None else eligible
         messages: list[Record] = cast(list[Record], prepared["request"])
+        if owa_worker:
+            # Peer citations keep their own authorization lifetime: re-check them
+            # against current state before the stored body reaches the model.
+            messages = list(
+                await self._db.read(lambda u: u.omniweave_sanitize_mailbox_context(agent_id, run_id, messages))
+            )
         notice = str(prepared["notice"])
         prompt = TurnPrompt.capture(messages, notice + initial_notice + todo_notice)
         next_step = int(cast(int, resumed["next_step"])) if resumed else 0

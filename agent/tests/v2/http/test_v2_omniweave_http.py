@@ -20,6 +20,8 @@ from omni.adapters.object_store import ObjectFiles
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.delegation_repository import DelegationRepositories
 from omni.adapters.persistence.lease_repository import LeaseRepositories
+from omni.adapters.persistence.omniweave_attempts import task_for_run
+from omni.adapters.persistence.omniweave_mailbox import OmniWeaveMailboxRepositories
 from omni.adapters.persistence.omniweave_repository import OmniWeaveRepositories
 from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
@@ -28,6 +30,7 @@ from omni.adapters.workers.client import WorkerClient
 from omni.composition.http import http_app
 from omni.domain.background_review import REVIEW_PROMPT
 from omni.domain.contracts import ActionResult, BusinessError, Effect, Invocation, ModelReply, Outcome
+from omni.domain.retention import body_fingerprint
 
 
 def _authorize(client, home):
@@ -2502,6 +2505,323 @@ def test_queued_peer_reference_dropped_after_recipient_revocation(tmp_path):
         )
         assert model.delivered.wait(15)
         _wait_tasks(client, base, receipt, {"keeper": "succeeded", "source": "succeeded", "asker": "succeeded"})
+
+
+@pytest.mark.parametrize("kind", ["revoked", "replaced", "erased"])
+def test_mailbox_citation_rechecked_before_consumption(tmp_path, monkeypatch, kind):
+    def _peer_goal_of(messages):
+        text = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+        if not text.startswith("OmniWeave Worker."):
+            return None
+        return json.loads(text.split("\n", 1)[1]).get("goal")
+
+    def _worker_identity(messages):
+        text = str(
+            next(
+                row["content"]
+                for row in messages
+                if row["role"] == "user" and str(row["content"]).startswith("OmniWeave Worker. Complete")
+            )
+        )
+        return json.loads(text.split("\n", 1)[1])["goal"]
+
+    class Model:
+        def __init__(self):
+            self.published = asyncio.Event()
+            self.release_bump = asyncio.Event()
+            self.delivered = Event()
+            self.bumped = Event()
+            self.stage = {"keeper": 0, "source": 0}
+
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Queued citation consumer", cost_micro=0)
+            goal = _peer_goal_of(messages)
+            last = messages[-1]
+            if goal == "seal secret":
+                step = self.stage["keeper"]
+                self.stage["keeper"] = step + 1
+                if step == 0:
+                    return ModelReply(
+                        "Seal",
+                        (
+                            Invocation(
+                                "secret",
+                                "publish_artifact",
+                                {
+                                    "name": "secret",
+                                    "key": "secret",
+                                    "expected_version": 0,
+                                    "readers": ["source", "asker"],
+                                    "text": "sealed source v1",
+                                },
+                            ),
+                        ),
+                        cost_micro=0,
+                    )
+                if step == 1 and kind == "replaced":
+                    return ModelReply(
+                        "Hold the sealed source open",
+                        (Invocation("hold", "files_write", {"path": "hold.txt", "content": "held"}),),
+                        cost_micro=0,
+                    )
+                return ModelReply("Sealed", cost_micro=0)
+            if goal == "bump version":
+                if last["role"] == "tool":
+                    return ModelReply("Requested bump", cost_micro=0)
+                return ModelReply(
+                    "Ask keeper to replace the sealed source",
+                    (
+                        Invocation(
+                            "bump",
+                            "request_peer",
+                            {
+                                "key": "bump-secret",
+                                "target": "keeper",
+                                "question": "replace the secret",
+                                "blocking": False,
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "answer the request":
+                step = self.stage["source"]
+                self.stage["source"] = step + 1
+                if step == 0:
+                    return ModelReply(
+                        "Hold",
+                        (Invocation("hold", "files_write", {"path": "hold.txt", "content": "held"}),),
+                        cost_micro=0,
+                    )
+                return ModelReply("Held for peer messages", cost_micro=0)
+            if goal == "probe citations":
+                await self.published.wait()
+                if last["role"] == "tool":
+                    return ModelReply("Asked with a live citation", cost_micro=0)
+                return ModelReply(
+                    "Ask",
+                    (
+                        Invocation(
+                            "ask",
+                            "request_peer",
+                            {
+                                "key": "ask-1",
+                                "target": "source",
+                                "question": "Does the sealed source match?",
+                                "blocking": False,
+                                "references": [{"artifact_id": secret_artifact[0], "version": 1}],
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                assert last["role"] == "user"
+                tasks = [
+                    {
+                        "key": "keeper",
+                        "goal": "seal secret",
+                        "profile": "documentation",
+                        "artifact_readers": ["source", "asker"],
+                        "max_calls": 8,
+                        **({"peers": ["bump"], "tools": ["files_write"]} if kind == "replaced" else {}),
+                    },
+                    *(
+                        [
+                            {
+                                "key": "bump",
+                                "goal": "bump version",
+                                "profile": "research",
+                                "peers": ["keeper"],
+                                "max_calls": 8,
+                            }
+                        ]
+                        if kind == "replaced"
+                        else []
+                    ),
+                    {
+                        "key": "source",
+                        "goal": "answer the request",
+                        "profile": "coding",
+                        "peers": ["asker"],
+                        "tools": ["files_write"],
+                        "max_calls": 8,
+                    },
+                    {
+                        "key": "asker",
+                        "goal": "probe citations",
+                        "profile": "research",
+                        "peers": ["source"],
+                        "max_calls": 8,
+                    },
+                ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            who = _worker_identity(messages)
+            payload = json.loads(current.split("\n", 1)[1])
+            for event in payload.get("events", []):
+                if who == "seal secret":
+                    assert event["type"] == "peer.request" and event["references"] == [], event
+                    step = self.stage["keeper"]
+                    self.stage["keeper"] = step + 1
+                    if step == 3:
+                        await self.release_bump.wait()
+                        return ModelReply(
+                            "Replace",
+                            (
+                                Invocation(
+                                    "replace",
+                                    "publish_artifact",
+                                    {
+                                        "name": "secret",
+                                        "key": "secret-v2",
+                                        "expected_version": 1,
+                                        "readers": ["source", "asker"],
+                                        "text": "sealed source v2",
+                                    },
+                                ),
+                            ),
+                            cost_micro=0,
+                        )
+                    if step == 4:
+                        return ModelReply(
+                            "Close the bump request",
+                            (
+                                Invocation(
+                                    "close",
+                                    "reply_peer",
+                                    {"request_id": event["request_id"], "answer": "replaced the sealed source"},
+                                ),
+                            ),
+                            cost_micro=0,
+                        )
+                    self.bumped.set()
+                    return ModelReply("Replaced and answered", cost_micro=0)
+                if who == "bump version":
+                    assert event["type"] == "peer.reply"
+                    return ModelReply("Bump acknowledged", cost_micro=0)
+                if who == "answer the request":
+                    assert event["type"] == "peer.request"
+                    [citation] = event["references"]
+                    assert citation["name"] == "secret" and citation["version"] == 1
+                    if last["role"] == "tool":
+                        return ModelReply("Replied with a live citation", cost_micro=0)
+                    return ModelReply(
+                        "Answer",
+                        (
+                            Invocation(
+                                "reply",
+                                "reply_peer",
+                                {
+                                    "request_id": event["request_id"],
+                                    "answer": "the sealed source matches",
+                                    "references": [{"artifact_id": secret_artifact[0], "version": 1}],
+                                },
+                            ),
+                        ),
+                        cost_micro=0,
+                    )
+                assert who == "probe citations" and event["type"] == "peer.reply", event
+                assert event["references"] == []
+                dumped = json.dumps(event, ensure_ascii=False)
+                assert secret_artifact[0] not in dumped and "sealed source v1" not in dumped
+                self.delivered.set()
+                return ModelReply("Citation dropped before consumption", cost_micro=0)
+            raise AssertionError("Unexpected worker turn")
+
+    secret_artifact: list[str] = []
+    model = Model()
+    original_complete = Model.complete
+
+    async def complete_with_capture(self, messages, tools, settings):
+        goal = _peer_goal_of(messages)
+        if goal == "seal secret" and messages[-1]["role"] == "tool" and not secret_artifact:
+            secret_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+            self.published.set()
+        return await original_complete(self, messages, tools, settings)
+
+    Model.complete = complete_with_capture
+
+    release = Event()
+    sanitize = OmniWeaveMailboxRepositories.omniweave_sanitize_mailbox_context
+
+    def gated(self, agent_id, run_id, messages):
+        task = task_for_run(self, agent_id, run_id)
+        if task is not None and task["task_key"] == "asker" and int(task["attempt_no"]) > 1:
+            assert release.wait(15), "the queued citation was never released for consumption"
+        return sanitize(self, agent_id, run_id, messages)
+
+    monkeypatch.setattr(OmniWeaveMailboxRepositories, "omniweave_sanitize_mailbox_context", gated)
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        root = client.post(
+            base + "/turns", json={"key": "cite", "session_id": session_id, "message": "Queue a cited reply"}
+        ).json()
+        for _ in range(600):
+            if secret_artifact and _rows(tmp_path, "SELECT id FROM owa_peer_requests WHERE request_key='ask-1'"):
+                break
+            time.sleep(0.025)
+        assert secret_artifact, "the sealed source was never published"
+        assert _rows(tmp_path, "SELECT id FROM owa_peer_requests WHERE request_key='ask-1'"), (
+            "the cited request was never accepted"
+        )
+        for _ in range(400):
+            pending = [item for item in client.get(base + "/approvals").json()["items"] if item["state"] == "pending"]
+            if not pending:
+                break
+            for item in pending:
+                client.post(
+                    base + f"/approvals/{item['id']}",
+                    json={"allowed": True, "policy_revision": item["policy_revision"]},
+                )
+            time.sleep(0.025)
+        enqueued = None
+        for _ in range(600):
+            enqueued = _rows(
+                tmp_path, "SELECT reply_ack_run_id FROM owa_peer_requests WHERE reply_ack_run_id IS NOT NULL"
+            )
+            if enqueued:
+                break
+            time.sleep(0.025)
+        assert enqueued, "the cited reply was never enqueued for the asker"
+        if kind == "revoked":
+            revocation = client.delete(
+                base + f"/omniweave/sessions/{session_id}/artifacts/{secret_artifact[0]}/shares/asker"
+            )
+            assert revocation.status_code == 204, revocation.text
+        elif kind == "replaced":
+            client.portal.call(model.release_bump.set)
+            assert model.bumped.wait(15)
+        else:
+            with sqlite_connection(tmp_path / "data/omni.db", read_only=False) as connection:
+                [action_id] = connection.execute("SELECT action_id FROM owa_artifacts").fetchone()
+                digest, _, _ = body_fingerprint([{"result": {"body_pruned": True, "status": "ok", "error_code": ""}}])
+                connection.execute(
+                    "UPDATE actions SET arguments='{}', result=?, result_sha256=?, body_pruned_at=? WHERE id=?",
+                    (
+                        json.dumps(
+                            {"body_pruned": True, "sha256": digest, "status": "ok", "effect": "read", "error_code": ""}
+                        ),
+                        digest,
+                        "2026-11-28T00:00:00+00:00",
+                        action_id,
+                    ),
+                )
+        release.set()
+        assert model.delivered.wait(15)
+        assert _rows(tmp_path, "SELECT reply_references FROM owa_peer_requests WHERE reply_references IS NOT NULL")
+        expected = {"keeper": "succeeded", "source": "succeeded", "asker": "succeeded"}
+        if kind == "replaced":
+            expected["bump"] = "succeeded"
+        _wait_tasks(client, base, root, expected)
 
 
 def test_artifact_versions_subscription_and_scoped_revocation_through_main_session(tmp_path, monkeypatch):
