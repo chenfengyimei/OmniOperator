@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 import uuid
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import cast
 
 from jsonschema import Draft202012Validator
@@ -123,6 +123,7 @@ class Application:
             raise ValueError("Reflection control name is reserved")
         self._delegation_enabled = delegation_enabled
         self._worker_workspace = worker_workspace
+        self._omniweave_delivery: Callable[[str, str, str, int], Awaitable[None]] | None = None
         self._background_review = background_review
         self._clarify = clarify
         self._verify_on_stop = verify_on_stop
@@ -149,6 +150,11 @@ class Application:
     def attach(self, capability: Capability) -> None:
         """Register a late-built standalone capability via the trusted bootstrap API."""
         self.attach_plugin(CapabilityPlugin(f"injected.{capability.spec.name}", (capability,)))
+
+    def attach_omniweave_delivery(self, handler: Callable[[str, str, str, int], Awaitable[None]]) -> None:
+        if self._ready:
+            raise RuntimeError("Attach the OmniWeave delivery handler before starting the dispatcher")
+        self._omniweave_delivery = handler
 
     def attach_plugin(self, plugin: CapabilityPlugin) -> None:
         if self._closing:
@@ -259,6 +265,7 @@ class Application:
         return blockers
 
     async def _dispatch(self) -> None:
+        delivery_cursor = ""
         while not self._closing:
             try:
                 if self._clock.monotonic() - self._last_probe >= 2:
@@ -268,7 +275,11 @@ class Application:
                 room = self._concurrency - (len(self._active) - len(self._child_ids))
                 if self._worker_workspace is not None:
                     await self._db.write(lambda u: u.omniweave_mailbox_tick())
-                claims = await self._db.write(lambda u: u.claim_runs(room))
+                if room > 0 and self._omniweave_delivery is not None:
+                    delivery_cursor = await self._db.write(lambda u: u.omniweave_delivery_tick(delivery_cursor))
+                claims = await self._db.write(
+                    lambda u: u.claim_runs(room, include_owa_deliveries=self._omniweave_delivery is not None)
+                )
                 if self._worker_workspace is not None:
                     worker_ceiling = min(WORKER_CONCURRENCY, max(1, self._concurrency - 1))
                     worker_room = min(room - len(claims), worker_ceiling - len(self._worker_ids))
@@ -294,6 +305,7 @@ class Application:
                             str(run["claim_token"]),
                             self._revision(run["lease_fence"]),
                             worker_workspace_id=str(run["worker_workspace_id"]) if run.get("owa_worker") else None,
+                            owa_delivery=run.get("owa_delivery") is True,
                         ),
                         name="run-" + run_id,
                     )
@@ -335,12 +347,26 @@ class Application:
                 await self._background_review.trigger(agent_id, run_id)
 
     async def _run(
-        self, agent_id: str, run_id: str, token: str, fence: int, *, worker_workspace_id: str | None = None
+        self,
+        agent_id: str,
+        run_id: str,
+        token: str,
+        fence: int,
+        *,
+        worker_workspace_id: str | None = None,
+        owa_delivery: bool = False,
     ) -> None:
         with self._observer.context(agent_id=agent_id, run_id=run_id), self._observer.span("agent.turn") as measured:
             if measured:
                 measured.result(Outcome.ERROR)
             try:
+                if owa_delivery:
+                    if self._omniweave_delivery is None:
+                        raise BusinessError("owa_dispatch_disabled", "OmniWeave delivery is unavailable")
+                    await self._omniweave_delivery(agent_id, run_id, token, fence)
+                    if measured:
+                        measured.result(Outcome.OK)
+                    return
 
                 def start(u: UnitOfWork) -> None:
                     u.start_claimed_run(agent_id, run_id, token, fence)
@@ -365,6 +391,9 @@ class Application:
             except asyncio.CancelledError:
                 if measured:
                     measured.result(Outcome.CANCELLED)
+                if owa_delivery:
+                    await self._db.write(lambda u: u.omniweave_defer_delivery(agent_id, run_id, token, fence))
+                    raise
                 await self._cancel_join_children(agent_id, run_id)
                 await self._end_error(agent_id, run_id, "cancelled", "run_cancelled")
                 raise

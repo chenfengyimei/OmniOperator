@@ -13,6 +13,45 @@ def connect(page, url, token):
     expect(page.locator("body")).to_have_attribute("data-connected", "true")
 
 
+def configure_model(api, agent):
+    base = f"/api/v1/agents/{agent}"
+    settings = api.get(base + "/settings").json()
+    config_url = base + "/configurations/" + settings["value"]["model_profile_id"]
+    profile = api.get(config_url).json()
+    assert api.put(
+        config_url,
+        json={
+            **{key: profile[key] for key in ("name", "revision")},
+            "enabled": True,
+            "value": {**profile["value"], "model": "fake"},
+        },
+    ).is_success
+    return base
+
+
+@pytest.mark.parametrize("v2_server", ["omniweave"], indirect=True)
+def test_owa_delivery_appears_in_main_session_and_downloads_scoped_artifact(ui_browser, v2_server):
+    url, token = v2_server
+    context = ui_browser.new_context()
+    try:
+        page = context.new_page()
+        connect(page, url, token)
+        with httpx.Client(base_url=url, headers={"Authorization": "Bearer " + token}, timeout=10) as api:
+            configure_model(api, page.locator("#agents").input_value())
+        page.get_by_role("button", name="创建 OWA 主会话", exact=True).click()
+        expect(page.locator("#sessions li.active")).to_have_count(1)
+        page.locator("#message").fill("交付校园助手样例")
+        page.get_by_role("button", name="发送", exact=True).click()
+        expect(page.locator("#messages")).to_contain_text("OmniWeave 交付 · 第 1 版 · 已完成", timeout=20000)
+        button = page.get_by_role("button", name="下载 campus-sample v1", exact=True)
+        with page.expect_download() as downloaded:
+            button.click()
+        assert downloaded.value.suggested_filename == "campus-sample-v1.txt"
+        assert downloaded.value.path().read_text(encoding="utf-8") == "校园助手交付样例\n"
+    finally:
+        context.close()
+
+
 @pytest.mark.parametrize("v2_server", ["omniweave"], indirect=True)
 def test_workbench_creates_and_reopens_the_explicit_owa_main_conversation(ui_browser, v2_server):
     url, token = v2_server
@@ -49,18 +88,7 @@ def test_owa_composer_targets_the_chosen_ticket_and_preserves_a_conflicting_draf
         connect(page, url, token)
         agent = page.locator("#agents").input_value()
         with httpx.Client(base_url=url, headers={"Authorization": "Bearer " + token}, timeout=10) as api:
-            base = f"/api/v1/agents/{agent}"
-            settings = api.get(base + "/settings").json()
-            config_url = base + "/configurations/" + settings["value"]["model_profile_id"]
-            profile = api.get(config_url).json()
-            assert api.put(
-                config_url,
-                json={
-                    **{k: profile[k] for k in ("name", "revision")},
-                    "enabled": True,
-                    "value": {**profile["value"], "model": "fake"},
-                },
-            ).is_success
+            base = configure_model(api, agent)
             page.get_by_role("button", name="创建 OWA 主会话", exact=True).click()
             expect(page.locator("#sessions li.active")).to_have_count(1)
             session = page.locator("#sessions li.active").get_attribute("data-id")

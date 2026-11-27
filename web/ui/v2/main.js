@@ -1059,6 +1059,28 @@ function renderMessages(items) {
       } else {
         body.textContent = m.content;
       }
+      for (const item of m.omniweave_delivery?.artifacts || []) {
+        const download = document.createElement('button');
+        download.type = 'button';
+        download.className = 'btn small';
+        download.textContent = `下载 ${item.name} v${item.version}`;
+        download.addEventListener(
+          'click',
+          wrap(async () => {
+            const file = await api(
+              `/agents/${boundAgent}/omniweave/sessions/${boundSession}/artifacts/${item.artifact_id}/content`,
+              { binary: true },
+            );
+            const href = URL.createObjectURL(file),
+              link = document.createElement('a');
+            link.href = href;
+            link.download = `${item.name}-v${item.version}.txt`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(href), 1000);
+          }),
+        );
+        body.append(download);
+      }
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
       // 参考原型：操作是头像行右侧的紧凑图标，名称走 aria-label/title

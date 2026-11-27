@@ -724,6 +724,26 @@ owa_tickets = scoped(
     ),
 )
 Index("uq_owa_tickets_goal_version", owa_tickets.c.root_ticket_id, owa_tickets.c.goal_version, unique=True)
+owa_deliveries = scoped(
+    "owa_deliveries",
+    Column("ticket_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("message_id", String(36)),
+    Column("outcome", String(12)),
+    Column("evidence", JSON(none_as_null=True)),
+    UniqueConstraint("ticket_id"),
+    UniqueConstraint("run_id"),
+    UniqueConstraint("message_id"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("message_id", "messages"),
+    CheckConstraint(
+        "(message_id IS NULL AND outcome IS NULL AND evidence IS NULL) OR "
+        "(message_id IS NOT NULL AND outcome IS NOT NULL AND outcome IN ('completed','partial','failed') "
+        "AND evidence IS NOT NULL AND json_valid(evidence) AND json_type(evidence)='object')",
+        name="receipt",
+    ),
+)
 owa_triggers = scoped(
     "owa_triggers",
     Column("ticket_id", String(36), nullable=False),

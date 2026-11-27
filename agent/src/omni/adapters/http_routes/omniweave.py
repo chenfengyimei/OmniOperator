@@ -40,6 +40,20 @@ def omniweave_router(runtime: RuntimeLookup) -> APIRouter:
     async def ticket_options(agent_id: UUID, session_id: UUID, request: Request):
         return {"items": await runtime(request).omniweave.ticket_options(str(agent_id), str(session_id))}
 
+    @router.get("/sessions/{session_id}/artifacts/{artifact_id}/content")
+    async def artifact_content(agent_id: UUID, session_id: UUID, artifact_id: UUID, request: Request):
+        row, text = await runtime(request).omniweave.owner_artifact(
+            str(agent_id), str(session_id), str(artifact_id), request.headers.get("authorization", "")[7:]
+        )
+        return Response(
+            text.encode("utf-8"),
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="{row["name"]}-v{row["version"]}.txt"',
+                "Cache-Control": "no-store",
+            },
+        )
+
     @router.delete("/sessions/{session_id}/artifacts/{artifact_id}/shares/{reader_key}", status_code=204)
     async def revoke_artifact(agent_id: UUID, session_id: UUID, artifact_id: UUID, reader_key: str, request: Request):
         await runtime(request).omniweave.revoke_artifact(

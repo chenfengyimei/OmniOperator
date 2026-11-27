@@ -18,6 +18,7 @@ from omni_test_support.v2.v2_action_review_helpers import review_request
 from omni.adapters.object_store import ObjectFiles
 from omni.adapters.persistence import schema as s
 from omni.adapters.persistence.delegation_repository import DelegationRepositories
+from omni.adapters.persistence.lease_repository import LeaseRepositories
 from omni.adapters.persistence.omniweave_repository import OmniWeaveRepositories
 from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
@@ -623,7 +624,9 @@ def test_main_goal_update_preserves_ticket_and_fences_previous_work(tmp_path, mo
             "Original campus assistant",
             payload["message"],
         ]
-        assert messages[-1]["content"] == "Accepted goal version 2"
+        assert [
+            row["content"] for row in messages if row["role"] == "assistant" and row["run_id"] == revised["run_id"]
+        ] == ["Accepted goal version 2"]
     with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
         _authorize(client, tmp_path)
         assert _wait_tasks(client, base, root, states)["goal_version"] == 2
@@ -644,6 +647,185 @@ def test_main_goal_update_preserves_ticket_and_fences_previous_work(tmp_path, mo
             },
         )
         assert cancelled.status_code == 409 and cancelled.json()["error"]["code"] == "owa_ticket_cancelled"
+
+
+@pytest.mark.parametrize("broken", ["none", "worker", "artifact", "stale", "unchecked"])
+def test_router_delivery_commits_once_in_original_session_after_restart(tmp_path, monkeypatch, broken):
+    allow_delivery = Event()
+    reading_old_delivery = Event()
+    release_old_delivery = asyncio.Event()
+    claim = LeaseRepositories.claim_runs
+    read = ObjectFiles.read
+
+    def claims(self, limit, *, include_owa_deliveries=False):
+        return claim(self, limit, include_owa_deliveries=include_owa_deliveries and allow_delivery.is_set())
+
+    async def read_blob(store, blob):
+        data = await read(store, blob)
+        if broken == "artifact" and allow_delivery.is_set() and b"campus-draft-fixture" in data:
+            raise BusinessError("object_integrity_failed", "Injected bad content", status=503)
+        if broken == "stale" and allow_delivery.is_set() and not reading_old_delivery.is_set():
+            reading_old_delivery.set()
+            await release_old_delivery.wait()
+        return data
+
+    monkeypatch.setattr(LeaseRepositories, "claim_runs", claims)
+    monkeypatch.setattr(ObjectFiles, "read", read_blob)
+    artifacts = []
+
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Prepare a campus assistant", cost_micro=0)
+            goal = _worker_goal(messages)
+            last = messages[-1]
+            if goal == "publish evidence":
+                if last["role"] == "tool":
+                    artifacts.append(json.loads(last["content"])["artifact_id"])
+                    return ModelReply("private-author-draft", cost_micro=0)
+                draft = {
+                    "key": "patch",
+                    "name": "patch",
+                    "expected_version": 0,
+                    "readers": ["verify"],
+                    "text": "campus-draft-fixture",
+                }
+                return ModelReply("Publish", (Invocation("patch", "publish_artifact", draft),), cost_micro=0)
+            if goal == "verify evidence":
+                if broken == "unchecked":
+                    return ModelReply("Claimed verification without a matching read", cost_micro=0)
+                if last["role"] == "tool":
+                    assert json.loads(last["content"])["text"] == "campus-draft-fixture"
+                    return ModelReply("private-verifier-notes", cost_micro=0)
+                return ModelReply(
+                    "Verify", (Invocation("read", "read_shared", {"artifact_id": artifacts[-1]}),), cost_micro=0
+                )
+            if goal == "document validated work":
+                return ModelReply("private-documentation-notes", cost_micro=0)
+            assert {tool.name for tool in tools} == {"owa_plan", "owa_status"}
+            if last["role"] == "tool":
+                return ModelReply("Plan accepted", cost_micro=0)
+            tasks = [
+                {"key": "code", "goal": "publish evidence", "artifact_readers": ["verify"]},
+                {
+                    "key": "verify",
+                    "goal": "verify evidence",
+                    "profile": "verification",
+                    "depends_on": ["code"],
+                    "max_calls": 1 if broken == "worker" else 3,
+                },
+                {
+                    "key": "docs",
+                    "goal": "document validated work",
+                    "profile": "documentation",
+                    "depends_on": ["verify"],
+                },
+            ]
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+
+    model = Model()
+    # Keep the delivery queued. The ordinary Router acknowledgement and Worker Runs still use production dispatch.
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session = _select_main(client, base)
+        accepted = client.post(
+            base + "/turns", json={"session_id": session, "key": "project", "message": "Prepare a campus assistant"}
+        ).json()
+        expected = (
+            {"code": "succeeded", "verify": "failed", "docs": "cancelled"}
+            if broken == "worker"
+            else dict.fromkeys(("code", "verify", "docs"), "succeeded")
+        )
+        root = _wait_tasks(client, base, accepted, expected)
+        deadline = time.monotonic() + 12
+        while (
+            not (pending := _rows(tmp_path, "SELECT run_id, message_id FROM owa_deliveries"))
+            and time.monotonic() < deadline
+        ):
+            time.sleep(0.05)
+        [(delivery_run, pending_message)] = pending
+        assert pending_message is None
+        assert _rows(tmp_path, "SELECT state FROM runs WHERE id=?", (delivery_run,)) == [("queued",)]
+        if broken == "stale":
+            allow_delivery.set()
+            assert reading_old_delivery.wait(10)
+            try:
+                revised = client.post(
+                    base + "/turns",
+                    json={
+                        "session_id": session,
+                        "key": "revise-during-delivery",
+                        "message": "Prepare a revised campus assistant",
+                        "goal_update": {"ticket_id": root["ticket_id"], "expected_goal_version": 1},
+                    },
+                )
+                assert revised.status_code == 202, revised.text
+            finally:
+                client.portal.call(release_old_delivery.set)
+            assert wait_run(client, base, delivery_run, states=("cancelled",))["state"] == "cancelled"
+            deadline = time.monotonic() + 22
+            while time.monotonic() < deadline:
+                ticket = client.get(_ticket_url(base, accepted), params={"run_id": accepted["run_id"]}).json()
+                if ticket["delivery"]:
+                    break
+                time.sleep(0.05)
+            assert ticket["goal_version"] == 2 and ticket["ticket_id"] == root["ticket_id"]
+            assert ticket["delivery"]["outcome"] == "completed" and ticket["delivery"]["run_id"] != delivery_run
+            assert _rows(tmp_path, "SELECT count(*) FROM messages WHERE run_id=?", (delivery_run,)) == [(0,)]
+            old_url = base + f"/omniweave/sessions/{session}/artifacts/{artifacts[0]}/content"
+            assert client.get(old_url).status_code == 404
+            return
+    allow_delivery.set()
+    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="off")) as client:
+        _authorize(client, tmp_path)
+        assert client.get(base + f"/runs/{delivery_run}").json()["state"] == "queued"
+        control = client.post(
+            base + "/turns", json={"session_id": session, "key": "normal-chat", "message": "Ordinary off-mode turn"}
+        ).json()
+        assert wait_run(client, base, control["run_id"])["state"] == "succeeded"
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        _authorize(client, tmp_path)
+        assert wait_run(client, base, delivery_run)["state"] == "succeeded"
+        ticket = _wait_tasks(client, base, accepted, expected)
+        outcome = "completed" if broken == "none" else "partial"
+        delivery = ticket["delivery"]
+        assert delivery["outcome"] == outcome and delivery["run_id"] == delivery_run
+        item_url = base + f"/omniweave/sessions/{session}/artifacts/{artifacts[0]}/content"
+        messages = client.get(base + f"/sessions/{session}/messages").json()["items"]
+        [published] = [row for row in messages if row["id"] == delivery["message_id"]]
+        assert published["session_id"] == session and "OmniWeave 交付" in published["content"]
+        assert "private-" not in published["content"]
+        assert [row["content"] for row in messages if row["role"] == "user"] == [
+            "Prepare a campus assistant",
+            "Ordinary off-mode turn",
+        ]
+        if broken == "artifact":
+            assert published["omniweave_delivery"]["artifacts"] == [] and "无法核对存储内容" in published["content"]
+            assert client.get(item_url).status_code == 503
+        else:
+            assert published["omniweave_delivery"]["artifacts"][0]["artifact_id"] == artifacts[0]
+            assert client.get(item_url).content == b"campus-draft-fixture"
+        assert client.get(item_url.replace(session, str(uuid4()))).status_code == 404
+        assert client.get(item_url, headers={"Authorization": ""}).status_code == 401
+        assert _rows(tmp_path, "SELECT id FROM model_calls WHERE run_id=?", (delivery_run,)) == []
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        _authorize(client, tmp_path)
+        assert _wait_tasks(client, base, accepted, expected)["delivery"] == delivery
+        assert _counts(tmp_path, "owa_deliveries") == [1]
+        assert _rows(tmp_path, "SELECT count(*) FROM messages WHERE run_id=?", (delivery_run,)) == [(1,)]
+        if broken == "none":
+            path = base + f"/sessions/{session}/messages"
+            [origin] = [
+                row
+                for row in client.get(path).json()["items"]
+                if row["run_id"] == accepted["run_id"] and row["role"] == "user"
+            ]
+            assert client.delete(base + f"/messages/{origin['id']}").json() == {"erased": True}
+            assert all("omniweave_delivery" not in row for row in client.get(path).json()["items"])
+            assert client.get(item_url).status_code == 404
 
 
 def test_router_rejects_cyclic_and_unauthorized_worker_plans_atomically(tmp_path):

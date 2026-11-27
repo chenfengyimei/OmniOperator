@@ -64,6 +64,7 @@ from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_services import MemoryServices
 from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
+from ..application.omniweave import OmniWeaveService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService, PeopleServices
 from ..application.persona import PersonaGrowthService
@@ -580,6 +581,10 @@ async def open_instance(
         qq = kernel_features.require("qq", QQService)
         action_reviews = kernel_features.require("action-reviews", ActionReviewService)
         operations = kernel_features.require("system", OperationsService)
+        if omniweave_mode == "dispatch":
+            application.attach_omniweave_delivery(
+                kernel_features.require("omniweave", OmniWeaveService).finish_delivery
+            )
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
         for provider in (*features.providers, *workflow_features.providers, *kernel_features.providers):

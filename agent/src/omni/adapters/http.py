@@ -633,7 +633,13 @@ def create_app(
 
     @router.get("/agents/{agent_id}/sessions/{session_id}/messages")
     async def messages(agent_id: uuid.UUID, session_id: uuid.UUID, request: Request):
-        return {"items": await runtime(request).application.messages(str(agent_id), str(session_id))}
+        current = runtime(request)
+        agent, session = str(agent_id), str(session_id)
+        rows = await current.application.messages(agent, session)
+        omniweave = current.feature_services.get("omniweave")
+        if isinstance(omniweave, OmniWeaveService):
+            rows = await omniweave.delivery_links(agent, session, rows)
+        return {"items": rows}
 
     @router.get("/agents/{agent_id}/sessions/{session_id}/todos")
     async def session_todos(agent_id: uuid.UUID, session_id: uuid.UUID, request: Request):

@@ -31,11 +31,12 @@ from ...domain.omniweave_artifacts import PUBLISH_ARTIFACT, READ_SHARED, SUBSCRI
 from . import schema as s
 from .omniweave_attempts import latest_run_id
 from .omniweave_authority import assert_mandate_action, mandate
+from .omniweave_delivery import OmniWeaveDeliveryRepositories
 from .omniweave_goals import current_goal, prior_goal_blocker
-from .omniweave_mailbox import OmniWeaveMailboxRepositories, waiting_for_peer
+from .omniweave_mailbox import waiting_for_peer
 
 
-class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
+class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
     def omniweave_assert_model_tools(self, agent_id: str, run_id: str, tools: Sequence[ToolSpec]) -> None:
         captured = mandate(self, agent_id, run_id)
         if captured is None or captured["task_id"] is None:
@@ -493,6 +494,15 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
         if not ticket:
             raise BusinessError("not_found", "Ticket does not exist in this main conversation", status=404)
 
+        delivery = (
+            self.connection.execute(
+                select(s.owa_deliveries.c.run_id, s.owa_deliveries.c.message_id, s.owa_deliveries.c.outcome)
+                .join(s.messages, s.messages.c.id == s.owa_deliveries.c.message_id)
+                .where(s.owa_deliveries.c.ticket_id == ticket["id"], s.messages.c.deleted_at.is_(None))
+            )
+            .mappings()
+            .first()
+        )
         root_id = str(ticket["run_id"])
         unit = cast(UnitOfWork, self)
         rows = self.connection.execute(
@@ -531,6 +541,7 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             ),
             "plan_submitted": ticket["plan_sha256"] is not None,
             "cancel_requested": ticket["cancelled_at"] is not None,
+            "delivery": cast(Record, dict(delivery)) if delivery is not None else None,
             "tasks": tasks,
             "artifacts": self._owa_public_artifacts(agent_id, str(ticket["id"])),
         }
@@ -607,3 +618,14 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             )
             .values(cancelled_at=self.clock.now())
         )
+        pending = self.connection.execute(
+            select(s.owa_deliveries.c.run_id)
+            .join(s.owa_tickets, s.owa_tickets.c.id == s.owa_deliveries.c.ticket_id)
+            .where(
+                s.owa_deliveries.c.agent_id == agent_id,
+                s.owa_tickets.c.run_id == run_id,
+                s.owa_deliveries.c.message_id.is_(None),
+            )
+        ).scalar_one_or_none()
+        if pending:
+            cast(UnitOfWork, self).cancel(agent_id, pending)

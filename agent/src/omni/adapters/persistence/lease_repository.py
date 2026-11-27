@@ -252,10 +252,12 @@ class LeaseRepositories(RepositoryBase):
         earlier = self.connection.execute(
             select(s.runs.c.id)
             .join(s.messages, s.messages.c.id == s.runs.c.input_message_id)
+            .join(s.work_items, (s.work_items.c.run_id == s.runs.c.id) & (s.work_items.c.kind == "turn"))
             .where(
                 s.runs.c.session_id == run["session_id"],
                 s.runs.c.state.in_(LIVE),
                 s.messages.c.seq < message["seq"],
+                (s.runs.c.state != "queued") | func.json_extract(s.work_items.c.payload, "$.owa_delivery").is_not(True),
             )
             .limit(1)
         ).first()
@@ -275,9 +277,15 @@ class LeaseRepositories(RepositoryBase):
                 attempt=cast(int, work["attempt"]) + 1,
             )
         )
-        return {**run, "claim_token": lease["token"], "lease_fence": lease["fence"]}
+        payload = work["payload"]
+        return {
+            **run,
+            "claim_token": lease["token"],
+            "lease_fence": lease["fence"],
+            "owa_delivery": isinstance(payload, dict) and payload.get("owa_delivery") is True,
+        }
 
-    def claim_runs(self, limit: int) -> list[Record]:
+    def claim_runs(self, limit: int, *, include_owa_deliveries: bool = False) -> list[Record]:
         result: list[Record] = []
         rows = self.connection.execute(
             select(s.work_items.c.agent_id, s.work_items.c.run_id)
@@ -291,6 +299,11 @@ class LeaseRepositories(RepositoryBase):
                 s.work_items.c.state == "pending",
                 s.agents.c.enabled.is_(True),
                 s.runs.c.parent_id.is_(None),
+                *(
+                    ()
+                    if include_owa_deliveries
+                    else (func.json_extract(s.work_items.c.payload, "$.owa_delivery").is_not(True),)
+                ),
             )
             .order_by(s.work_items.c.queue_sequence)
             .limit(64)

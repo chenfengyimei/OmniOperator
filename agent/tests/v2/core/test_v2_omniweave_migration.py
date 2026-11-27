@@ -22,11 +22,11 @@ from omni.adapters.primitives import SystemClock, UUIDs
 
 async def _verify_current_schema(database):
     script = ScriptDirectory.from_config(configuration())
-    assert script.get_heads() == ["v2_0061"] and len(list(script.walk_revisions())) == 61
-    assert database.schema_version == "v2_0061"
+    assert script.get_heads() == ["v2_0062"] and len(list(script.walk_revisions())) == 62
+    assert database.schema_version == "v2_0062"
     integrity = await database.integrity()
     assert integrity["integrity"] == "ok" and integrity["foreign_keys"] == 0
-    assert len(s.metadata.tables) == 164
+    assert len(s.metadata.tables) == 165
     assert {
         "owa_threads",
         "owa_tickets",
@@ -41,10 +41,11 @@ async def _verify_current_schema(database):
         "owa_artifact_links",
         "owa_artifacts",
         "owa_artifact_grants",
+        "owa_deliveries",
     } <= set(integrity["tables"])
 
 
-@pytest.mark.parametrize("revision", [f"v2_{number:04}" for number in range(53, 61)])
+@pytest.mark.parametrize("revision", [f"v2_{number:04}" for number in range(53, 62)])
 def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_path, revision):
     has_main, has_mandate = revision >= "v2_0057", revision >= "v2_0058"
     original = tmp_path / "old.db"
@@ -139,6 +140,7 @@ def test_upgrade_of_old_test_copy_preserves_admission_and_verified_backup(tmp_pa
                     "owa_task_attempts",
                     "owa_peer_links",
                     "owa_peer_requests",
+                    "owa_deliveries",
                     *uncreated,
                 ):
                     assert migrated.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)

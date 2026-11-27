@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
+from ..domain.objects import Blob
 from ..domain.omniweave import (
     OWA_PLAN,
     OWA_STATUS,
@@ -18,6 +19,7 @@ from ..domain.omniweave import (
     WORKER_TOOLS,
     GoalUpdate,
     OmniWeaveMode,
+    goal_fingerprint,
 )
 from ..domain.omniweave_artifacts import (
     ARTIFACT_TOOLS,
@@ -181,6 +183,10 @@ class OmniWeaveService:
         row, data = await self.objects.read_linked(
             lambda unit: unit.omniweave_artifact_read(agent_id, run_id, artifact_id)
         )
+        return {**{key: item for key, item in row.items() if key != "agent_id"}, "text": self._artifact_text(data)}
+
+    @staticmethod
+    def _artifact_text(data: bytes) -> str:
         try:
             value: object = json.loads(data)
         except (ValueError, UnicodeError) as exc:
@@ -189,7 +195,33 @@ class OmniWeaveService:
         text = payload.get("text")
         if payload.get("format") != "owa-text-v1" or not isinstance(text, str):
             raise BusinessError("object_integrity_failed", "Stored artifact envelope is invalid", status=503)
-        return {**{key: item for key, item in row.items() if key != "agent_id"}, "text": text}
+        return text
+
+    async def owner_artifact(
+        self, agent_id: str, session_id: str, artifact_id: str, owner_token: str
+    ) -> tuple[Record, str]:
+        digest = hashlib.sha256(owner_token.encode()).hexdigest()
+
+        def authorize(unit: UnitOfWork) -> Record:
+            if not unit.token_valid(digest):
+                raise BusinessError("unauthenticated", "A valid owner token is required", status=401)
+            return unit.omniweave_owner_artifact(agent_id, session_id, artifact_id)
+
+        row, data = await self.objects.read_linked(authorize)
+        return row, self._artifact_text(data)
+
+    async def delivery_links(self, agent_id: str, session_id: str, rows: list[Record]) -> list[Record]:
+        if self.mode == "off":
+            return rows
+        receipts = await self.database.read(
+            lambda unit: unit.omniweave_delivery_links(
+                agent_id, session_id, [str(row["id"]) for row in rows if row["role"] == "assistant"]
+            )
+        )
+        return [
+            {**row, "omniweave_delivery": receipts[str(row["id"])]} if str(row["id"]) in receipts else row
+            for row in rows
+        ]
 
     async def revoke_artifact(
         self, agent_id: str, session_id: str, artifact_id: str, reader: str, owner_token: str
@@ -214,6 +246,30 @@ class OmniWeaveService:
         if self.mode != "dispatch":
             return []
         return await self.database.read(lambda unit: unit.omniweave_ticket_options(agent_id, session_id))
+
+    async def finish_delivery(self, agent_id: str, run_id: str, token: str, fence: int) -> None:
+        manifest = await self.database.read(
+            lambda unit: unit.omniweave_delivery_manifest(agent_id, run_id, token, fence)
+        )
+        missing: set[str] = set()
+        if manifest is not None:
+            for artifact in cast(list[Record], manifest["artifacts"]):
+                try:
+                    await self.objects.verify_linked_blob(
+                        Blob(agent_id, str(artifact["sha256"]), cast(int, artifact["bytes"]))
+                    )
+                except (BusinessError, OSError):
+                    missing.add(str(artifact["artifact_id"]))
+        await self.database.write(
+            lambda unit: unit.omniweave_finish_delivery(
+                agent_id,
+                run_id,
+                token,
+                fence,
+                goal_fingerprint(manifest) if manifest is not None else "",
+                frozenset(missing),
+            )
+        )
 
     async def require_public_scope(self, agent_id: str, resources: Mapping[str, str]) -> None:
         if await self.database.read(

@@ -342,16 +342,13 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
                 agent_id, "omniweave.artifact_share_revoked", None, {"artifact_id": artifact_id, "grant_id": row["id"]}
             )
 
-    def _owa_public_artifacts(self, agent_id: str, ticket_id: str) -> list[JSON]:
-        published = (
-            self.connection.execute(
-                select(_artifacts, latest_run_id(_artifacts.c.producer_id).label("current_run"))
-                .where(_artifacts.c.agent_id == agent_id, _artifacts.c.ticket_id == ticket_id, _current_version())
-                .order_by(_artifacts.c.created_at, _artifacts.c.id)
-            )
-            .mappings()
-            .all()
+    def _owa_public_artifacts(self, agent_id: str, ticket_id: str, artifact_id: str = "") -> list[JSON]:
+        query = select(_artifacts, latest_run_id(_artifacts.c.producer_id).label("current_run")).where(
+            _artifacts.c.agent_id == agent_id, _artifacts.c.ticket_id == ticket_id, _current_version()
         )
+        if artifact_id:
+            query = query.where(_artifacts.c.id == artifact_id)
+        published = self.connection.execute(query.order_by(_artifacts.c.created_at, _artifacts.c.id)).mappings().all()
         result: list[JSON] = []
         for row in published:
             run_id = row["current_run"]

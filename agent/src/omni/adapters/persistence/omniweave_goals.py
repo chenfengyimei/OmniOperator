@@ -44,7 +44,12 @@ def prior_goal_blocker(
 ) -> Literal["draining", "needs_review"] | None:
     if version == 1:
         return None
-    family = goal_runs(agent_id, root_ticket_id, before_version=version)
+    return goal_blocker(repo, goal_runs(agent_id, root_ticket_id, before_version=version))
+
+
+def goal_blocker(
+    repo: RepositoryBase, family: CompoundSelect[tuple[str]]
+) -> Literal["draining", "needs_review"] | None:
     draining = (
         select(s.runs.c.id).where(s.runs.c.id.in_(family), s.runs.c.state.not_in(TERMINAL_RUNS)).exists(),
         select(s.leases.c.resource).where(s.leases.c.run_id.in_(family), s.leases.c.state == "held").exists(),

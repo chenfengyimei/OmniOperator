@@ -25,9 +25,30 @@ class UiModel:
 
 class OwaUiModel(UiModel):
     async def complete(self, messages, tools, settings):
-        if any(tool.name == "owa_plan" for tool in tools) and messages[-1]["role"] == "user":
+        offers = {tool.name for tool in tools}
+        last = messages[-1]
+        if "owa_plan" in offers and last["role"] == "user":
             tasks = [{"key": "research", "goal": "Inspect the request", "profile": "research"}]
+            if last["content"] == "交付校园助手样例":
+                tasks = [
+                    {"key": "author", "goal": "Publish demonstration", "artifact_readers": ["research"]},
+                    {
+                        "key": "research",
+                        "goal": "Inspect demonstration",
+                        "profile": "research",
+                        "depends_on": ["author"],
+                    },
+                ]
             return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+        if "publish_artifact" in offers and last["role"] == "user":
+            draft = {
+                "name": "campus-sample",
+                "key": "sample",
+                "expected_version": 0,
+                "readers": ["research"],
+                "text": "校园助手交付样例\n",
+            }
+            return ModelReply("Publish", (Invocation("sample", "publish_artifact", draft),), cost_micro=0)
         return await super().complete(messages, tools, settings)
 
 

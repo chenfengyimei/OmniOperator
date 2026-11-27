@@ -129,6 +129,9 @@ class ObjectService:
 
         return await self._execute(perform)
 
+    async def verify_linked_blob(self, blob: Blob) -> None:
+        await self._execute(lambda: self._files.read(blob))
+
     async def captures(self, agent_id: str, session_id: str, after: str = "", limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.capture_page(agent_id, session_id, after, limit))
         items: list[JSON] = list(rows)
