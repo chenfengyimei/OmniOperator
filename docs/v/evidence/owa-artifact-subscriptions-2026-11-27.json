@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-27",
+  "branch": "owa-tickets",
+  "source_sha": "b6a260886993eab23350f6ede33411a86860b0c2",
+  "initial_source_sha": "f1b9a26138b4ef294cf0b42c2d898182ac4f8d82",
+  "platform": "Windows x64",
+  "alembic_previous_head": "v2_0059",
+  "alembic_head": "v2_0060",
+  "metadata_tables": 164,
+  "strict_files": 514,
+  "strict_errors": 0,
+  "strict_warnings": 0,
+  "unique_passing_cases_across_scopes": 157,
+  "full_suite": false,
+  "github_ci_dispatched": false,
+  "command_prefix": "uv run --no-sync pytest -q -n 0 --tb=short",
+  "production_scope": {
+    "source": "f1b9a261",
+    "files": [
+      "agent/tests/v2/http/test_v2_omniweave_http.py",
+      "agent/tests/v2/core/test_v2_omniweave_migration.py",
+      "agent/tests/v2/core/test_v2_architecture.py",
+      "agent/tests/v2/core/test_v2_objects.py",
+      "agent/tests/v2/core/test_v2_delegation.py"
+    ],
+    "passed": 82,
+    "failed": 0,
+    "elapsed_s": 309.62,
+    "local_junit": "temp/build/owa-phase3/artifacts-f1b9a261.xml",
+    "junit_sha256": "bec1548af9290983825e856c910aab91ca8a1fcd77bc57d56803efbca984df2a"
+  },
+  "historical_migrations": {
+    "source": "f1b9a261",
+    "scope": "Changed test files under agent/tests/v2/core, agent/tests/v2/integrations and agent/tests/v2/platforms, excluding OWA migration and desktop capture which were run separately.",
+    "selection": "migration or upgrade or adds or rebuild",
+    "passed": 58,
+    "failed": 1,
+    "deselected": 44,
+    "elapsed_s": 112.43,
+    "failure_and_repair": "The V49 image seed registered an ordinary object before owa_artifacts existed. The final candidate counts OWA artifact references for OWA-owned objects only and passes the failed node.",
+    "local_junit": "temp/build/owa-phase3/artifact-migrations-f1b9a261.xml",
+    "junit_sha256": "2af50058d8d3af86cc0d12475c44a509c5f59c6b1689b5da93f37d8de2b010e1"
+  },
+  "linked_captures": {
+    "source": "f1b9a261",
+    "files": ["agent/tests/v2/platforms/common/test_v2_desktop_capture.py", "agent/tests/v2/http/test_v2_android_http.py"],
+    "selection": "capture",
+    "passed": 16,
+    "failed": 0,
+    "elapsed_s": 27.98,
+    "local_junit": "temp/build/owa-phase3/linked-captures-f1b9a261.xml",
+    "junit_sha256": "d83286f6080577997e62835c58a7e7357de53a1f6e655f40755d692a0d91eed3"
+  },
+  "candidate_regression": {
+    "source": "b6a26088",
+    "scope": "Object storage suite, historical V50 tool-image upgrade, OWA publication/subscription/revocation integration, desktop capture schema snapshot restore.",
+    "passed": 20,
+    "failed": 0,
+    "elapsed_s": 63.73,
+    "local_junit": "temp/build/owa-phase3/artifact-compat-b6a26088.xml",
+    "junit_sha256": "9b96d3084866f2ee4e0d4e51661d3ab4732779a521440dd1ebb716f9ebbab6aa"
+  },
+  "verified_contracts": [
+    "The production Router records directed reader grants. Publication refuses ungranted readers, deduplicates retries, rejects mismatched idempotency keys and checks version CAS.",
+    "The verifier gets one notice for the newest version. Unsubscribing after publication invalidates older unacknowledged notices, and restart does not duplicate delivery.",
+    "The old version is retained in storage but is no longer accepted by read_shared. The valid reader initially sees the current bytes.",
+    "Owner revocation during physical read makes the post-read authorization reject the content. The other reader grant persists.",
+    "The wrong main session cannot revoke a share. Generic object listing and direct download exclude OWA private objects. Erasing the source removes current artifact metadata from the main Ticket projection.",
+    "Fresh and V53 through V59 fixture databases pass integrity and foreign-key checks. V2 object collection and offline desktop and Android capture regressions pass."
+  ]
+}
