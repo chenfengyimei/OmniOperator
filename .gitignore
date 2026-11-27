@@ -45,12 +45,13 @@ config/agents.lock
 # 评测/调试临时产物（不进版本库）
 agent/.tmp/
 
-/temp/private/
+# 本地资产与敏感资料（不入库）
+/temp/
+/PPT/
 
 # 文档整理时保留的本机历史副本
 /docs/temp/
 
-/temp/build/
 /web/node_modules/
 
 # Native helper compiler caches; source and lock files remain tracked.
