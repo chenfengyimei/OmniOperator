@@ -26,46 +26,46 @@ from .omniweave_attempts import OmniWeaveAttemptRepositories, latest_goal_versio
 from .omniweave_authority import mandate
 from .repository_base import RepositoryBase
 
-_artifacts = s.owa_artifacts
-_grants = s.owa_artifact_grants
-_links = s.owa_artifact_links
+owa_artifacts = s.owa_artifacts
+owa_grants = s.owa_artifact_grants
+owa_links = s.owa_artifact_links
 
 
-def _current_version() -> ColumnElement[bool]:
-    later = _artifacts.alias()
+def current_artifact_version() -> ColumnElement[bool]:
+    later = owa_artifacts.alias()
     return (
         ~select(later.c.id)
         .where(
-            later.c.producer_id == _artifacts.c.producer_id,
-            later.c.goal_version == _artifacts.c.goal_version,
-            later.c.name == _artifacts.c.name,
-            later.c.version > _artifacts.c.version,
+            later.c.producer_id == owa_artifacts.c.producer_id,
+            later.c.goal_version == owa_artifacts.c.goal_version,
+            later.c.name == owa_artifacts.c.name,
+            later.c.version > owa_artifacts.c.version,
         )
         .exists()
     )
 
 
 def artifact_notice_tasks() -> Select[str]:
-    return _notices().with_only_columns(_links.c.reader_id.label("task_id"))
+    return _notices().with_only_columns(owa_links.c.reader_id.label("task_id"))
 
 
 def _notices() -> Select[str, str, str, int]:
     return (
-        select(_grants.c.id, _links.c.reader_id, _grants.c.artifact_id, _artifacts.c.version)
-        .select_from(_grants)
-        .join(_links, _links.c.id == _grants.c.link_id)
+        select(owa_grants.c.id, owa_links.c.reader_id, owa_grants.c.artifact_id, owa_artifacts.c.version)
+        .select_from(owa_grants)
+        .join(owa_links, owa_links.c.id == owa_grants.c.link_id)
         .join(
-            _artifacts,
-            _artifacts.c.id == _grants.c.artifact_id,
+            owa_artifacts,
+            owa_artifacts.c.id == owa_grants.c.artifact_id,
         )
         .where(
-            _grants.c.revoked_at.is_(None),
-            _grants.c.ack_run_id.is_(None),
-            _links.c.subscribed.is_(True),
-            _links.c.subscription_revision == _grants.c.subscription_revision,
-            _artifacts.c.goal_version == latest_goal_version(_links.c.producer_id),
-            _grants.c.reader_version == latest_goal_version(_links.c.reader_id),
-            _current_version(),
+            owa_grants.c.revoked_at.is_(None),
+            owa_grants.c.ack_run_id.is_(None),
+            owa_links.c.subscribed.is_(True),
+            owa_links.c.subscription_revision == owa_grants.c.subscription_revision,
+            owa_artifacts.c.goal_version == latest_goal_version(owa_links.c.producer_id),
+            owa_grants.c.reader_version == latest_goal_version(owa_links.c.reader_id),
+            current_artifact_version(),
         )
     )
 
@@ -75,8 +75,8 @@ def has_artifact_notice(repo: RepositoryBase, agent_id: str, task_id: str) -> bo
         repo.connection.execute(
             _notices()
             .where(
-                _grants.c.agent_id == agent_id,
-                _links.c.reader_id == task_id,
+                owa_grants.c.agent_id == agent_id,
+                owa_links.c.reader_id == task_id,
             )
             .limit(1)
         ).first()
@@ -84,7 +84,7 @@ def has_artifact_notice(repo: RepositoryBase, agent_id: str, task_id: str) -> bo
     )
 
 
-def _artifact_view(artifact: Record, obj: Record, *, duplicate: bool = False) -> Record:
+def artifact_view(artifact: Record, obj: Record, *, duplicate: bool = False) -> Record:
     return {
         "artifact_id": artifact["id"],
         "name": artifact["name"],
@@ -120,11 +120,11 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
         fingerprint = goal_fingerprint(cast(JSON, asdict(draft)))
         prior = (
             self.connection.execute(
-                select(_artifacts).where(
-                    _artifacts.c.agent_id == agent_id,
-                    _artifacts.c.producer_id == task["id"],
-                    _artifacts.c.goal_version == version,
-                    _artifacts.c.command_key == draft.key,
+                select(owa_artifacts).where(
+                    owa_artifacts.c.agent_id == agent_id,
+                    owa_artifacts.c.producer_id == task["id"],
+                    owa_artifacts.c.goal_version == version,
+                    owa_artifacts.c.command_key == draft.key,
                 )
             )
             .mappings()
@@ -135,16 +135,16 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
                 raise BusinessError(
                     "idempotency_conflict", "Artifact key already identifies another publication", status=409
                 )
-            view = _artifact_view(
+            view = artifact_view(
                 cast(Record, dict(prior)), self._one(s.objects, agent_id, prior["object_id"]), duplicate=True
             )
             return {"receipt": view}, []
         latest = (
             self.connection.execute(
-                select(func.max(_artifacts.c.version)).where(
-                    _artifacts.c.producer_id == task["id"],
-                    _artifacts.c.goal_version == version,
-                    _artifacts.c.name == draft.name,
+                select(func.max(owa_artifacts.c.version)).where(
+                    owa_artifacts.c.producer_id == task["id"],
+                    owa_artifacts.c.goal_version == version,
+                    owa_artifacts.c.name == draft.name,
                 )
             ).scalar_one()
             or 0
@@ -155,10 +155,10 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
             )
         count = self.connection.execute(
             select(func.count())
-            .select_from(_artifacts)
+            .select_from(owa_artifacts)
             .where(
-                _artifacts.c.ticket_id == task["ticket_id"],
-                _artifacts.c.goal_version == version,
+                owa_artifacts.c.ticket_id == task["ticket_id"],
+                owa_artifacts.c.goal_version == version,
             )
         ).scalar_one()
         if count >= ARTIFACTS_PER_ROOT:
@@ -168,11 +168,11 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
         recipients = [
             cast(Record, dict(row))
             for row in self.connection.execute(
-                select(_links, latest_run_id(s.owa_tasks.c.id).label("reader_run"))
-                .join(s.owa_tasks, s.owa_tasks.c.id == _links.c.reader_id)
+                select(owa_links, latest_run_id(s.owa_tasks.c.id).label("reader_run"))
+                .join(s.owa_tasks, s.owa_tasks.c.id == owa_links.c.reader_id)
                 .where(
-                    _links.c.agent_id == agent_id,
-                    _links.c.producer_id == task["id"],
+                    owa_links.c.agent_id == agent_id,
+                    owa_links.c.producer_id == task["id"],
                     s.owa_tasks.c.task_key.in_(draft.readers),
                 )
             ).mappings()
@@ -212,7 +212,7 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
             raise BusinessError("owa_artifact_source_invalid", "Publication no longer has its source action")
         obj = cast(UnitOfWork, self).object_register_owa(blob, expires_at)
         artifact = self._record(
-            _artifacts,
+            owa_artifacts,
             {
                 **info,
                 "producer_run_id": run_id,
@@ -225,7 +225,7 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
         )
         for reader in readers:
             self._record(
-                _grants,
+                owa_grants,
                 {
                     "artifact_id": artifact["id"],
                     "link_id": reader["id"],
@@ -240,23 +240,23 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
             action_id,
             {"artifact_id": artifact["id"], "ticket_id": artifact["ticket_id"], "version": artifact["version"]},
         )
-        return _artifact_view(artifact, obj)
+        return artifact_view(artifact, obj)
 
     def omniweave_artifact_read(self, agent_id: str, run_id: str, artifact_id: str) -> Record:
         task, captured = self._owa_artifact_worker(agent_id, run_id, READ_SHARED)
         row = (
             self.connection.execute(
-                select(_artifacts, _current_version().label("current_version"))
-                .join(_grants, _grants.c.artifact_id == _artifacts.c.id)
-                .join(_links, _links.c.id == _grants.c.link_id)
+                select(owa_artifacts, current_artifact_version().label("current_version"))
+                .join(owa_grants, owa_grants.c.artifact_id == owa_artifacts.c.id)
+                .join(owa_links, owa_links.c.id == owa_grants.c.link_id)
                 .where(
-                    _artifacts.c.id == artifact_id,
-                    _artifacts.c.agent_id == agent_id,
-                    _artifacts.c.ticket_id == task["ticket_id"],
-                    _artifacts.c.goal_version == captured["goal_version"],
-                    _links.c.reader_id == task["id"],
-                    _grants.c.reader_version == captured["goal_version"],
-                    _grants.c.revoked_at.is_(None),
+                    owa_artifacts.c.id == artifact_id,
+                    owa_artifacts.c.agent_id == agent_id,
+                    owa_artifacts.c.ticket_id == task["ticket_id"],
+                    owa_artifacts.c.goal_version == captured["goal_version"],
+                    owa_links.c.reader_id == task["id"],
+                    owa_grants.c.reader_version == captured["goal_version"],
+                    owa_grants.c.revoked_at.is_(None),
                 )
             )
             .mappings()
@@ -275,17 +275,17 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
         obj = self._one(s.objects, agent_id, row["object_id"])
         if obj["media_type"] != ARTIFACT_MEDIA_TYPE:
             raise BusinessError("object_scope_conflict", "Artifact object scope is invalid", status=409)
-        return {**_artifact_view(cast(Record, dict(row)), obj), "agent_id": agent_id}
+        return {**artifact_view(cast(Record, dict(row)), obj), "agent_id": agent_id}
 
     def omniweave_artifact_subscribe(self, agent_id: str, run_id: str, producer: str, enabled: bool) -> Record:
         task, _ = self._owa_artifact_worker(agent_id, run_id, SUBSCRIBE_ARTIFACTS)
         row = (
             self.connection.execute(
-                select(_links)
-                .join(s.owa_tasks, s.owa_tasks.c.id == _links.c.producer_id)
+                select(owa_links)
+                .join(s.owa_tasks, s.owa_tasks.c.id == owa_links.c.producer_id)
                 .where(
-                    _links.c.agent_id == agent_id,
-                    _links.c.reader_id == task["id"],
+                    owa_links.c.agent_id == agent_id,
+                    owa_links.c.reader_id == task["id"],
                     s.owa_tasks.c.task_key == producer,
                 )
             )
@@ -298,8 +298,8 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
         if row["subscribed"] != enabled:
             revision += 1
             self.connection.execute(
-                update(_links)
-                .where(_links.c.id == row["id"])
+                update(owa_links)
+                .where(owa_links.c.id == row["id"])
                 .values(subscribed=enabled, subscription_revision=revision)
             )
             self.audit(
@@ -313,17 +313,17 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
     def omniweave_artifact_revoke(self, agent_id: str, session_id: str, artifact_id: str, reader: str) -> None:
         row = (
             self.connection.execute(
-                select(_grants)
-                .join(_artifacts, _artifacts.c.id == _grants.c.artifact_id)
-                .join(s.owa_tickets, s.owa_tickets.c.id == _artifacts.c.ticket_id)
+                select(owa_grants)
+                .join(owa_artifacts, owa_artifacts.c.id == owa_grants.c.artifact_id)
+                .join(s.owa_tickets, s.owa_tickets.c.id == owa_artifacts.c.ticket_id)
                 .join(s.owa_threads, s.owa_threads.c.id == s.owa_tickets.c.thread_id)
                 .join(s.sessions, s.sessions.c.id == s.owa_threads.c.main_session_id)
                 .join(s.instances, (s.instances.c.slot == 1) & (s.instances.c.owner_id == s.owa_threads.c.owner_id))
-                .join(_links, _links.c.id == _grants.c.link_id)
-                .join(s.owa_tasks, s.owa_tasks.c.id == _links.c.reader_id)
+                .join(owa_links, owa_links.c.id == owa_grants.c.link_id)
+                .join(s.owa_tasks, s.owa_tasks.c.id == owa_links.c.reader_id)
                 .where(
-                    _grants.c.agent_id == agent_id,
-                    _artifacts.c.id == artifact_id,
+                    owa_grants.c.agent_id == agent_id,
+                    owa_artifacts.c.id == artifact_id,
                     s.owa_threads.c.main_session_id == session_id,
                     s.sessions.c.deleted_at.is_(None),
                     s.owa_tasks.c.task_key == reader,
@@ -336,19 +336,21 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
             raise BusinessError("not_found", "Artifact grant is outside this main conversation", status=404)
         if row["revoked_at"] is None:
             self.connection.execute(
-                update(_grants).where(_grants.c.id == row["id"]).values(revoked_at=self.clock.now())
+                update(owa_grants).where(owa_grants.c.id == row["id"]).values(revoked_at=self.clock.now())
             )
             self.audit(
                 agent_id, "omniweave.artifact_share_revoked", None, {"artifact_id": artifact_id, "grant_id": row["id"]}
             )
 
     def _owa_public_artifacts(self, agent_id: str, ticket_id: str, artifact_id: str = "") -> list[JSON]:
-        query = select(_artifacts, latest_run_id(_artifacts.c.producer_id).label("current_run")).where(
-            _artifacts.c.agent_id == agent_id, _artifacts.c.ticket_id == ticket_id, _current_version()
+        query = select(owa_artifacts, latest_run_id(owa_artifacts.c.producer_id).label("current_run")).where(
+            owa_artifacts.c.agent_id == agent_id, owa_artifacts.c.ticket_id == ticket_id, current_artifact_version()
         )
         if artifact_id:
-            query = query.where(_artifacts.c.id == artifact_id)
-        published = self.connection.execute(query.order_by(_artifacts.c.created_at, _artifacts.c.id)).mappings().all()
+            query = query.where(owa_artifacts.c.id == artifact_id)
+        published = (
+            self.connection.execute(query.order_by(owa_artifacts.c.created_at, owa_artifacts.c.id)).mappings().all()
+        )
         result: list[JSON] = []
         for row in published:
             run_id = row["current_run"]
@@ -363,15 +365,15 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
             readers = list(
                 self.connection.execute(
                     select(s.owa_tasks.c.task_key)
-                    .select_from(_grants)
-                    .join(_links, _links.c.id == _grants.c.link_id)
-                    .join(s.owa_tasks, s.owa_tasks.c.id == _links.c.reader_id)
-                    .where(_grants.c.artifact_id == row["id"], _grants.c.revoked_at.is_(None))
+                    .select_from(owa_grants)
+                    .join(owa_links, owa_links.c.id == owa_grants.c.link_id)
+                    .join(s.owa_tasks, s.owa_tasks.c.id == owa_links.c.reader_id)
+                    .where(owa_grants.c.artifact_id == row["id"], owa_grants.c.revoked_at.is_(None))
                     .order_by(s.owa_tasks.c.task_key)
                 ).scalars()
             )
             obj = self._one(s.objects, agent_id, row["object_id"])
-            result.append({**_artifact_view(cast(Record, dict(row)), obj), "readers": readers})
+            result.append({**artifact_view(cast(Record, dict(row)), obj), "readers": readers})
         return result
 
     def _owa_artifact_notices(self, agent_id: str, task_id: str, version: int) -> list[tuple[str, Record]]:
@@ -380,15 +382,17 @@ class OmniWeaveArtifactRepositories(OmniWeaveAttemptRepositories):
             for row in self.connection.execute(
                 _notices()
                 .where(
-                    _grants.c.agent_id == agent_id,
-                    _links.c.reader_id == task_id,
-                    _grants.c.reader_version == version,
+                    owa_grants.c.agent_id == agent_id,
+                    owa_links.c.reader_id == task_id,
+                    owa_grants.c.reader_version == version,
                 )
-                .order_by(_artifacts.c.created_at, _artifacts.c.id)
+                .order_by(owa_artifacts.c.created_at, owa_artifacts.c.id)
             )
         ]
 
     def _owa_ack_artifact(self, grant_id: str, run_id: str) -> None:
         self.connection.execute(
-            update(_grants).where(_grants.c.id == grant_id, _grants.c.ack_run_id.is_(None)).values(ack_run_id=run_id)
+            update(owa_grants)
+            .where(owa_grants.c.id == grant_id, owa_grants.c.ack_run_id.is_(None))
+            .values(ack_run_id=run_id)
         )

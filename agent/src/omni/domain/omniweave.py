@@ -11,7 +11,7 @@ from typing import Literal, cast
 
 from .contracts import JSON, BusinessError, ToolSpec
 from .delegation import TASK_PROPERTIES, request, tool_hash
-from .omniweave_artifacts import ARTIFACT_TOOL_NAMES
+from .omniweave_artifacts import ARTIFACT_TOOL_NAMES, ARTIFACTS_PER_ROOT
 
 OmniWeaveMode = Literal["off", "observe", "dispatch", "enabled"]
 OMNIWEAVE_MODES: tuple[OmniWeaveMode, ...] = ("off", "observe", "enabled", "dispatch")
@@ -27,6 +27,19 @@ ROOT_CALL_LIMIT = 64
 MAX_GOAL_VERSION = 64
 _KEY = r"^[a-z][a-z0-9-]{0,31}$"
 _TASK_KEY: dict[str, JSON] = {"type": "string", "pattern": _KEY}
+_REFERENCES: dict[str, JSON] = {
+    "type": "array",
+    "maxItems": 16,
+    "items": {
+        "type": "object",
+        "properties": {
+            "artifact_id": {"type": "string", "minLength": 36, "maxLength": 36},
+            "version": {"type": "integer", "minimum": 1, "maximum": ARTIFACTS_PER_ROOT},
+        },
+        "required": ["artifact_id", "version"],
+        "additionalProperties": False,
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -73,7 +86,8 @@ def mandate_tool(spec: ToolSpec) -> dict[str, JSON]:
 OWA_PLAN = ToolSpec(
     "owa_plan",
     "Plan independent Worker tasks for this Web turn. Dependencies refer to keys in the same plan. "
-    "Choose a goal and profile, share only the context the Worker needs, and select needed workspace tools. "
+    "After a goal revision, declare reuse for unaffected tasks whose accepted result from a prior goal version "
+    "still stands. Choose a goal and profile, share only the context the Worker needs, and select needed workspace tools. "
     "Research and Verification are read-only. Coding and Documentation can request workspace writes. "
     "Workers use private workspaces, bounded model budgets and separate approval for every write. "
     "Submission returns immediately. Use owa_status to read progress or results in this conversation. "
@@ -115,6 +129,15 @@ OWA_PLAN = ToolSpec(
                             "uniqueItems": True,
                             "items": {"type": "string", "enum": list(WORKER_TOOLS)},
                         },
+                        "reuse": {
+                            "type": "object",
+                            "properties": {
+                                "task_key": _TASK_KEY,
+                                "goal_version": {"type": "integer", "minimum": 1, "maximum": MAX_GOAL_VERSION},
+                            },
+                            "required": ["task_key", "goal_version"],
+                            "additionalProperties": False,
+                        },
                     },
                     "required": ["key", "goal"],
                     "additionalProperties": False,
@@ -141,6 +164,7 @@ OWA_STATUS = ToolSpec(
 REQUEST_PEER = ToolSpec(
     "request_peer",
     "Ask an authorized peer in this plan. Use the same key to retry the same request. "
+    "Optionally cite up to 16 artifact versions you are authorized to read. "
     "For a blocking request, finish this turn at a safe boundary so the reply can resume the task. "
     "The next turn receives the reply or a timeout in this same private conversation.",
     {
@@ -150,6 +174,7 @@ REQUEST_PEER = ToolSpec(
             "key": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,80}$"},
             "question": {"type": "string", "minLength": 1, "maxLength": 4000},
             "blocking": {"type": "boolean"},
+            "references": _REFERENCES,
         },
         "required": ["target", "key", "question", "blocking"],
         "additionalProperties": False,
@@ -158,13 +183,15 @@ REQUEST_PEER = ToolSpec(
 )
 REPLY_PEER = ToolSpec(
     "reply_peer",
-    "Reply to a request delivered to this Worker. Use its request_id. A decline also closes the request.",
+    "Reply to a request delivered to this Worker. Use its request_id. A decline also closes the request. "
+    "Optionally cite up to 16 artifact versions you are authorized to read.",
     {
         "type": "object",
         "properties": {
             "request_id": {"type": "string", "minLength": 36, "maxLength": 36},
             "answer": {"type": "string", "minLength": 1, "maxLength": 4000},
             "decline": {"type": "boolean"},
+            "references": _REFERENCES,
         },
         "required": ["request_id", "answer"],
         "additionalProperties": False,
@@ -190,6 +217,7 @@ class WorkerTask:
     deadline_seconds: int | None
     peers: tuple[str, ...]
     artifact_readers: tuple[str, ...]
+    reuse: tuple[str, int] | None = None
 
 
 def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
@@ -201,6 +229,15 @@ def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
     if len(graph) != len(result) or any(set(needs) - graph.keys() for needs in graph.values()):
         raise invalid_plan()
     if any((set(task.peers) | set(task.artifact_readers)) - (graph.keys() - {task.key}) for task in result):
+        raise invalid_plan()
+    executed = {task.key for task in result if task.reuse is None}
+    if any(
+        set(task.needs) - executed or set(task.peers) - executed or set(task.artifact_readers) - executed
+        for task in result
+        if task.reuse is None
+    ):
+        raise invalid_plan()
+    if any(task.reuse is not None and (task.needs or task.peers or task.artifact_readers) for task in result):
         raise invalid_plan()
     try:
         TopologicalSorter(graph).prepare()
@@ -219,6 +256,7 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
     tools = value.get("tools", [])
     profile = value.get("profile", "coding")
     deadline = value.get("deadline_seconds")
+    reuse = value.get("reuse")
     if (
         not isinstance(key, str)
         or not re.fullmatch(_KEY, key)
@@ -235,6 +273,23 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         or (deadline is not None and (type(deadline) is not int or not 1 <= deadline <= ROOT_DEADLINE_S))
     ):
         raise invalid_plan()
+    carried: tuple[str, int] | None = None
+    if reuse is not None:
+        if not isinstance(reuse, dict) or set(reuse) != {"task_key", "goal_version"}:
+            raise invalid_plan()
+        prior_key, prior_version = reuse["task_key"], reuse["goal_version"]
+        if (
+            not isinstance(prior_key, str)
+            or not re.fullmatch(_KEY, prior_key)
+            or type(prior_version) is not int
+            or not 1 <= prior_version <= MAX_GOAL_VERSION
+            or tools
+            or deadline is not None
+            or peers
+            or readers
+        ):
+            raise invalid_plan()
+        carried = (prior_key, prior_version)
     needs = tuple(cast(list[str], dependencies))
     selected = tuple(cast(list[str], tools))
     authorized_peers = tuple(cast(list[str], peers))
@@ -252,7 +307,8 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         {
             name: item
             for name, item in value.items()
-            if name not in {"key", "depends_on", "tools", "profile", "deadline_seconds", "peers", "artifact_readers"}
+            if name
+            not in {"key", "depends_on", "tools", "profile", "deadline_seconds", "peers", "artifact_readers", "reuse"}
         },
         reservation,
     )
@@ -265,6 +321,7 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         deadline,
         tuple(sorted(authorized_peers)),
         tuple(sorted(artifact_readers)),
+        carried,
     )
 
 

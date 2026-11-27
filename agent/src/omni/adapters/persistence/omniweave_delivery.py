@@ -8,9 +8,11 @@ from ...application.ports import Record, UnitOfWork
 from ...domain.action_review import TERMINAL_RUNS
 from ...domain.contracts import JSON, BusinessError
 from ...domain.omniweave import goal_fingerprint
+from ...domain.omniweave_artifacts import ARTIFACT_MEDIA_TYPE
 from . import schema as s
+from .omniweave_artifacts import artifact_view, current_artifact_version, owa_artifacts
 from .omniweave_attempts import latest_run_id
-from .omniweave_authority import authorize_mandate
+from .omniweave_authority import authorize_mandate, mandate
 from .omniweave_goals import current_goal, goal_blocker, goal_runs
 from .omniweave_mailbox import OmniWeaveMailboxRepositories, waiting_for_peer
 
@@ -43,7 +45,12 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             )
         ).all()
         return {
-            message: {"outcome": outcome, "goal_version": version, "artifacts": evidence["artifacts"]}
+            message: {
+                "outcome": outcome,
+                "goal_version": version,
+                "artifacts": cast(list[JSON], evidence["artifacts"])
+                + cast(list[JSON], evidence.get("retained_artifacts", [])),
+            }
             for message, outcome, evidence, version in rows
         }
 
@@ -60,9 +67,42 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
                 current_goal(),
             )
         ).scalar_one_or_none()
-        if link is None or not (rows := self._owa_public_artifacts(agent_id, link, artifact_id)):
+        rows = self._owa_public_artifacts(agent_id, link, artifact_id) if link is not None else []
+        if not rows:
+            rows = self._owa_retained_owner_artifact(agent_id, session_id, artifact_id)
+        if not rows:
             raise BusinessError("not_found", "Artifact is outside the current main conversation delivery", status=404)
         return {**cast(Record, rows[0]), "agent_id": agent_id}
+
+    def _owa_retained_owner_artifact(self, agent_id: str, session_id: str, artifact_id: str) -> list[JSON]:
+        reuse_ticket = s.owa_tickets.alias("retained_ticket")
+        later = s.owa_tickets.alias("retained_goal_later")
+        current = (
+            ~select(later.c.id)
+            .where(
+                later.c.root_ticket_id == func.coalesce(reuse_ticket.c.root_ticket_id, reuse_ticket.c.id),
+                later.c.goal_version > reuse_ticket.c.goal_version,
+            )
+            .exists()
+        )
+        producer = self.connection.execute(
+            select(owa_artifacts.c.producer_id)
+            .join(s.owa_tasks, s.owa_tasks.c.id == owa_artifacts.c.producer_id)
+            .join(s.owa_task_reuse, s.owa_task_reuse.c.source_task_id == s.owa_tasks.c.id)
+            .join(reuse_ticket, reuse_ticket.c.id == s.owa_task_reuse.c.ticket_id)
+            .join(s.owa_threads, s.owa_threads.c.id == reuse_ticket.c.thread_id)
+            .join(s.instances, (s.instances.c.slot == 1) & (s.instances.c.owner_id == s.owa_threads.c.owner_id))
+            .where(
+                owa_artifacts.c.agent_id == agent_id,
+                owa_artifacts.c.id == artifact_id,
+                s.owa_task_reuse.c.agent_id == agent_id,
+                s.owa_threads.c.main_session_id == session_id,
+                current,
+            )
+        ).scalar_one_or_none()
+        if producer is None:
+            return []
+        return [item for item in self._owa_retained_artifacts(agent_id, producer) if item["artifact_id"] == artifact_id]
 
     def omniweave_delivery_tick(self, after: str) -> str:
         tickets = s.owa_tickets
@@ -186,9 +226,40 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             }
             if profile == "verification":
                 verifiers.setdefault(key, []).append(identity)
-        planned_count = self.connection.execute(
-            select(func.count()).select_from(s.owa_tasks).where(s.owa_tasks.c.ticket_id == ticket_id)
-        ).scalar_one()
+        retained_artifacts: list[JSON] = []
+        for key, source_id, source_version in self.connection.execute(
+            select(
+                s.owa_task_reuse.c.task_key,
+                s.owa_task_reuse.c.source_task_id,
+                s.owa_task_reuse.c.source_goal_version,
+            )
+            .where(s.owa_task_reuse.c.agent_id == agent_id, s.owa_task_reuse.c.ticket_id == ticket_id)
+            .order_by(s.owa_task_reuse.c.task_key)
+        ).all():
+            if key in tasks:
+                return None
+            prior_run = self.connection.execute(select(latest_run_id(str(source_id)))).scalar_one_or_none()
+            if prior_run is None:
+                return None
+            tasks[key] = {
+                "key": key,
+                "run_id": prior_run,
+                "state": "succeeded",
+                "error_code": "",
+                "verification_passed": True,
+                "reused_from_version": source_version,
+            }
+            retained_artifacts.extend(cast(list[JSON], self._owa_retained_artifacts(agent_id, str(source_id))))
+        planned_count = (
+            self.connection.execute(
+                select(func.count()).select_from(s.owa_tasks).where(s.owa_tasks.c.ticket_id == ticket_id)
+            ).scalar_one()
+            + self.connection.execute(
+                select(func.count())
+                .select_from(s.owa_task_reuse)
+                .where(s.owa_task_reuse.c.agent_id == agent_id, s.owa_task_reuse.c.ticket_id == ticket_id)
+            ).scalar_one()
+        )
         if (
             not tasks
             or len(tasks) != planned_count
@@ -226,7 +297,37 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             "outcome": outcome,
             "tasks": cast(list[JSON], list(tasks.values())),
             "artifacts": artifacts,
+            "retained_artifacts": retained_artifacts,
         }
+
+    def _owa_retained_artifacts(self, agent_id: str, producer_task_id: str) -> list[Record]:
+        rows = (
+            self.connection.execute(
+                select(owa_artifacts, current_artifact_version().label("current_version"))
+                .where(
+                    owa_artifacts.c.agent_id == agent_id,
+                    owa_artifacts.c.producer_id == producer_task_id,
+                    current_artifact_version(),
+                )
+                .order_by(owa_artifacts.c.created_at, owa_artifacts.c.id)
+            )
+            .mappings()
+            .all()
+        )
+        result: list[Record] = []
+        for row in rows:
+            run_id = self.connection.execute(select(latest_run_id(row["producer_id"]))).scalar_one_or_none()
+            if run_id is None:
+                continue
+            captured = mandate(self, agent_id, run_id)
+            action = self._one(s.actions, agent_id, row["action_id"])
+            if captured is None or captured["goal_version"] != row["goal_version"] or action["body_pruned_at"]:
+                continue
+            obj = self._one(s.objects, agent_id, row["object_id"])
+            if obj["media_type"] != ARTIFACT_MEDIA_TYPE:
+                continue
+            result.append({**artifact_view(cast(Record, dict(row)), obj)})
+        return result
 
     def _owa_verified_artifacts(self, agent_id: str, run_ids: list[str]) -> set[tuple[str, str]]:
         rows = self.connection.execute(
@@ -307,10 +408,22 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             return
         if missing_artifacts:
             artifacts = cast(list[Record], evidence["artifacts"])
-            unavailable = [item for item in artifacts if item["artifact_id"] in missing_artifacts]
+            unavailable = [
+                item
+                for item in artifacts + cast(list[Record], evidence.get("retained_artifacts", []))
+                if item["artifact_id"] in missing_artifacts
+            ]
             evidence["unavailable_artifacts"] = cast(list[JSON], unavailable)
             evidence["artifacts"] = cast(
                 list[JSON], [item for item in artifacts if item["artifact_id"] not in missing_artifacts]
+            )
+            evidence["retained_artifacts"] = cast(
+                list[JSON],
+                [
+                    item
+                    for item in cast(list[Record], evidence.get("retained_artifacts", []))
+                    if item["artifact_id"] not in missing_artifacts
+                ],
             )
             has_result = bool(evidence["artifacts"]) or any(
                 item["state"] == "succeeded" and item["verification_passed"] is True
@@ -345,11 +458,17 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
                 detail = "已完成" if task["verification_passed"] else "执行结束，仍需核验"
             else:
                 detail = f"{task['state']} · {task['error_code'] or '未取得可验收结果'}"
+            if task.get("reused_from_version") is not None:
+                detail += f" · 沿用第 {task['reused_from_version']} 版已验收结果"
             lines.append(f"- {task['key']} · {detail}")
         artifacts = cast(list[Record], evidence["artifacts"])
         if artifacts:
             lines.extend(("", "已登记产物"))
             lines.extend(f"- {item['name']} v{item['version']} · {item['artifact_id']}" for item in artifacts)
+        retained = cast(list[Record], evidence.get("retained_artifacts", []))
+        if retained:
+            lines.extend(("", "沿用证据（修订前版本产物）"))
+            lines.extend(f"- {item['name']} v{item['version']} · {item['artifact_id']}" for item in retained)
         for item in cast(list[Record], evidence.get("unavailable_artifacts", [])):
             lines.append(f"- {item['name']} v{item['version']} · 无法核对存储内容")
         return "\n".join(lines)

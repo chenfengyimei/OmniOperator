@@ -22,11 +22,11 @@ from omni.adapters.primitives import SystemClock, UUIDs
 
 async def _verify_current_schema(database):
     script = ScriptDirectory.from_config(configuration())
-    assert script.get_heads() == ["v2_0062"] and len(list(script.walk_revisions())) == 62
-    assert database.schema_version == "v2_0062"
+    assert script.get_heads() == ["v2_0063"] and len(list(script.walk_revisions())) == 63
+    assert database.schema_version == "v2_0063"
     integrity = await database.integrity()
     assert integrity["integrity"] == "ok" and integrity["foreign_keys"] == 0
-    assert len(s.metadata.tables) == 165
+    assert len(s.metadata.tables) == 166
     assert {
         "owa_threads",
         "owa_tickets",

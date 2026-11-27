@@ -23,6 +23,7 @@ from ...domain.omniweave import (
     TRIGGER_VERSION,
     WORKER_PROFILES,
     GoalUpdate,
+    WorkerTask,
     checked_plan,
     goal_fingerprint,
     mandate_tool,
@@ -354,8 +355,16 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
             update(s.owa_executions).where(s.owa_executions.c.id == execution["id"]).values(plan_sha256=fingerprint)
         )
         records: dict[str, Record] = {}
+        retained = [task for task in tasks if task.reuse is not None]
+        sources: dict[str, str] = {}
+        for task in retained:
+            sources[task.key] = self._owa_validate_reuse(
+                agent_id, ticket_id, root_id, cast(int, execution["goal_version"]), task
+            )
         now = datetime.fromisoformat(self.clock.now())
         for task in tasks:
+            if task.reuse is not None:
+                continue
             profile = WORKER_PROFILES[task.profile]
             child = unit.delegation_create(
                 agent_id,
@@ -421,13 +430,60 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
                     {"task_id": records[task.key]["id"], "needs_id": records[predecessor]["id"]},
                     agent_id,
                 )
+        for task in retained:
+            prior_version = cast(tuple[str, int], task.reuse)[1]
+            self._record(
+                s.owa_task_reuse,
+                {
+                    "ticket_id": ticket_id,
+                    "task_key": task.key,
+                    "source_task_id": sources[task.key],
+                    "source_goal_version": prior_version,
+                },
+                agent_id,
+            )
         unit.event(
             agent_id,
             run_id,
             "omniweave.planned",
-            {"ticket_id": root_id, "task_count": len(tasks), "goal_version": execution["goal_version"]},
+            {
+                "ticket_id": root_id,
+                "task_count": len(tasks),
+                "goal_version": execution["goal_version"],
+                "reuse_count": len(retained),
+            },
         )
         return self.omniweave_ticket(agent_id, session_id, root_id)
+
+    def _owa_validate_reuse(self, agent_id: str, ticket_id: str, root_id: str, version: int, task: WorkerTask) -> str:
+        invalid = BusinessError(
+            "owa_reuse_invalid",
+            "Reused evidence must come from an accepted earlier goal version of this Ticket",
+            status=422,
+        )
+        if task.reuse is None:
+            raise invalid
+        prior_key, prior_version = task.reuse
+        source = self.connection.execute(
+            select(s.owa_tasks.c.id)
+            .join(s.owa_tickets, s.owa_tickets.c.id == s.owa_tasks.c.ticket_id)
+            .where(
+                s.owa_tickets.c.agent_id == agent_id,
+                s.owa_tasks.c.task_key == prior_key,
+                s.owa_tickets.c.goal_version == prior_version,
+                func.coalesce(s.owa_tickets.c.root_ticket_id, s.owa_tickets.c.id) == root_id,
+            )
+        ).scalar_one_or_none()
+        if source is None or prior_version >= version:
+            raise invalid
+        run_id = self.connection.execute(select(latest_run_id(str(source)))).scalar_one_or_none()
+        if run_id is None:
+            raise invalid
+        run = self._one(s.runs, agent_id, run_id)
+        completed = cast(UnitOfWork, self).run_completion(agent_id, run_id)["state"]
+        if run["state"] != "succeeded" or completed not in ("verified", "not_required"):
+            raise BusinessError("owa_reuse_unverified", "Reused Worker evidence has not passed acceptance", status=422)
+        return str(source)
 
     def omniweave_ticket_options(self, agent_id: str, session_id: str) -> list[Record]:
         if self.omniweave_main_session(agent_id) != session_id:
@@ -531,6 +587,36 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
                 summary = str(result["summary"])
                 item["result"] = summary[:summary_limit]
                 item["result_truncated"] = len(summary) > summary_limit or bool(result["summary_truncated"])
+            tasks.append(item)
+        for key, source_id, source_version, parent in self.connection.execute(
+            select(
+                s.owa_task_reuse.c.task_key,
+                s.owa_task_reuse.c.source_task_id,
+                s.owa_task_reuse.c.source_goal_version,
+                s.owa_tickets.c.run_id,
+            )
+            .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_task_reuse.c.source_task_id)
+            .join(s.owa_tickets, s.owa_tickets.c.id == s.owa_tasks.c.ticket_id)
+            .where(s.owa_task_reuse.c.agent_id == agent_id, s.owa_task_reuse.c.ticket_id == ticket["id"])
+            .order_by(s.owa_task_reuse.c.task_key)
+        ).all():
+            child_id = self.connection.execute(select(latest_run_id(str(source_id)))).scalar_one_or_none()
+            item: Record = {
+                "key": key,
+                "state": "succeeded",
+                "error_code": "",
+                "unknown_effect": False,
+                "unknown_model_calls": False,
+                "reused_from_version": source_version,
+            }
+            if child_id is not None:
+                if captured := mandate(self, agent_id, child_id):
+                    item.update({name: captured[name] for name in ("profile", "profile_version", "goal_version")})
+                if include_results:
+                    result = unit.delegation_result(agent_id, str(parent), child_id)
+                    summary = str(result["summary"])
+                    item["result"] = summary[:summary_limit]
+                    item["result_truncated"] = len(summary) > summary_limit or bool(result["summary_truncated"])
             tasks.append(item)
         return {
             "ticket_id": ticket["public_id"],

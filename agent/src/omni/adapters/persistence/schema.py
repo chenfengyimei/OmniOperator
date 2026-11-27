@@ -1539,6 +1539,22 @@ owa_dependencies = scoped(
     CheckConstraint("task_id!=needs_id", name="different_tasks"),
 )
 
+owa_task_reuse = scoped(
+    "owa_task_reuse",
+    Column("ticket_id", String(36), nullable=False),
+    Column("task_key", String(32), nullable=False),
+    Column("source_task_id", String(36), nullable=False),
+    Column("source_goal_version", Integer, nullable=False),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("source_task_id", "owa_tasks"),
+    UniqueConstraint("ticket_id", "task_key"),
+    CheckConstraint(
+        "length(task_key) BETWEEN 1 AND 32 AND task_key GLOB '[a-z]*' AND task_key NOT GLOB '*[^a-z0-9-]*'",
+        name="task_key",
+    ),
+    CheckConstraint("source_goal_version BETWEEN 1 AND 64", name="source_goal_version"),
+)
+
 owa_mandates = scoped(
     "owa_mandates",
     Column("ticket_id", String(36), nullable=False),
@@ -1604,6 +1620,8 @@ owa_peer_requests = scoped(
     Column("depth", Integer, nullable=False),
     Column("disposition", String(12)),
     Column("answer", Text),
+    Column("request_references", JSON),
+    Column("reply_references", JSON),
     Column("reply_run_id", String(36)),
     Column("request_ack_run_id", String(36)),
     Column("reply_ack_run_id", String(36)),

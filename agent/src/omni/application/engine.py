@@ -468,7 +468,12 @@ class Application:
             baseline = (*baseline, DELEGATE_TASK)
         route = await self._db.read(lambda u: u.run_route(agent_id, run_id))
         kernel = cast(Record, route.get("kernel") or {})
-        safe_resume = bool(kernel.get("safe_resume") and not remote and not delegated)
+        # OWA Workers own durable session state and workspace, so a checkpoint resume
+        # replays settled receipts instead of re-executing external actions.
+        owa_worker = delegated is not None and await self._db.read(
+            lambda u: u.omniweave_private_scope(agent_id, "run_id", run_id)
+        )
+        safe_resume = bool(kernel.get("safe_resume") and not remote and (not delegated or owa_worker))
         resumed = await self._db.write(lambda u: u.consume_run_checkpoint(agent_id, run_id)) if safe_resume else None
         if resumed and resumed.get("reason"):
             raise BusinessError(

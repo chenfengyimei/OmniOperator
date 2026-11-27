@@ -253,13 +253,14 @@ class OmniWeaveService:
         )
         missing: set[str] = set()
         if manifest is not None:
-            for artifact in cast(list[Record], manifest["artifacts"]):
-                try:
-                    await self.objects.verify_linked_blob(
-                        Blob(agent_id, str(artifact["sha256"]), cast(int, artifact["bytes"]))
-                    )
-                except (BusinessError, OSError):
-                    missing.add(str(artifact["artifact_id"]))
+            for key in ("artifacts", "retained_artifacts"):
+                for artifact in cast(list[Record], manifest.get(key) or []):
+                    try:
+                        await self.objects.verify_linked_blob(
+                            Blob(agent_id, str(artifact["sha256"]), cast(int, artifact["bytes"]))
+                        )
+                    except (BusinessError, OSError):
+                        missing.add(str(artifact["artifact_id"]))
         await self.database.write(
             lambda unit: unit.omniweave_finish_delivery(
                 agent_id,

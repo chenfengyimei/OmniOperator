@@ -204,6 +204,7 @@ class DelegationRepositories(ContextRepositories):
             s.run_routes,
             {
                 "run_id": child_id,
+                "kernel": route.get("kernel", {}),
                 "policy_id": route.get("policy_id"),
                 "requested_mode": "agent",
                 "initial_mode": "agent",
@@ -471,6 +472,12 @@ class DelegationRepositories(ContextRepositories):
             if work_id and state == work_state == "running":
                 self._requeue_turn(child, work_id)
                 unit.event(agent, child, "run.resume_queued", {"reason": "owa_before_dispatch"})
+                continue
+            if worker and self.connection.execute(
+                select(func.json_extract(s.work_items.c.payload, "$.schema"))
+                .where(s.work_items.c.run_id == child, s.work_items.c.kind == "turn")
+            ).scalar_one() == 1:
+                # A saved checkpoint defers to the generic resume pass in recover().
                 continue
             code = "owa_worker_requires_review" if worker else "delegation_process_interrupted"
             unit.transition(agent, child, "interrupted", code)

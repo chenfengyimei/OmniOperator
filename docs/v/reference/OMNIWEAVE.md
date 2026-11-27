@@ -98,3 +98,9 @@ Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59
 - 工作台通过现有会话消息流显示交付与文本产物下载。下载在读取前后复核所有者令牌、主会话、版本和来源。修订前的版次继续保留在审计账本，来源擦除使旧授权退出可下载范围。收尾回合输出结构化工作结论与已登记产物。[HTTP](../../../agent/src/omni/adapters/http_routes/omniweave.py) · [工作台](../../../web/ui/v2/main.js)
 
 接续目标是消息中的授权证据引用、显式保留未受修订影响的证据，以及外部动作已有明确回执后的检查点续接。Phase 3 用校园助手离线场景验收完整链路。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。
+
+### 证据引用与回执续接
+
+- `v2_0063` 登记显式沿用与对等消息引用。`request_peer` 与 `reply_peer` 可携带最多 16 条 `{artifact_id, version}` 引用，逐条校验发送方为生产者或持有未撤销授权读取回执，且指向现行版本；引用并入幂等指纹，投递事件携带已解析的名称、版本与摘要，审计记录引用清单。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0063.py) · [邮箱](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py)
+- 修订后的计划任务可声明 `reuse: {task_key, goal_version}` 显式沿用先前版本已验收的结果。登记校验同根家族、较早版本、最新尝试终结且核验通过；复用任务不得再声明工具、期限、对等与读取范围，其余任务不得依赖或引用复用键。交付归约把沿用任务计为已验收并标注 `reused_from_version`，其产物以"沿用证据"列入收尾并保持可下载，未沿用的旧产物仍按修订语义退出。[计划](../../../agent/src/omni/adapters/persistence/omniweave_repository.py) · [归约](../../../agent/src/omni/adapters/persistence/omniweave_delivery.py)
+- OWA Worker 与其他运行一样保存检查点：委派恢复对带检查点的 Worker 延迟终态，交给通用续接；`safe_resume` 对 OWA Worker 开放并随父路由策略传入子运行路由。崩溃重启后，已结算的外部动作从记录回执续接而不重复执行，Worker 完成后交付照常在原主会话提交一次。[恢复](../../../agent/src/omni/adapters/persistence/delegation_repository.py) · [续接测试](../../../agent/tests/v2/http/test_v2_omniweave_receipt_resume.py)
