@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-27",
+  "phase": 3,
+  "baseline": "96cbd942d87a4f9fe09f9ae216ef0b9a368aa579",
+  "source_sha": "85d5f455ff69db0b4577c21473ba826cc3272f14",
+  "platform": "Windows, isolated production FastAPI and SQLite, offline model, subprocess crash injection",
+  "migration": {
+    "from": "v2_0063",
+    "to": "v2_0063",
+    "tables": 166,
+    "heads": 1,
+    "revisions": 63
+  },
+  "verified_contracts": {
+    "T04": "Reused evidence is re-checked where it is used: plan admission verifies the source attempt's acceptance receipt plus its captured Mandate expiry, policy revision, owner and session binding; the final delivery transaction repeats all of them and additionally requires a reused verification task to cover retained artifacts with unrevoked authorized read receipts. A verifier that claimed success without reading the current artifact keeps the goal at needs-verification or partial, never completed.",
+    "T03": "Peer citations are checked for sender and recipient at submission and re-validated per citation at actual delivery: version still current, publish action not erased, producer Mandate on-version, and both parties still authorized. After revocation, supersession or source erasure a queued message is delivered without the citation's name, id or hash.",
+    "T06": "Mailbox-triggered Worker turns carry the captured safe_resume kernel policy in their run route. A real process interruption during a follow-up turn resumes from the checkpoint: the settled write replays from its recorded receipt exactly once, no unknown actions appear, and the delivery commits once in the original session.",
+    "T10": "The campus assistant full-chain scenario runs Research, Coding, Verification and Documentation in parallel through the production Web entry with directed peer requests carrying citations, owner revision reusing accepted prior-version tasks, and one in-session delivery per goal version."
+  },
+  "offline_runs": [
+    {
+      "scope": "Acceptance blockers: reuse authorization re-checks, verifier receipt coverage, recipient citation authorization, queued citation drop, mailbox-turn crash resume, restored artifact subscription and scoped revocation, plus delegation and kernel restart boundaries and the strict-type checklist guard",
+      "passed": 75,
+      "failed": 0,
+      "seconds": 709.27,
+      "local_junit": "output/junit/owa-acceptance-blockers-2026-11-27.xml",
+      "sha256": "10da41f9fa2362fc5b534c3b8ce7d2d29d6667c9e1d258adfe57a365fab692fa"
+    },
+    {
+      "scope": "Final batch suite: production OWA entry points, receipt resume, campus assistant full chain, delegation recovery, kernel restart and type checklist guard",
+      "passed": 76,
+      "failed": 0,
+      "seconds": 704.81,
+      "local_junit": "output/junit/owa-campus-chain-2026-11-27.xml",
+      "sha256": "3b045911c784a2bde6a7bfc15b09f12a39b273dbc248e771b8010668e8f0e80a"
+    }
+  ],
+  "strict_typing": {
+    "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+    "files": 519,
+    "errors": 0,
+    "notes": "v2_0063 added to docs/v/reference/TYPE_CHECKING.md; the checklist guard test asserts config, document and files stay in lockstep."
+  },
+  "regressions_fixed": [
+    "waiting_for_peer now counts a Worker's open non-blocking requests, so dependents and delivery wait until a peer exchange resolves instead of reading mid-flight results",
+    "the delivery reduction bounds a verifier's expected read receipts to artifacts published before its latest attempt ended, so later grants from downstream producers no longer invalidate finished verification"
+  ],
+  "remaining_scope": [
+    "Phase 4: bounded long jobs, Watchdog, cancellation and cleanup views (T06/T08/T09/T12)",
+    "Phases 5-7: digital bodies, external events, release candidate freeze with full offline run, paired benchmarks, package lifecycle, standalone machine, real platforms and 72-hour residency"
+  ]
+}

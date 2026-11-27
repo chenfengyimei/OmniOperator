@@ -90,3 +90,25 @@ def assert_mandate_action(repo: RepositoryBase, agent_id: str, run_id: str, spec
     if not allowed:
         raise BusinessError("owa_mandate_tool_denied", "This tool is outside the Run's OmniWeave Mandate")
     unit.assert_run_authorized(agent_id, run_id)
+
+
+def evidence_authorized(repo: RepositoryBase, agent_id: str, run_id: str) -> bool:
+    # Reused evidence is produced by a finished attempt whose owning Ticket revision
+    # has already cancelled the old Router execution, so only the captured Mandate's
+    # own expiry, policy, owner and session binding decide whether it still stands.
+    captured = mandate(repo, agent_id, run_id)
+    if captured is None or str(captured["expires_at"]) <= repo.clock.now():
+        return False
+    unit = cast(UnitOfWork, repo)
+    identity = repo.connection.execute(
+        select(s.instances.c.owner_id, s.history_identity.c.epoch)
+        .select_from(s.instances.join(s.history_identity, s.history_identity.c.slot == s.instances.c.slot))
+        .where(s.instances.c.slot == 1)
+    ).one()
+    session = repo.one(s.sessions, agent_id, str(captured["main_session_id"]))
+    return (
+        captured["policy_epoch"] == unit.settings(agent_id)["policy_revision"]
+        and (captured["owner_id"], captured["history_epoch"]) == tuple(identity)
+        and session["deleted_at"] is None
+        and captured["session_epoch"] == session["content_epoch"]
+    )

@@ -31,7 +31,7 @@ from ...domain.omniweave import (
 from ...domain.omniweave_artifacts import PUBLISH_ARTIFACT, READ_SHARED, SUBSCRIBE_ARTIFACTS
 from . import schema as s
 from .omniweave_attempts import latest_run_id
-from .omniweave_authority import assert_mandate_action, mandate
+from .omniweave_authority import assert_mandate_action, evidence_authorized, mandate
 from .omniweave_delivery import OmniWeaveDeliveryRepositories
 from .omniweave_goals import current_goal, prior_goal_blocker
 from .omniweave_mailbox import waiting_for_peer
@@ -483,6 +483,8 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
         completed = cast(UnitOfWork, self).run_completion(agent_id, run_id)["state"]
         if run["state"] != "succeeded" or completed not in ("verified", "not_required"):
             raise BusinessError("owa_reuse_unverified", "Reused Worker evidence has not passed acceptance", status=422)
+        if not evidence_authorized(self, agent_id, run_id):
+            raise BusinessError("owa_reuse_unverified", "Reused Worker evidence is no longer authorized", status=422)
         return str(source)
 
     def omniweave_ticket_options(self, agent_id: str, session_id: str) -> list[Record]:

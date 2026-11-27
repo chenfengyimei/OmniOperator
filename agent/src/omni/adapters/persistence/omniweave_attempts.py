@@ -100,6 +100,7 @@ class OmniWeaveAttemptRepositories(RepositoryBase):
                 "reason": "delegated",
                 "allow_escalation": False,
                 "reservation_micro": route["reservation_micro"],
+                "kernel": route.get("kernel", {}),
             },
             agent_id,
         )
