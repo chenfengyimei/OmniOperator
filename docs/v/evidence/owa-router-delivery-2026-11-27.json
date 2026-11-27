@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-27",
+  "phase": 3,
+  "baseline": "7a66e62a5b1f91de8cf108fb04d714c1d00c09b7",
+  "source_sha": "cc03189199ad8f9ff473d0dfc3a9a1fb65d54d51",
+  "platform": "Windows, isolated production FastAPI and SQLite, offline model and Chromium",
+  "migration": {
+    "from": "v2_0061",
+    "to": "v2_0062",
+    "tables": 165,
+    "heads": 1,
+    "revisions": 62
+  },
+  "verified_contracts": {
+    "OW-01": "A fenced Router closeout writes one assistant message on the original main conversation. The browser displays it and downloads the verified UTF-8 artifact from an authenticated scoped endpoint.",
+    "T04": "The Worker dependency gate and current goal are checked before delivery. Known failed work, an artifact integrity failure, and a missing matching verifier read each produce a partial outcome. The old candidate writes no message when the owner revises after the artifact read.",
+    "T06": "A durable queued closeout remains pending with dispatch disabled. An ordinary turn in the same session proceeds. Reopening with dispatch enabled commits the same closeout exactly once. A second restart preserves the same receipt and message.",
+    "T10": "A normal Web turn, legacy delegation, scheduling claims and historical upgrades remain supported. Downloads reject absent owner tokens and wrong sessions.",
+    "T11": "Superseded goal artifacts and artifacts whose source was erased cannot be downloaded. The message feed removes links invalidated by the source epoch."
+  },
+  "offline_runs": [
+    {
+      "scope": "Historical migration and schema assertions, including copied tables and rollback cases",
+      "passed": 60,
+      "failed": 0,
+      "deselected": 58,
+      "seconds": 142.23,
+      "local_junit": "temp/build/owa-phase3/delivery-migrations-cc031891.xml",
+      "sha256": "2cb8ab151db4ca321ce1600209b0eb917670362a6943ffe9f37e9166da9c00af"
+    },
+    {
+      "scope": "Scheduling claims, review gates, captured contexts and process-exit faults",
+      "passed": 49,
+      "failed": 0,
+      "seconds": 81.26,
+      "local_junit": "temp/build/owa-phase3/delivery-claims-cc031891.xml",
+      "sha256": "e60bffb1d0a85d46d54a3bdae1081eb1a8b203859e489cb1e38d95938a8d72f0"
+    },
+    {
+      "scope": "Workbench, normal chat, main session selection, goal conflict and actual artifact download",
+      "passed": 13,
+      "failed": 0,
+      "seconds": 160.49,
+      "local_junit": "temp/build/owa-phase3/delivery-workbench-cc031891.xml",
+      "sha256": "5c50f02359188a19c22f6d0cc788215b63a044bb06e9a338327aee72c1e22be5"
+    }
+  ],
+  "strict": {
+    "files": 518,
+    "errors": 0,
+    "warnings": 0,
+    "seconds": 22.941,
+    "local_report": "temp/build/owa-phase3/delivery-strict-cc031891.json",
+    "sha256": "39ab5f7fc139786428328c274eb921558c7f002a8522fe9229b05d251d76d3e5"
+  },
+  "es_module_syntax_checks": 88,
+  "ruff": "passed",
+  "full_suite_ran": false,
+  "github_ci_requested": false,
+  "remaining_scope": [
+    "The closeout is ledger-rendered and delivers structured status and verified text artifacts.",
+    "Peer evidence references, explicit reuse across goal versions, and receipt-backed execution resumption remain under development.",
+    "The full campus assistant workflow and release acceptance remain open."
+  ]
+}
