@@ -106,3 +106,9 @@ Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59
 - 修订后的计划任务可声明 `reuse: {task_key, goal_version}` 显式沿用先前版本已验收的结果。登记校验同根家族、较早版本、最新尝试终结、核验通过且来源 Mandate 仍受当前策略、所有者与会话约束；复用任务不得再声明工具、期限、对等与读取范围，其余任务不得依赖或引用复用键。[计划](../../../agent/src/omni/adapters/persistence/omniweave_repository.py)
 - 交付归约在同一事务复核沿用证据：来源运行仍成功、核验回执仍为 verified/not_required、来源授权仍有效。沿用核验任务与现行核验任务一样，须对保留产物的授权读取回执完成覆盖，授权撤回或读取回执缺失时任务保持待核验，交付按部分完成或未完成归约，沿用产物以"沿用证据"列入收尾并保持可下载，未沿用的旧产物仍按修订语义退出。[归约](../../../agent/src/omni/adapters/persistence/omniweave_delivery.py)
 - OWA Worker 与其他运行一样保存检查点：委派恢复对带检查点的 Worker 延迟终态，交给通用续接；`safe_resume` 对 OWA Worker 开放并随父路由策略传入子运行路由，邮箱触发的后续回合沿用同一已捕获策略。崩溃重启后，已结算的外部动作从记录回执续接而不重复执行，Worker 完成后交付照常在原主会话提交一次。[恢复](../../../agent/src/omni/adapters/persistence/delegation_repository.py) · [续接测试](../../../agent/tests/v2/http/test_v2_omniweave_receipt_resume.py)
+- 依赖闸门把 Worker 的未关闭对等请求（含非阻塞）计为未就绪：回复或超时落定前，依赖该 Worker 的任务不领取、交付不归约，避免下游拿到中途结果。[邮箱](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py)
+- 交付归约对核验任务的读取回执预期以其最新尝试结束前已发布的产物为限；之后才发布并授予的产物属于下一轮工作，不追溯核验。沿用核验任务按同一窗口复核保留产物的授权读取回执。[归约](../../../agent/src/omni/adapters/persistence/omniweave_delivery.py)
+
+### 校园助手全链离线场景
+
+Phase 3 的完整链路由一条生产入口场景验收：所有者在私有 Web 主会话发起"校园助手"目标，Router 规划 Research、Coding、Verification、Documentation；Research 发布调查产物并与 Coding 完成带引用的定向问答；Coding 在私有工作区写盘、读回核验后发布原型；Verification 读取调查与原型；Documentation 依赖三者并发布手册。实例重启后同一 Ticket 续接，所有者在原会话追加要求并修订到第 2 版：沿用的三个任务按已验收计入，新 Documentation 在工作区产出更新手册，交付在原会话提交一次，沿用证据保持可下载。[场景测试](../../../agent/tests/v2/http/test_v2_omniweave_campus.py)

@@ -2106,7 +2106,17 @@ def test_peer_references_require_recipient_authorization(tmp_path):
                 if last["role"] == "tool":
                     assert "outside the recipient Worker's authorized reader scope" in last["content"]
                     denied_reply.set()
-                    return ModelReply("Reply scope enforced", cost_micro=0)
+                    return ModelReply(
+                        "Answer plainly",
+                        (
+                            Invocation(
+                                "reply-clean",
+                                "reply_peer",
+                                {"request_id": request_id[0], "answer": "noted without citations"},
+                            ),
+                        ),
+                        cost_micro=0,
+                    )
                 return ModelReply(
                     "Answer",
                     (
@@ -2154,10 +2164,23 @@ def test_peer_references_require_recipient_authorization(tmp_path):
                 return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
             payload = json.loads(current.split("\n", 1)[1])
             for event in payload.get("events", []):
+                if event["type"] == "peer.reply":
+                    return ModelReply("Cited reply acknowledged", cost_micro=0)
                 assert event["type"] == "peer.request"
                 if last["role"] == "tool":
-                    assert "outside the recipient Worker's authorized reader scope" in last["content"]
-                    denied_reply.set()
+                    if "outside the recipient Worker's authorized reader scope" in str(last["content"]):
+                        denied_reply.set()
+                        return ModelReply(
+                            "Answer plainly",
+                            (
+                                Invocation(
+                                    "reply-clean",
+                                    "reply_peer",
+                                    {"request_id": event["request_id"], "answer": "noted without citations"},
+                                ),
+                            ),
+                            cost_micro=0,
+                        )
                     return ModelReply("Reply scope enforced", cost_micro=0)
                 [citation] = event["references"]
                 assert citation["name"] == "sources" and citation["version"] == 1
@@ -2315,13 +2338,27 @@ def test_queued_peer_reference_dropped_after_recipient_revocation(tmp_path):
                 return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
             payload = json.loads(current.split("\n", 1)[1])
             for event in payload.get("events", []):
+                if event["type"] == "peer.reply":
+                    return ModelReply("Reply acknowledged, queued citation dropped", cost_micro=0)
                 assert event["type"] == "peer.request"
                 assert event["question"] == "Does the sealed source match?"
                 assert event["references"] == []
                 dumped = json.dumps(event, ensure_ascii=False)
                 assert secret_artifact[0] not in dumped and "sealed source v1" not in dumped
                 self.delivered.set()
-                return ModelReply("Citation stripped from queued message", cost_micro=0)
+                if last["role"] == "tool":
+                    return ModelReply("Citation stripped from queued message", cost_micro=0)
+                return ModelReply(
+                    "Answer",
+                    (
+                        Invocation(
+                            "reply-clean",
+                            "reply_peer",
+                            {"request_id": event["request_id"], "answer": "noted without citations"},
+                        ),
+                    ),
+                    cost_micro=0,
+                )
             raise AssertionError("Unexpected worker turn")
 
     secret_artifact: list[str] = []

@@ -289,14 +289,34 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
         }
         grants: list[tuple[str, str, str | None]] = []
         if readable and (verifiers or reused_verifiers):
+            # A verifier can only have consumed artifacts published before its
+            # latest attempt ended; later grants belong to a different round.
+            windows: dict[str, str] = {}
+            for key, identities in {**verifiers, **reused_verifiers}.items():
+                windows[key] = str(
+                    self.connection.execute(
+                        select(func.max(s.runs.c.ended_at)).where(s.runs.c.id.in_(identities))
+                    ).scalar_one()
+                    or ""
+                )
             rows = self.connection.execute(
-                select(s.owa_tasks.c.task_key, s.owa_artifact_grants.c.artifact_id, s.owa_artifact_grants.c.revoked_at)
+                select(
+                    s.owa_tasks.c.task_key,
+                    s.owa_artifact_grants.c.artifact_id,
+                    s.owa_artifact_grants.c.revoked_at,
+                    owa_artifacts.c.created_at,
+                )
                 .select_from(s.owa_artifact_grants)
                 .join(s.owa_artifact_links, s.owa_artifact_links.c.id == s.owa_artifact_grants.c.link_id)
                 .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_artifact_links.c.reader_id)
+                .join(owa_artifacts, owa_artifacts.c.id == s.owa_artifact_grants.c.artifact_id)
                 .where(s.owa_artifact_grants.c.artifact_id.in_(list(readable)))
             ).all()
-            grants = [(str(reader), str(artifact), cast(str | None, revoked)) for reader, artifact, revoked in rows]
+            grants = [
+                (str(reader), str(artifact), cast(str | None, revoked))
+                for reader, artifact, revoked, created in rows
+                if str(created) <= windows.get(str(reader), "")
+            ]
         for key, identities in {**verifiers, **reused_verifiers}.items():
             assigned = [(artifact, revoked_at) for reader, artifact, revoked_at in grants if reader == key]
             expected = {(artifact, readable[artifact]) for artifact, _ in assigned}

@@ -77,7 +77,6 @@ def waiting_for_peer(repo: RepositoryBase, agent_id: str, run_id: str) -> bool:
             select(_requests.c.id)
             .where(
                 _requests.c.sender_id == task["id"],
-                _requests.c.blocking.is_(True),
                 _requests.c.disposition.is_(None),
             )
             .limit(1)
