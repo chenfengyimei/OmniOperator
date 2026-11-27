@@ -344,9 +344,7 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
         # read receipts cover every artifact it was granted before its attempt
         # ended, even when that artifact is no longer visible in this version.
         window = str(
-            self.connection.execute(
-                select(func.max(s.runs.c.ended_at)).where(s.runs.c.id == prior_run)
-            ).scalar_one()
+            self.connection.execute(select(func.max(s.runs.c.ended_at)).where(s.runs.c.id == prior_run)).scalar_one()
             or ""
         )
         rows = self.connection.execute(
