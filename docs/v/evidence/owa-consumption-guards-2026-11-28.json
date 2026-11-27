@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-28",
+  "phase": 3,
+  "baseline": "96cbd942d87a4f9fe09f9ae216ef0b9a368aa579",
+  "source_sha": "88a851b01ad36c67cd8d74a38f06d4c2dabf60b6",
+  "platform": "Windows, isolated production FastAPI and SQLite, offline model, subprocess crash injection",
+  "migration": {
+    "from": "v2_0063",
+    "to": "v2_0063",
+    "tables": 166,
+    "heads": 1,
+    "revisions": 63
+  },
+  "verified_contracts": {
+    "T04": "Delivery reduction re-derives a reused Verification's receipt coverage from the source version's authorized artifacts within the source attempt window, independent of what is readable in the new goal version. A prior Verification that claimed success without reading its required artifacts keeps inherited goals at needs-verification; delivery is needs-verification or partial, never completed.",
+    "T03": "Mailbox turns re-check queued peer citations immediately before model consumption against current authorization, artifact version and source state. After revocation, replacement or source erasure following mailbox confirmation, the stored reply keeps its references while the consuming turn receives only the live subset; revoked artifact names, ids and hashes never reach the model.",
+    "T06": "A real process interruption after a mailbox follow-up turn dispatched its write but before the receipt settled leaves the action executing in the original ledger; boot recovery marks it unknown and interrupts the attempt with zero replay until the owner review resolves it, and the settled write applies exactly once after review.",
+    "T10": "The campus assistant full chain, delegation recovery, kernel restart and type checklist guard regressions continue to pass on the production Web entry."
+  },
+  "offline_runs": [
+    {
+      "scope": "Consumption-time guards batch: reuse receipt coverage, citation re-check before consumption (revoked/replaced/erased), mailbox-dispatch interruption with zero replay, plus the campus chain, receipt resume, kernel restart, delegation, navigation, strict-type checklist and schema release suites",
+      "passed": 110,
+      "failed": 0,
+      "seconds": 952.86,
+      "local_junit": "output/junit/owa-consumption-guards-2026-11-28.xml",
+      "sha256": "0797ef64d711d814d71a028ec4c05d531735b969562a7c7b36273633bcd5cf3f",
+      "notes": "Suite executed on 1b93fa158dc3e238a1255a7c1e7e3b6635b49c9d; the only subsequent delta is 88a851b0, a whitespace-only ruff reformat of one query line."
+    }
+  ],
+  "strict_typing": {
+    "command": "uv run --no-sync pyright --project pyrightconfig.strict.json",
+    "files": 519,
+    "errors": 0,
+    "notes": "Run on 88a851b0 after the citation sanitizer and delivery reduction changes; no new source files were added, so the checklist guard's file set is unchanged."
+  },
+  "regressions_fixed": [
+    "the delivery reduction no longer infers a reused Verification's receipt coverage from the new version's readable set; it checks the source version's authorized grants within the source attempt window, so an old Verification that never read its required artifacts cannot inherit a completed delivery",
+    "queued peer citations are re-validated per citation at model consumption time, not only at submission and delivery; revocation, replacement and offline retention erasure after mailbox confirmation remove the citation metadata from the consuming turn's context while the stored reply evidence is retained",
+    "a real process kill between mailbox-turn dispatch and receipt settlement is covered by a subprocess regression: the original ledger keeps the action unknown, no replay occurs before the owner review, and the reviewed write applies exactly once"
+  ],
+  "remaining_scope": [
+    "Phase 4: bounded long jobs, Watchdog, cancellation and cleanup views (T06/T08/T09/T12)",
+    "Phases 5-7: digital bodies, external events, release candidate freeze with full offline run, paired benchmarks, package lifecycle, standalone machine, real platforms and 72-hour residency"
+  ]
+}
