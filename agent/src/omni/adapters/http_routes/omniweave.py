@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 
 from . import RuntimeLookup, StrictInput
 
@@ -35,5 +35,12 @@ def omniweave_router(runtime: RuntimeLookup) -> APIRouter:
         return await runtime(request).omniweave.public_ticket(
             str(agent_id), str(session_id), str(ticket_id) if ticket_id else "", str(run_id) if run_id else ""
         )
+
+    @router.delete("/sessions/{session_id}/artifacts/{artifact_id}/shares/{reader_key}", status_code=204)
+    async def revoke_artifact(agent_id: UUID, session_id: UUID, artifact_id: UUID, reader_key: str, request: Request):
+        await runtime(request).omniweave.revoke_artifact(
+            str(agent_id), str(session_id), str(artifact_id), reader_key, request.headers.get("authorization", "")[7:]
+        )
+        return Response(status_code=204)
 
     return router

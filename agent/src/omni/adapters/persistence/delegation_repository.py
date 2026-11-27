@@ -23,8 +23,8 @@ from ...domain.delegation import (
 from ...domain.omniweave import (
     OWA_PLAN,
     OWA_STATUS,
-    PEER_TOOL_NAMES,
     ROOT_CALL_LIMIT,
+    WORKER_INTERNAL_TOOL_NAMES,
     WORKER_TASK_LIMIT,
     WORKER_TOOLS,
     WorkerProfile,
@@ -133,10 +133,10 @@ class DelegationRepositories(ContextRepositories):
                 or execution["cancelled_at"]
                 or not execution["plan_sha256"]
                 or offered[source_tool.name] != tool_hash(source_tool)
-                or set(worker_tools) - (set(WORKER_TOOLS) | PEER_TOOL_NAMES)
+                or set(worker_tools) - (set(WORKER_TOOLS) | WORKER_INTERNAL_TOOL_NAMES)
                 or worker_tools.keys() & disabled
                 or worker_profile is None
-                or set(worker_tools) - (set(worker_profile.tools) | PEER_TOOL_NAMES)
+                or set(worker_tools) - (set(worker_profile.tools) | WORKER_INTERNAL_TOOL_NAMES)
             ):
                 raise BusinessError(
                     "owa_worker_tool_not_authorized", "Worker tools must be allowed by the current Agent policy"

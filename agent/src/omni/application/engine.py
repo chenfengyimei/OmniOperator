@@ -29,7 +29,7 @@ from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS,
 from ..domain.images import model_tokens, references, zoom_part_id
 from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.model_recovery import ModelRejected
-from ..domain.omniweave import PEER_TOOL_NAMES, WORKER_CONCURRENCY
+from ..domain.omniweave import WORKER_CONCURRENCY, WORKER_INTERNAL_TOOL_NAMES
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import DISCOVER_TOOLS, REQUEST_MODE, discover, select_tools, tool_window
 from ..domain.routing import notice as route_notice
@@ -944,7 +944,7 @@ class Application:
         batch_registry: Mapping[str, Capability],
         tools: tuple[ToolSpec, ...],
     ) -> BatchEntry:
-        if call.name in ("request_mode", REFLECTION.name) or call.name in PEER_TOOL_NAMES:
+        if call.name in ("request_mode", REFLECTION.name) or call.name in WORKER_INTERNAL_TOOL_NAMES:
             return BatchEntry(call.name)
         if (
             call.name == DELEGATE_TASK.name

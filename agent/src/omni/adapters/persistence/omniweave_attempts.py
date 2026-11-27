@@ -34,6 +34,16 @@ def latest_run_id(task_id: str | ColumnElement[str]) -> ScalarSelect[str]:
     )
 
 
+def latest_goal_version(task_id: str | ColumnElement[str]) -> ScalarSelect[int]:
+    return (
+        select(s.owa_task_attempts.c.goal_version)
+        .where(s.owa_task_attempts.c.task_id == task_id)
+        .order_by(s.owa_task_attempts.c.attempt_no.desc())
+        .limit(1)
+        .scalar_subquery()
+    )
+
+
 class OmniWeaveAttemptRepositories(RepositoryBase):
     def _enqueue_owa_attempt(self, agent_id: str, task_id: str, previous: Record, text: str, goal_version: int) -> str:
         unit = cast(UnitOfWork, self)

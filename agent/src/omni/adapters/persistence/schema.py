@@ -1590,6 +1590,52 @@ owa_peer_requests = scoped(
     scoped_fk("reply_ack_run_id", "runs"),
 )
 
+owa_artifact_links = scoped(
+    "owa_artifact_links",
+    Column("producer_id", String(36), nullable=False),
+    Column("reader_id", String(36), nullable=False),
+    Column("subscription_revision", Integer, nullable=False, server_default="0"),
+    Column("subscribed", Boolean, nullable=False, server_default="0"),
+    UniqueConstraint("producer_id", "reader_id"),
+    scoped_fk("producer_id", "owa_tasks"),
+    scoped_fk("reader_id", "owa_tasks"),
+)
+
+owa_artifacts = scoped(
+    "owa_artifacts",
+    Column("ticket_id", String(36), nullable=False),
+    Column("producer_id", String(36), nullable=False),
+    Column("producer_run_id", String(36), nullable=False),
+    Column("action_id", String(36), nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    Column("name", String(32), nullable=False),
+    Column("version", Integer, nullable=False),
+    Column("command_key", String(32), nullable=False),
+    Column("payload_sha256", String(64), nullable=False),
+    Column("object_id", String(36), nullable=False),
+    UniqueConstraint("producer_id", "goal_version", "command_key"),
+    UniqueConstraint("producer_id", "goal_version", "name", "version"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("producer_id", "owa_tasks"),
+    scoped_fk("producer_run_id", "runs"),
+    scoped_fk("action_id", "actions"),
+    scoped_fk("object_id", "objects"),
+)
+
+owa_artifact_grants = scoped(
+    "owa_artifact_grants",
+    Column("artifact_id", String(36), nullable=False),
+    Column("link_id", String(36), nullable=False),
+    Column("reader_version", Integer, nullable=False),
+    Column("subscription_revision", Integer),
+    Column("ack_run_id", String(36)),
+    Column("revoked_at", String(40)),
+    UniqueConstraint("artifact_id", "link_id"),
+    scoped_fk("artifact_id", "owa_artifacts"),
+    scoped_fk("link_id", "owa_artifact_links"),
+    scoped_fk("ack_run_id", "runs"),
+)
+
 source_documents = scoped(
     "source_documents",
     Column("title", String(200), nullable=False),

@@ -6,6 +6,7 @@ import hashlib
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from typing import cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
 from ..domain.omniweave import (
@@ -17,6 +18,14 @@ from ..domain.omniweave import (
     WORKER_TOOLS,
     OmniWeaveMode,
 )
+from ..domain.omniweave_artifacts import (
+    ARTIFACT_TOOLS,
+    PUBLISH_ARTIFACT,
+    READ_SHARED,
+    SUBSCRIBE_ARTIFACTS,
+    checked_artifact,
+)
+from .objects import ObjectService
 from .ports import DatabasePort, Record, TurnAdmissionObserver, UnitOfWork
 
 
@@ -25,6 +34,7 @@ class OmniWeaveService:
     mode: OmniWeaveMode
     database: DatabasePort
     notify: Callable[[], None]
+    objects: ObjectService
     worker_tool_specs: tuple[ToolSpec, ...] = ()
 
     def _worker_catalog(self) -> dict[str, ToolSpec]:
@@ -33,7 +43,7 @@ class OmniWeaveService:
             for spec in self.worker_tool_specs
             if spec.name in WORKER_TOOLS and spec.writes == (spec.name not in WORKER_READ_TOOLS)
         }
-        return {**workspace, **{spec.name: spec for spec in PEER_TOOLS}}
+        return {**workspace, **{spec.name: spec for spec in (*PEER_TOOLS, *ARTIFACT_TOOLS)}}
 
     async def main_session(self, agent_id: str) -> Record:
         session_id = await self.database.read(lambda unit: unit.omniweave_main_session(agent_id))
@@ -83,7 +93,7 @@ class OmniWeaveService:
             return (
                 (OWA_PLAN, OWA_STATUS)
                 if execution and not execution["cancelled_at"]
-                else unit.omniweave_peer_tools(agent_id, run_id)
+                else unit.omniweave_worker_tools(agent_id, run_id)
             )
 
         return await self.database.read(offered)
@@ -118,11 +128,69 @@ class OmniWeaveService:
                     lambda unit: unit.omniweave_peer_command(agent_id, run_id, name, dict(arguments))
                 )
                 self.notify()
+            elif name == PUBLISH_ARTIFACT.name:
+                result = await self._publish_artifact(agent_id, run_id, operation_id, dict(arguments))
+                self.notify()
+            elif name == READ_SHARED.name:
+                result = await self._read_artifact(agent_id, run_id, str(arguments.get("artifact_id", "")))
+            elif name == SUBSCRIBE_ARTIFACTS.name:
+                result = await self.database.write(
+                    lambda unit: unit.omniweave_artifact_subscribe(
+                        agent_id,
+                        run_id,
+                        str(arguments.get("producer", "")),
+                        arguments.get("enabled") is True,
+                    )
+                )
             else:
                 return ActionResult(Outcome.ERROR, "Unknown OmniWeave tool", error_code="tool_not_found")
         except BusinessError as exc:
             return ActionResult(Outcome.ERROR, exc.message, error_code=exc.code)
         return ActionResult(Outcome.OK, json.dumps(result, ensure_ascii=False), data=result)
+
+    async def _publish_artifact(self, agent_id: str, run_id: str, action_id: str, arguments: Record) -> Record:
+        draft = checked_artifact(arguments)
+        info = await self.database.read(lambda unit: unit.omniweave_artifact_prepare(agent_id, run_id, draft))
+        if isinstance(receipt := info.get("receipt"), dict):
+            return receipt
+
+        async def check() -> None:
+            await self.database.read(lambda unit: unit.omniweave_artifact_prepare(agent_id, run_id, draft))
+
+        return await self.objects.publish_linked(
+            agent_id,
+            draft.object_bytes(str(info["producer_id"])),
+            before_publish=check,
+            attach=lambda unit, blob, expires: unit.omniweave_artifact_attach(
+                agent_id, run_id, action_id, draft, blob, expires
+            ),
+        )
+
+    async def _read_artifact(self, agent_id: str, run_id: str, artifact_id: str) -> Record:
+        row, data = await self.objects.read_linked(
+            lambda unit: unit.omniweave_artifact_read(agent_id, run_id, artifact_id)
+        )
+        try:
+            value: object = json.loads(data)
+        except (ValueError, UnicodeError) as exc:
+            raise BusinessError("object_integrity_failed", "Stored artifact envelope is invalid", status=503) from exc
+        payload = cast(dict[str, object], value) if isinstance(value, dict) else {}
+        text = payload.get("text")
+        if payload.get("format") != "owa-text-v1" or not isinstance(text, str):
+            raise BusinessError("object_integrity_failed", "Stored artifact envelope is invalid", status=503)
+        return {**{key: item for key, item in row.items() if key != "agent_id"}, "text": text}
+
+    async def revoke_artifact(
+        self, agent_id: str, session_id: str, artifact_id: str, reader: str, owner_token: str
+    ) -> None:
+        digest = hashlib.sha256(owner_token.encode()).hexdigest()
+
+        def revoke(unit: UnitOfWork) -> None:
+            if not unit.token_valid(digest):
+                raise BusinessError("unauthenticated", "A valid owner token is required", status=401)
+            unit.omniweave_artifact_revoke(agent_id, session_id, artifact_id, reader)
+
+        await self.database.write(revoke)
 
     async def public_ticket(self, agent_id: str, session_id: str, ticket_id: str, run_id: str) -> Record:
         if ticket_id and run_id:

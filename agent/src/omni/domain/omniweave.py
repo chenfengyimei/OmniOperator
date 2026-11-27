@@ -11,6 +11,7 @@ from typing import Literal, cast
 
 from .contracts import JSON, BusinessError, ToolSpec
 from .delegation import TASK_PROPERTIES, request, tool_hash
+from .omniweave_artifacts import ARTIFACT_TOOL_NAMES
 
 OmniWeaveMode = Literal["off", "observe", "dispatch", "enabled"]
 OMNIWEAVE_MODES: tuple[OmniWeaveMode, ...] = ("off", "observe", "enabled", "dispatch")
@@ -96,6 +97,12 @@ OWA_PLAN = ToolSpec(
                             "uniqueItems": True,
                             "items": _TASK_KEY,
                         },
+                        "artifact_readers": {
+                            "type": "array",
+                            "maxItems": WORKER_TASK_LIMIT - 1,
+                            "uniqueItems": True,
+                            "items": _TASK_KEY,
+                        },
                         "tools": {
                             "type": "array",
                             "uniqueItems": True,
@@ -159,6 +166,7 @@ REPLY_PEER = ToolSpec(
 )
 PEER_TOOLS = (REQUEST_PEER, REPLY_PEER)
 PEER_TOOL_NAMES = frozenset(tool.name for tool in PEER_TOOLS)
+WORKER_INTERNAL_TOOL_NAMES = PEER_TOOL_NAMES | ARTIFACT_TOOL_NAMES
 PEER_REQUESTS_PER_ROOT = 16
 PEER_REQUESTS_PER_SENDER = 4
 PEER_CAUSAL_DEPTH = 4
@@ -174,6 +182,7 @@ class WorkerTask:
     profile: str
     deadline_seconds: int | None
     peers: tuple[str, ...]
+    artifact_readers: tuple[str, ...]
 
 
 def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
@@ -184,7 +193,7 @@ def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
     graph = {task.key: task.needs for task in result}
     if len(graph) != len(result) or any(set(needs) - graph.keys() for needs in graph.values()):
         raise invalid_plan()
-    if any(set(task.peers) - (graph.keys() - {task.key}) for task in result):
+    if any((set(task.peers) | set(task.artifact_readers)) - (graph.keys() - {task.key}) for task in result):
         raise invalid_plan()
     try:
         TopologicalSorter(graph).prepare()
@@ -199,6 +208,7 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
     key = value.get("key")
     dependencies = value.get("depends_on", [])
     peers = value.get("peers", [])
+    readers = value.get("artifact_readers", [])
     tools = value.get("tools", [])
     profile = value.get("profile", "coding")
     deadline = value.get("deadline_seconds")
@@ -209,6 +219,8 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         or not all(isinstance(item, str) and re.fullmatch(_KEY, item) for item in dependencies)
         or not isinstance(peers, list)
         or not all(isinstance(item, str) and re.fullmatch(_KEY, item) for item in peers)
+        or not isinstance(readers, list)
+        or not all(isinstance(item, str) and re.fullmatch(_KEY, item) for item in readers)
         or not isinstance(tools, list)
         or not all(isinstance(item, str) and item in WORKER_TOOLS for item in tools)
         or not isinstance(profile, str)
@@ -219,10 +231,12 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
     needs = tuple(cast(list[str], dependencies))
     selected = tuple(cast(list[str], tools))
     authorized_peers = tuple(cast(list[str], peers))
+    artifact_readers = tuple(cast(list[str], readers))
     if (
         len(needs) != len(set(needs))
         or len(selected) != len(set(selected))
         or len(authorized_peers) != len(set(authorized_peers))
+        or len(artifact_readers) != len(set(artifact_readers))
     ):
         raise invalid_plan()
     if set(selected) - set(WORKER_PROFILES[profile].tools):
@@ -231,12 +245,19 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         {
             name: item
             for name, item in value.items()
-            if name not in {"key", "depends_on", "tools", "profile", "deadline_seconds", "peers"}
+            if name not in {"key", "depends_on", "tools", "profile", "deadline_seconds", "peers", "artifact_readers"}
         },
         reservation,
     )
     return WorkerTask(
-        key, parsed, tuple(sorted(needs)), tuple(sorted(selected)), profile, deadline, tuple(sorted(authorized_peers))
+        key,
+        parsed,
+        tuple(sorted(needs)),
+        tuple(sorted(selected)),
+        profile,
+        deadline,
+        tuple(sorted(authorized_peers)),
+        tuple(sorted(artifact_readers)),
     )
 
 

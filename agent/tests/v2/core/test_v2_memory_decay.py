@@ -328,8 +328,8 @@ def test_v0047_adds_decay_columns_and_state_table_idempotently(tmp_path):
             assert not {"importance", "clarity", "recall_count", "decay_steps", "pinned", "last_seen_at"} & columns
             command.upgrade(config, "head")
             command.upgrade(config, "head")
-            assert head() == "v2_0059"
-            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0059"
+            assert head() == "v2_0060"
+            assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one() == "v2_0060"
             info = {row[1]: row for row in connection.exec_driver_sql("PRAGMA table_info(memory_entries)")}
             assert info["importance"][4] == "50" and info["clarity"][4] == "'vivid'"
             assert info["recall_count"][4] == "0" and info["decay_steps"][4] == "0" and info["pinned"][4] == "0"

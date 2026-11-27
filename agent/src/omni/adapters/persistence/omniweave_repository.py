@@ -25,6 +25,7 @@ from ...domain.omniweave import (
     goal_fingerprint,
     mandate_tool,
 )
+from ...domain.omniweave_artifacts import PUBLISH_ARTIFACT, READ_SHARED, SUBSCRIBE_ARTIFACTS
 from . import schema as s
 from .omniweave_attempts import latest_run_id
 from .omniweave_authority import assert_mandate_action, mandate
@@ -239,14 +240,19 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             raise BusinessError("owa_mandate_missing", "Submit a new owner turn to authorize a Worker plan")
         grants = cast(Record, root["tools"])
         inbound = {peer for task in tasks for peer in task.peers}
-        toolsets = {
-            task.key: (
-                *task.tools,
-                *((REQUEST_PEER.name,) if task.peers else ()),
-                *((REPLY_PEER.name,) if task.key in inbound else ()),
-            )
-            for task in tasks
-        }
+        artifact_inbound = {reader for task in tasks for reader in task.artifact_readers}
+        toolsets: dict[str, tuple[str, ...]] = {}
+        for task in tasks:
+            tools = task.tools
+            if task.peers:
+                tools += (REQUEST_PEER.name,)
+            if task.key in inbound:
+                tools += (REPLY_PEER.name,)
+            if task.artifact_readers:
+                tools += (PUBLISH_ARTIFACT.name,)
+            if task.key in artifact_inbound:
+                tools += (READ_SHARED.name, SUBSCRIBE_ARTIFACTS.name)
+            toolsets[task.key] = tools
         if any(
             name not in catalog or grants.get(name) != mandate_tool(catalog[name])
             for names in toolsets.values()
@@ -312,6 +318,12 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
                 agent_id,
             )
         for task in tasks:
+            for reader in task.artifact_readers:
+                self._record(
+                    s.owa_artifact_links,
+                    {"producer_id": records[task.key]["id"], "reader_id": records[reader]["id"]},
+                    agent_id,
+                )
             for peer in task.peers:
                 self._record(
                     s.owa_peer_links,
@@ -388,6 +400,7 @@ class OmniWeaveRepositories(OmniWeaveMailboxRepositories):
             "plan_submitted": ticket["plan_sha256"] is not None,
             "cancel_requested": ticket["cancelled_at"] is not None,
             "tasks": tasks,
+            "artifacts": self._owa_public_artifacts(agent_id, str(ticket["id"])),
         }
 
     def omniweave_private_scope(self, agent_id: str, field: str, identity: str) -> bool:

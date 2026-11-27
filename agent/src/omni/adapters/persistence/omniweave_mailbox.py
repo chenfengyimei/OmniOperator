@@ -22,9 +22,11 @@ from ...domain.omniweave import (
     goal_fingerprint,
     mandate_tool,
 )
+from ...domain.omniweave_artifacts import ARTIFACT_TOOLS
 from . import schema as s
 from .delegation_authority import authorize
-from .omniweave_attempts import OmniWeaveAttemptRepositories, latest_run_id, task_for_run
+from .omniweave_artifacts import OmniWeaveArtifactRepositories, artifact_notice_tasks, has_artifact_notice
+from .omniweave_attempts import latest_run_id, task_for_run
 from .omniweave_authority import mandate
 from .repository_base import RepositoryBase
 
@@ -62,6 +64,7 @@ def waiting_for_peer(repo: RepositoryBase, agent_id: str, run_id: str) -> bool:
         return False
     return bool(
         _delivery_rows(repo, agent_id, str(task["id"]))
+        or has_artifact_notice(repo, agent_id, str(task["id"]))
         or repo.connection.execute(
             select(_requests.c.id)
             .where(
@@ -84,13 +87,13 @@ def _bounded_text(value: JSON) -> str:
     return value
 
 
-class OmniWeaveMailboxRepositories(OmniWeaveAttemptRepositories):
-    def omniweave_peer_tools(self, agent_id: str, run_id: str) -> tuple[ToolSpec, ...]:
+class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
+    def omniweave_worker_tools(self, agent_id: str, run_id: str) -> tuple[ToolSpec, ...]:
         captured = mandate(self, agent_id, run_id)
         if captured is None or captured["task_id"] is None:
             return ()
         tools = cast(Record, captured["tools"])
-        return tuple(spec for spec in PEER_TOOLS if tools.get(spec.name) == mandate_tool(spec))
+        return tuple(spec for spec in (*PEER_TOOLS, *ARTIFACT_TOOLS) if tools.get(spec.name) == mandate_tool(spec))
 
     def omniweave_peer_command(self, agent_id: str, run_id: str, name: str, arguments: Record) -> Record:
         unit = cast(UnitOfWork, self)
@@ -101,7 +104,7 @@ class OmniWeaveMailboxRepositories(OmniWeaveAttemptRepositories):
             task is None
             or captured is None
             or unit.get_run(agent_id, run_id)["state"] != "running"
-            or all(spec.name != name for spec in self.omniweave_peer_tools(agent_id, run_id))
+            or all(spec.name != name for spec in self.omniweave_worker_tools(agent_id, run_id))
             or self.connection.execute(select(latest_run_id(str(task["id"])))).scalar_one() != run_id
         ):
             raise BusinessError("owa_peer_not_authorized", "An active Worker with a peer grant is required")
@@ -295,6 +298,7 @@ class OmniWeaveMailboxRepositories(OmniWeaveAttemptRepositories):
             select(_requests.c.sender_id.label("task_id")).where(
                 _requests.c.reply_ack_run_id.is_(None), _requests.c.disposition.is_not(None)
             ),
+            artifact_notice_tasks(),
         ).subquery()
         rows = self.connection.execute(
             select(s.owa_tasks.c.id, s.owa_tasks.c.agent_id, s.runs.c.id.label("run_id"))
@@ -379,6 +383,8 @@ class OmniWeaveMailboxRepositories(OmniWeaveAttemptRepositories):
                     }
                 )
                 receipts.append((str(row["id"]), "reply_ack_run_id"))
+        notices = self._owa_artifact_notices(agent_id, task_id, cast(int, captured["goal_version"]))
+        events.extend(event for _, event in notices)
         if not events or previous["state"] != "succeeded":
             return
         text = (
@@ -399,3 +405,5 @@ class OmniWeaveMailboxRepositories(OmniWeaveAttemptRepositories):
                 .where(_requests.c.id == identity, _requests.c[column].is_(None))
                 .values(**{column: resumed_id})
             )
+        for grant_id, _ in notices:
+            self._owa_ack_artifact(grant_id, resumed_id)
