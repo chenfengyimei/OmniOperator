@@ -112,9 +112,9 @@
       "id": "OMNIWEAVE",
       "title": "OWA 主会话编排与发布验收",
       "status": "development_in_progress",
-      "next": "Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59 项历史迁移和 1 项快照恢复回归，迁移头为 `v2_0058`。接下来推进 Phase 3 的稳定 Worker 执行 Ticket、同根同版本邮箱、授权产物、主会话追加和原位交付。以 OW-01–OW-06 和 T01–T13 的分阶段证据验收。",
+      "next": "Phase 3 已接 Worker 轮次与同根同版本持久邮箱。`d04f8f8e` 与兼容修复 `3cd651ec` 的离线范围合计 134 个不同用例通过，当前迁移头为 `v2_0059`。接下来实现版本化授权产物、事件订阅、主会话追加与目标修订、经过核验的检查点续接和原位交付。以 OW-01–OW-06 和 T01–T13 的分阶段证据验收。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
-      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json", "docs/v/evidence/owa-spec-alignment-2026-11-27.json", "docs/v/evidence/owa-worker-capacity-2026-11-27.json", "docs/v/evidence/owa-main-session-2026-11-27.json", "docs/v/evidence/owa-worker-mandates-2026-11-27.json"]
+      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json", "docs/v/evidence/owa-spec-alignment-2026-11-27.json", "docs/v/evidence/owa-worker-capacity-2026-11-27.json", "docs/v/evidence/owa-main-session-2026-11-27.json", "docs/v/evidence/owa-worker-mandates-2026-11-27.json", "docs/v/evidence/owa-peer-mailbox-2026-11-27.json"]
     },
     {
       "id": "CAPABILITY-PLUGINS",
