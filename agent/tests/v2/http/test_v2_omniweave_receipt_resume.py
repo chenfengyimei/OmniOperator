@@ -9,7 +9,11 @@ import time
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from omni_test_support.v2.v2_action_review_helpers import review_request
+from sqlalchemy import select
 
+from omni.adapters.persistence import schema as s
+from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.application.engine import Application
 from omni.composition.http import http_app
@@ -85,6 +89,20 @@ def crash_at(phase):
             return await original(self, agent_id, run_id, messages, result, settings, tool_name)
 
         Application._tool_message_content = wrapped
+    elif phase == "mailbox-dispatch":
+        original = Repositories.settle_action
+
+        def wrapped(self, agent_id, action_id, result):
+            row = self.connection.execute(
+                select(s.actions.c.tool, s.actions.c.arguments).where(s.actions.c.id == action_id)
+            ).first()
+            if row is not None and row.tool == "files_write" and "turn2.txt" in str(row.arguments):
+                # The worker already applied the mailbox-turn write; its receipt
+                # never settles, so the ledger keeps the dispatched action.
+                os._exit(CRASH)
+            return original(self, agent_id, action_id, result)
+
+        Repositories.settle_action = wrapped
     else:
         raise AssertionError(f"Unknown crash phase {phase}")
 
@@ -280,6 +298,68 @@ class MailboxRecoveryModel(MailboxWorkerModel):
         return await MailboxWorkerModel.complete(self, messages, tools, settings)
 
 
+class MailboxDispatchRecoveryModel(MailboxWorkerModel):
+    def __init__(self):
+        super().__init__()
+        self.replayed = False
+
+    async def complete(self, messages, tools, settings):
+        text = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+        if text.startswith("OmniWeave Worker. Continue") and "previous process" in str(messages):
+            self.replayed = True
+        return await MailboxWorkerModel.complete(self, messages, tools, settings)
+
+
+def test_mailbox_dispatched_write_stays_unknown_until_review(tmp_path):
+    home = tmp_path / "home"
+    launcher = (
+        "import runpy,sys; sys.path.insert(0,sys.argv.pop(1)); runpy.run_path(sys.argv.pop(1),run_name='__main__')"
+    )
+    command = [sys.executable, "-c", launcher, str(Path(__file__).resolve().parents[2]), __file__, str(home)]
+    child = subprocess.run(
+        [*command, "mailbox-dispatch"],
+        capture_output=True,
+        timeout=120,
+        check=False,
+        env={**os.environ, "OMNI_TEST_OFFLINE": "1"},
+    )
+    assert child.returncode == CRASH, child.stderr.decode(errors="replace")
+
+    # The mailbox-turn write reached the workspace while its receipt never settled.
+    assert _rows(home, "SELECT count(*) FROM actions WHERE tool='files_write' AND state='executing'") == [(1,)]
+    assert _rows(home, "SELECT count(*) FROM actions WHERE tool='files_write' AND state='ok'") == [(1,)]
+    assert list((home / "owa-workspaces").rglob("turn2.txt"))
+
+    model = MailboxDispatchRecoveryModel()
+    with TestClient(http_app(home, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, home)
+        base = _model_base(client, agent)
+        _select_main(client, base)
+        [unknown] = _rows(home, "SELECT id FROM actions WHERE state='unknown' AND tool='files_write'")
+        assert unknown, "the dispatched mailbox write never entered the review ledger"
+        # 核查前零重放：被中断的邮箱回合保持 interrupted，turn2 写不出现第二次。
+        for _ in range(200):
+            assert _rows(
+                home, "SELECT count(*) FROM actions WHERE tool='files_write' AND arguments LIKE '%turn2.txt%'"
+            ) == [(1,)], "the interrupted mailbox turn replayed before the owner reviewed it"
+            time.sleep(0.025)
+        assert model.replayed is False
+        rows = _rows(
+            home,
+            "SELECT r.state FROM owa_tasks t JOIN owa_task_attempts a ON a.task_id=t.id "
+            "JOIN runs r ON r.id=a.run_id WHERE t.task_key='writer' ORDER BY a.attempt_no",
+        )
+        assert [row[0] for row in rows] == ["succeeded", "interrupted"]
+        review_url = base + f"/actions/{unknown[0]}/review"
+        detail = client.get(review_url).json()
+        assert detail["eligible"] is True, detail
+        confirmed = client.post(review_url, json=review_request(detail))
+        assert confirmed.status_code == 200 and confirmed.json()["resolved"], confirmed.text
+        assert _rows(
+            home, "SELECT count(*) FROM actions WHERE tool='files_write' AND arguments LIKE '%turn2.txt%'"
+        ) == [(1,)]
+
+
 def test_mailbox_turn_resumes_from_checkpoint_after_crash(tmp_path):
     home = tmp_path / "home"
     launcher = (
@@ -341,7 +421,7 @@ if __name__ == "__main__":
     home = Path(sys.argv[1])
     phase = sys.argv[2]
     crash_at(phase)
-    model = MailboxWorkerModel() if phase == "mailbox-turn" else WorkerModel()
+    model = MailboxWorkerModel() if phase.startswith("mailbox") else WorkerModel()
     with TestClient(http_app(home, model=model, omniweave_mode="dispatch")) as client:
         agent = _authorize(client, home)
         base = _model_base(client, agent)
