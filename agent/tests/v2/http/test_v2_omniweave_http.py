@@ -1315,6 +1315,229 @@ def test_peer_mailbox_reuses_worker_sessions_and_delivers_once(tmp_path, monkeyp
             assert _rows(tmp_path, "SELECT request_ack_run_id FROM owa_peer_requests") == [(claimed,)]
 
 
+def test_peer_messages_cite_only_authorized_artifact_versions(tmp_path):
+    def _peer_goal_of(messages):
+        text = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+        if not text.startswith("OmniWeave Worker."):
+            return None
+        return json.loads(text.split("\n", 1)[1]).get("goal")
+
+    class Model:
+        def __init__(self):
+            self.release_source = asyncio.Event()
+            self.published = asyncio.Event()
+            self.requested = Event()
+            self.replied = Event()
+
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Campus peer citation", cost_micro=0)
+            goal = _peer_goal_of(messages)
+            last = messages[-1]
+            if goal == "publish sources":
+                if last["role"] == "tool":
+                    await self.release_source.wait()
+                    return ModelReply("Published sources", cost_micro=0)
+                return ModelReply(
+                    "Publish",
+                    (
+                        Invocation(
+                            "shared",
+                            "publish_artifact",
+                            {
+                                "name": "sources",
+                                "key": "sources",
+                                "expected_version": 0,
+                                "readers": ["asker"],
+                                "text": "shared source v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "seal secret":
+                if last["role"] == "tool":
+                    return ModelReply("Sealed", cost_micro=0)
+                return ModelReply(
+                    "Seal",
+                    (
+                        Invocation(
+                            "secret",
+                            "publish_artifact",
+                            {
+                                "name": "secret",
+                                "key": "secret",
+                                "expected_version": 0,
+                                "readers": ["third"],
+                                "text": "sealed source v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "standby":
+                return ModelReply("Third standby", cost_micro=0)
+            if goal == "ask about sources":
+                await self.published.wait()
+                if last["role"] == "tool":
+                    results = [row["content"] for row in messages if row["role"] == "tool"]
+                    assert "outside this Worker's authorized reader scope" in results[0]
+                    assert "outside this Worker's authorized reader scope" in results[1]
+                    first, retry = map(json.loads, results[2:4])
+                    assert first["state"] == "pending" and retry["duplicate"] is True
+                    self.requested.set()
+                    return ModelReply("Waiting at a safe boundary", cost_micro=0)
+                reference = [{"artifact_id": shared_artifact[0], "version": 1}]
+                return ModelReply(
+                    "Ask",
+                    (
+                        Invocation(
+                            "denied",
+                            "request_peer",
+                            {
+                                "key": "d1",
+                                "target": "source",
+                                "question": "q",
+                                "blocking": True,
+                                "references": [{"artifact_id": secret_artifact[0], "version": 1}],
+                            },
+                        ),
+                        Invocation(
+                            "stale",
+                            "request_peer",
+                            {
+                                "key": "d2",
+                                "target": "source",
+                                "question": "q",
+                                "blocking": True,
+                                "references": [{"artifact_id": shared_artifact[0], "version": 2}],
+                            },
+                        ),
+                        Invocation(
+                            "ask",
+                            "request_peer",
+                            {
+                                "key": "ask",
+                                "target": "source",
+                                "question": "Which source is verified?",
+                                "blocking": True,
+                                "references": reference,
+                            },
+                        ),
+                        Invocation(
+                            "retry",
+                            "request_peer",
+                            {
+                                "key": "ask",
+                                "target": "source",
+                                "question": "Which source is verified?",
+                                "blocking": True,
+                                "references": reference,
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                assert last["role"] == "user"
+                tasks = [
+                    {
+                        "key": "source",
+                        "goal": "publish sources",
+                        "profile": "research",
+                        "artifact_readers": ["asker"],
+                        "max_calls": 8,
+                    },
+                    {"key": "keeper", "goal": "seal secret", "profile": "documentation", "artifact_readers": ["third"]},
+                    {
+                        "key": "asker",
+                        "goal": "ask about sources",
+                        "profile": "research",
+                        "peers": ["source"],
+                        "max_calls": 8,
+                    },
+                    {"key": "third", "goal": "standby", "profile": "documentation"},
+                ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            payload = json.loads(current.split("\n", 1)[1])
+            for event in payload.get("events", []):
+                if event["type"] == "peer.request":
+                    assert {tool.name for tool in tools} == {"reply_peer", "publish_artifact"}
+                    assert event["references"] == [] or event["references"][0]["name"] == "sources"
+                    if last["role"] == "tool":
+                        receipt = json.loads(last["content"])
+                        assert receipt["state"] == "answered" and receipt["duplicate"] is False
+                        return ModelReply("Citation delivered", cost_micro=0)
+                    self.replied.set()
+                    return ModelReply(
+                        "Answer with citation",
+                        (
+                            Invocation(
+                                "answer",
+                                "reply_peer",
+                                {
+                                    "request_id": event["request_id"],
+                                    "answer": "verified source v1",
+                                    "references": [{"artifact_id": shared_artifact[0], "version": 1}],
+                                },
+                            ),
+                        ),
+                        cost_micro=0,
+                    )
+                assert event["type"] == "peer.reply"
+                assert event["answer"] == "verified source v1"
+                [citation] = event["references"]
+                assert citation["name"] == "sources" and citation["version"] == 1 and len(citation["sha256"]) == 64
+                assert {tool.name for tool in tools} == {"request_peer", "read_shared", "subscribe_artifacts"}
+                return ModelReply("Cited evidence recorded", cost_micro=0)
+            raise AssertionError("Unexpected worker turn")
+
+    shared_artifact: list[str] = []
+    secret_artifact: list[str] = []
+    model = Model()
+
+    original_complete = Model.complete
+
+    async def complete_with_capture(self, messages, tools, settings):
+        goal = _peer_goal_of(messages)
+        if goal == "publish sources" and messages[-1]["role"] == "tool" and not shared_artifact:
+            shared_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+            if secret_artifact:
+                self.published.set()
+        if goal == "seal secret" and messages[-1]["role"] == "tool" and not secret_artifact:
+            secret_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+            if shared_artifact:
+                self.published.set()
+        return await original_complete(self, messages, tools, settings)
+
+    Model.complete = complete_with_capture
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "cite", "session_id": session_id, "message": "Coordinate citations"}
+        ).json()
+        assert model.requested.wait(15)
+        client.portal.call(model.release_source.set)
+        assert model.replied.wait(15)
+        _wait_tasks(client, base, receipt, dict.fromkeys(("source", "keeper", "asker", "third"), "succeeded"))
+        [row] = _rows(tmp_path, "SELECT request_references, reply_references, disposition FROM owa_peer_requests")
+        request_citation, reply_citation, disposition = row
+        assert disposition == "answered"
+        [request_citation] = json.loads(request_citation) if isinstance(request_citation, str) else request_citation
+        [reply_citation] = json.loads(reply_citation) if isinstance(reply_citation, str) else reply_citation
+        assert request_citation["artifact_id"] == shared_artifact[0] and request_citation["version"] == 1
+        assert request_citation["name"] == "sources" and len(request_citation["sha256"]) == 64
+        assert reply_citation == request_citation
+
+
 def test_goal_revision_retains_accepted_worker_evidence(tmp_path):
     class Model:
         async def complete(self, messages, tools, settings):
