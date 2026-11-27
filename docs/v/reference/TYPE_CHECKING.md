@@ -219,6 +219,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/persistence/migrations/versions/v0060.py` | 产物版本与订阅回执 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0061.py` | 目标版本谱系与旧授权退役 |
 | `agent/src/omni/adapters/persistence/migrations/versions/v0062.py` | 原会话交付及消息唯一回执 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0063.py` | 显式沿用登记与对等引用列 |
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/persistence/terminal_repository.py` | 终端意图事务与不可变回执（对齐端口 Record、修订号 int 收窄、不启原生进程不存正文） |
 | `agent/src/omni/adapters/persistence/terminal_review_repository.py` | 终端 unknown 观测复核与可抹证据（对齐端口 Record、来源三元组显式、回执与原生生命周期不变、不授权重放） |

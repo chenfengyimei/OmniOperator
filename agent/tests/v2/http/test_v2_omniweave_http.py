@@ -3,6 +3,7 @@
 import asyncio
 import json
 import sqlite3
+import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
@@ -1736,3 +1737,813 @@ def test_goal_revision_retains_accepted_worker_evidence(tmp_path):
             "research",
             "verify",
         ]
+
+
+def test_reused_verifier_without_current_reads_stays_unverified(tmp_path):
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Campus stale verifier", cost_micro=0)
+            goal = _worker_goal(messages)
+            last = messages[-1]
+            if goal == "publish baseline":
+                if last["role"] == "tool":
+                    return ModelReply("Baseline published", cost_micro=0)
+                return ModelReply(
+                    "Publish",
+                    (
+                        Invocation(
+                            "publish",
+                            "publish_artifact",
+                            {
+                                "name": "baseline",
+                                "key": "baseline",
+                                "expected_version": 0,
+                                "readers": ["verify"],
+                                "text": "baseline evidence v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "claim verified":
+                return ModelReply("Claimed verification without reading", cost_micro=0)
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                if current == "Campus stale verifier":
+                    tasks = [
+                        {
+                            "key": "research",
+                            "goal": "publish baseline",
+                            "profile": "research",
+                            "artifact_readers": ["verify"],
+                        },
+                        {
+                            "key": "verify",
+                            "goal": "claim verified",
+                            "profile": "verification",
+                            "depends_on": ["research"],
+                        },
+                    ]
+                else:
+                    assert current == "Campus verifier revision", current
+                    tasks = [
+                        {
+                            "key": "research",
+                            "goal": "publish baseline",
+                            "profile": "research",
+                            "reuse": {"task_key": "research", "goal_version": 1},
+                        },
+                        {
+                            "key": "verify",
+                            "goal": "claim verified",
+                            "profile": "verification",
+                            "reuse": {"task_key": "verify", "goal_version": 1},
+                        },
+                    ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            raise AssertionError("Unexpected worker turn")
+
+    model = Model()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        root = client.post(
+            base + "/turns", json={"key": "campus", "session_id": session_id, "message": "Campus stale verifier"}
+        ).json()
+        ticket = _wait_tasks(client, base, root, {"research": "succeeded", "verify": "succeeded"})
+        first = None
+        for _ in range(400):
+            first = next(
+                (
+                    row
+                    for row in client.get(base + f"/sessions/{session_id}/messages").json()["items"]
+                    if row["role"] == "assistant" and "OmniWeave 交付 · 第 1 版 · 部分完成" in row["content"]
+                ),
+                first,
+            )
+            if first is not None:
+                break
+            time.sleep(0.025)
+        assert first is not None and "执行结束，仍需核验" in first["content"]
+        revised = client.post(
+            base + "/turns",
+            json={
+                "key": "revision",
+                "session_id": session_id,
+                "message": "Campus verifier revision",
+                "goal_update": {"ticket_id": ticket["ticket_id"], "expected_goal_version": 1},
+            },
+        ).json()
+        assert revised["run_id"] != root["run_id"]
+        closeout = None
+        for _ in range(400):
+            closeout = next(
+                (
+                    row
+                    for row in client.get(base + f"/sessions/{session_id}/messages").json()["items"]
+                    if row["role"] == "assistant" and "OmniWeave 交付 · 第 2 版" in row["content"]
+                ),
+                closeout,
+            )
+            if closeout is not None:
+                break
+            time.sleep(0.025)
+        assert closeout is not None
+        assert "verify · 执行结束，仍需核验 · 第 1 版沿用证据需要复核" in closeout["content"]
+        assert "research · 已完成 · 沿用第 1 版已验收结果" in closeout["content"]
+        links = closeout["omniweave_delivery"]
+        assert links["outcome"] == "partial" and links["goal_version"] == 2
+        assert dict(_rows(tmp_path, "SELECT task_key, source_goal_version FROM owa_task_reuse")) == {
+            "research": 1,
+            "verify": 1,
+        }
+
+
+def test_reuse_rejected_when_source_authorization_changed(tmp_path):
+    rejected = Event()
+
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Campus authorized baseline", cost_micro=0)
+            goal = _worker_goal(messages)
+            last = messages[-1]
+            if goal == "publish baseline":
+                if last["role"] == "tool":
+                    return ModelReply("Baseline published", cost_micro=0)
+                return ModelReply(
+                    "Publish",
+                    (
+                        Invocation(
+                            "publish",
+                            "publish_artifact",
+                            {
+                                "name": "baseline",
+                                "key": "baseline",
+                                "expected_version": 0,
+                                "readers": ["verify"],
+                                "text": "baseline evidence v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "verify baseline":
+                if last["role"] == "tool":
+                    return ModelReply("Baseline verified", cost_micro=0)
+                return ModelReply(
+                    "Check",
+                    (Invocation("read", "read_shared", {"artifact_id": baseline_artifact[0]}),),
+                    cost_micro=0,
+                )
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    if current == "Campus policy revision":
+                        assert "no longer authorized" in last["content"], last["content"]
+                        rejected.set()
+                        return ModelReply("Plan rejected by admission", cost_micro=0)
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                assert current in {"Campus authorized baseline", "Campus policy revision"}, current
+                tasks = [
+                    {
+                        "key": "research",
+                        "goal": "publish baseline",
+                        "profile": "research",
+                        "artifact_readers": ["verify"],
+                    },
+                    {
+                        "key": "verify",
+                        "goal": "verify baseline",
+                        "profile": "verification",
+                        "depends_on": ["research"],
+                    },
+                ]
+                if current == "Campus policy revision":
+                    tasks = [
+                        {
+                            "key": "research",
+                            "goal": "publish baseline",
+                            "profile": "research",
+                            "reuse": {"task_key": "research", "goal_version": 1},
+                        },
+                        {
+                            "key": "verify",
+                            "goal": "verify baseline",
+                            "profile": "verification",
+                            "reuse": {"task_key": "verify", "goal_version": 1},
+                        },
+                    ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            raise AssertionError("Unexpected worker turn")
+
+    baseline_artifact: list[str] = []
+    model = Model()
+    original_complete = Model.complete
+
+    async def capture(self, messages, tools, settings):
+        goal = _worker_goal(messages)
+        if goal == "publish baseline" and messages[-1]["role"] == "tool" and not baseline_artifact:
+            baseline_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+        return await original_complete(self, messages, tools, settings)
+
+    Model.complete = capture
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        root = client.post(
+            base + "/turns",
+            json={"key": "campus", "session_id": session_id, "message": "Campus authorized baseline"},
+        ).json()
+        ticket = _wait_tasks(client, base, root, {"research": "succeeded", "verify": "succeeded"})
+        settings = client.get(base + "/settings").json()
+        saved = client.put(
+            base + "/settings",
+            json={
+                "revision": settings["revision"],
+                "value": {**settings["value"], "workspace": tempfile.mkdtemp(prefix="owa-policy-")},
+            },
+        )
+        assert saved.status_code == 200, saved.text
+        client.post(
+            base + "/turns",
+            json={
+                "key": "revision",
+                "session_id": session_id,
+                "message": "Campus policy revision",
+                "goal_update": {"ticket_id": ticket["ticket_id"], "expected_goal_version": 1},
+            },
+        ).json()
+        assert rejected.wait(15)
+        assert _rows(tmp_path, "SELECT count(*) FROM owa_task_reuse") == [(0,)]
+
+
+def test_peer_references_require_recipient_authorization(tmp_path):
+    def _peer_goal_of(messages):
+        text = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+        if not text.startswith("OmniWeave Worker."):
+            return None
+        return json.loads(text.split("\n", 1)[1]).get("goal")
+
+    denied_request = Event()
+    denied_reply = Event()
+
+    class Model:
+        def __init__(self):
+            self.release_source = asyncio.Event()
+            self.published = asyncio.Event()
+
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Campus recipient scope", cost_micro=0)
+            goal = _peer_goal_of(messages)
+            last = messages[-1]
+            if goal == "publish sources":
+                if last["role"] == "tool":
+                    await self.release_source.wait()
+                    return ModelReply("Published sources", cost_micro=0)
+                return ModelReply(
+                    "Publish",
+                    (
+                        Invocation(
+                            "shared",
+                            "publish_artifact",
+                            {
+                                "name": "sources",
+                                "key": "sources",
+                                "expected_version": 0,
+                                "readers": ["asker"],
+                                "text": "shared source v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "seal secret":
+                if last["role"] == "tool":
+                    return ModelReply("Sealed", cost_micro=0)
+                return ModelReply(
+                    "Seal",
+                    (
+                        Invocation(
+                            "secret",
+                            "publish_artifact",
+                            {
+                                "name": "secret",
+                                "key": "secret",
+                                "expected_version": 0,
+                                "readers": ["source"],
+                                "text": "sealed source v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "standby":
+                return ModelReply("Outsider standby", cost_micro=0)
+            if goal == "probe citations":
+                await self.published.wait()
+                if last["role"] == "tool":
+                    results = [row["content"] for row in messages if row["role"] == "tool"]
+                    assert "outside the recipient Worker's authorized reader scope" in results[0]
+                    assert "outside the recipient Worker's authorized reader scope" in results[1]
+                    [created] = map(json.loads, results[2:])
+                    assert created["state"] == "pending" and created["duplicate"] is False
+                    denied_request.set()
+                    return ModelReply("Recipient scope enforced", cost_micro=0)
+                return ModelReply(
+                    "Probe",
+                    (
+                        Invocation(
+                            "recipient-denied",
+                            "request_peer",
+                            {
+                                "key": "r1",
+                                "target": "outsider",
+                                "question": "q",
+                                "blocking": False,
+                                "references": [{"artifact_id": shared_artifact[0], "version": 1}],
+                            },
+                        ),
+                        Invocation(
+                            "outsider-denied",
+                            "request_peer",
+                            {
+                                "key": "r2",
+                                "target": "outsider",
+                                "question": "q",
+                                "blocking": False,
+                                "references": [{"artifact_id": shared_artifact[0], "version": 1}],
+                            },
+                        ),
+                        Invocation(
+                            "valid",
+                            "request_peer",
+                            {
+                                "key": "valid",
+                                "target": "source",
+                                "question": "Which source is verified?",
+                                "blocking": False,
+                                "references": [{"artifact_id": shared_artifact[0], "version": 1}],
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "answer the source":
+                if last["role"] == "tool":
+                    assert "outside the recipient Worker's authorized reader scope" in last["content"]
+                    denied_reply.set()
+                    return ModelReply("Reply scope enforced", cost_micro=0)
+                return ModelReply(
+                    "Answer",
+                    (
+                        Invocation(
+                            "reply-denied",
+                            "reply_peer",
+                            {
+                                "request_id": request_id[0],
+                                "answer": "cannot cite what the requester cannot read",
+                                "references": [{"artifact_id": secret_artifact[0], "version": 1}],
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                assert last["role"] == "user"
+                tasks = [
+                    {
+                        "key": "source",
+                        "goal": "publish sources",
+                        "profile": "research",
+                        "artifact_readers": ["asker"],
+                        "peers": ["asker"],
+                        "max_calls": 8,
+                    },
+                    {
+                        "key": "keeper",
+                        "goal": "seal secret",
+                        "profile": "documentation",
+                        "artifact_readers": ["source"],
+                    },
+                    {
+                        "key": "asker",
+                        "goal": "probe citations",
+                        "profile": "research",
+                        "peers": ["source", "outsider"],
+                        "max_calls": 8,
+                    },
+                    {"key": "outsider", "goal": "standby", "profile": "documentation"},
+                ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            payload = json.loads(current.split("\n", 1)[1])
+            for event in payload.get("events", []):
+                assert event["type"] == "peer.request"
+                if last["role"] == "tool":
+                    assert "outside the recipient Worker's authorized reader scope" in last["content"]
+                    denied_reply.set()
+                    return ModelReply("Reply scope enforced", cost_micro=0)
+                [citation] = event["references"]
+                assert citation["name"] == "sources" and citation["version"] == 1
+                request_id.append(event["request_id"])
+                return ModelReply(
+                    "Answer",
+                    (
+                        Invocation(
+                            "reply-denied",
+                            "reply_peer",
+                            {
+                                "request_id": event["request_id"],
+                                "answer": "cannot cite what the requester cannot read",
+                                "references": [{"artifact_id": secret_artifact[0], "version": 1}],
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            raise AssertionError("Unexpected worker turn")
+
+    shared_artifact: list[str] = []
+    secret_artifact: list[str] = []
+    request_id: list[str] = []
+    model = Model()
+    original_complete = Model.complete
+
+    async def complete_with_capture(self, messages, tools, settings):
+        goal = _peer_goal_of(messages)
+        if goal == "publish sources" and messages[-1]["role"] == "tool" and not shared_artifact:
+            shared_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+            if secret_artifact:
+                self.published.set()
+        if goal == "seal secret" and messages[-1]["role"] == "tool" and not secret_artifact:
+            secret_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+            if shared_artifact:
+                self.published.set()
+        return await original_complete(self, messages, tools, settings)
+
+    Model.complete = complete_with_capture
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "scope", "session_id": session_id, "message": "Coordinate recipient scope"}
+        ).json()
+        assert denied_request.wait(15)
+        client.portal.call(model.release_source.set)
+        assert denied_reply.wait(15)
+        _wait_tasks(client, base, receipt, dict.fromkeys(("source", "keeper", "asker", "outsider"), "succeeded"))
+        [row] = _rows(tmp_path, "SELECT request_references FROM owa_peer_requests")
+        assert isinstance(row[0], str)
+
+
+def test_queued_peer_reference_dropped_after_recipient_revocation(tmp_path):
+    def _peer_goal_of(messages):
+        text = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+        if not text.startswith("OmniWeave Worker."):
+            return None
+        return json.loads(text.split("\n", 1)[1]).get("goal")
+
+    class Model:
+        def __init__(self):
+            self.published = asyncio.Event()
+            self.requested = Event()
+            self.delivered = Event()
+
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Campus queued revocation", cost_micro=0)
+            goal = _peer_goal_of(messages)
+            last = messages[-1]
+            if goal == "seal secret":
+                if last["role"] == "tool":
+                    return ModelReply("Sealed", cost_micro=0)
+                return ModelReply(
+                    "Seal",
+                    (
+                        Invocation(
+                            "secret",
+                            "publish_artifact",
+                            {
+                                "name": "secret",
+                                "key": "secret",
+                                "expected_version": 0,
+                                "readers": ["source", "asker"],
+                                "text": "sealed source v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "hold for approval":
+                if last["role"] == "tool":
+                    return ModelReply("Held", cost_micro=0)
+                return ModelReply(
+                    "Hold",
+                    (Invocation("hold", "files_write", {"path": "hold.txt", "content": "held"}),),
+                    cost_micro=0,
+                )
+            if goal == "cite while queued":
+                await self.published.wait()
+                if last["role"] == "tool":
+                    receipt = json.loads(last["content"])
+                    assert receipt["state"] == "pending" and receipt["duplicate"] is False
+                    self.requested.set()
+                    return ModelReply("Waiting at a safe boundary", cost_micro=0)
+                return ModelReply(
+                    "Cite",
+                    (
+                        Invocation(
+                            "ask",
+                            "request_peer",
+                            {
+                                "key": "queued",
+                                "target": "source",
+                                "question": "Does the sealed source match?",
+                                "blocking": False,
+                                "references": [{"artifact_id": secret_artifact[0], "version": 1}],
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                assert last["role"] == "user"
+                tasks = [
+                    {
+                        "key": "keeper",
+                        "goal": "seal secret",
+                        "profile": "documentation",
+                        "artifact_readers": ["source", "asker"],
+                    },
+                    {
+                        "key": "source",
+                        "goal": "hold for approval",
+                        "profile": "coding",
+                        "tools": ["files_write"],
+                    },
+                    {
+                        "key": "asker",
+                        "goal": "cite while queued",
+                        "profile": "research",
+                        "peers": ["source"],
+                        "max_calls": 8,
+                    },
+                ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            payload = json.loads(current.split("\n", 1)[1])
+            for event in payload.get("events", []):
+                assert event["type"] == "peer.request"
+                assert event["question"] == "Does the sealed source match?"
+                assert event["references"] == []
+                dumped = json.dumps(event, ensure_ascii=False)
+                assert secret_artifact[0] not in dumped and "sealed source v1" not in dumped
+                self.delivered.set()
+                return ModelReply("Citation stripped from queued message", cost_micro=0)
+            raise AssertionError("Unexpected worker turn")
+
+    secret_artifact: list[str] = []
+    model = Model()
+    original_complete = Model.complete
+
+    async def complete_with_capture(self, messages, tools, settings):
+        goal = _peer_goal_of(messages)
+        if goal == "seal secret" and messages[-1]["role"] == "tool" and not secret_artifact:
+            secret_artifact.append(json.loads(messages[-1]["content"])["artifact_id"])
+            self.published.set()
+        return await original_complete(self, messages, tools, settings)
+
+    Model.complete = complete_with_capture
+
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "revoke", "session_id": session_id, "message": "Queue a cited request"}
+        ).json()
+        assert model.requested.wait(15)
+        revocation = client.delete(
+            base + f"/omniweave/sessions/{session_id}/artifacts/{secret_artifact[0]}/shares/source"
+        )
+        assert revocation.status_code == 204, revocation.text
+        approval = None
+        for _ in range(400):
+            items = client.get(base + "/approvals").json()["items"]
+            if items:
+                [approval] = items
+                break
+            time.sleep(0.025)
+        assert approval is not None and approval["state"] == "pending"
+        client.post(
+            base + f"/approvals/{approval['id']}",
+            json={"allowed": True, "policy_revision": approval["policy_revision"]},
+        )
+        assert model.delivered.wait(15)
+        _wait_tasks(client, base, receipt, {"keeper": "succeeded", "source": "succeeded", "asker": "succeeded"})
+
+
+def test_artifact_versions_subscription_and_scoped_revocation_through_main_session(tmp_path, monkeypatch):
+    private_text = "Only the authorized reader can inspect this verified source v2."
+    hold_read, read_bytes = Event(), Event()
+    release_io = asyncio.Event()
+    read = ObjectFiles.read
+
+    async def delayed_read(store, blob):
+        result = await read(store, blob)
+        if hold_read.is_set():
+            assert private_text.encode() in result
+            read_bytes.set()
+            await release_io.wait()
+        return result
+
+    monkeypatch.setattr(ObjectFiles, "read", delayed_read)
+
+    class Model:
+        def __init__(self):
+            self.subscribed = Event()
+            self.notes_subscribed = Event()
+            self.unsubscribed = Event()
+            self.published = Event()
+            self.read = Event()
+            self.release_publish = asyncio.Event()
+            self.release_reader = asyncio.Event()
+            self.release_notes = asyncio.Event()
+            self.release_recheck = asyncio.Event()
+            self.versions = []
+
+        async def complete(self, messages, tools, settings):
+            names = {tool.name for tool in tools}
+            text = next(row["content"] for row in reversed(messages) if row["role"] == "user")
+            if not text.startswith("OmniWeave Worker."):
+                if messages[-1]["role"] == "tool":
+                    return ModelReply("Scheduled artifact verification", cost_micro=0)
+                tasks = [
+                    {"key": "author", "goal": "publish", "artifact_readers": ["verify", "notes"]},
+                    {"key": "verify", "goal": "verify", "profile": "verification", "max_calls": 6},
+                    {"key": "notes", "goal": "unsubscribe", "profile": "documentation"},
+                    {"key": "outside", "goal": "outside"},
+                ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            payload = json.loads(text.split("\n", 1)[1])
+            results = [row["content"] for row in messages if row["role"] == "tool"]
+            if payload.get("events"):
+                [event] = payload["events"]
+                assert event == {"type": "artifact.published", "artifact_id": self.versions[1], "version": 2}
+                assert names == {"subscribe_artifacts", "read_shared"}
+                if not results:
+                    return ModelReply(
+                        "Read scoped evidence",
+                        (
+                            Invocation("older", "read_shared", {"artifact_id": self.versions[0]}),
+                            Invocation("current", "read_shared", {"artifact_id": self.versions[1]}),
+                        ),
+                        cost_micro=0,
+                    )
+                if len(results) == 2:
+                    assert "superseded" in results[0]
+                    assert json.loads(results[1])["text"] == private_text
+                    self.read.set()
+                    await self.release_recheck.wait()
+                    return ModelReply(
+                        "Check again",
+                        (Invocation("revoked", "read_shared", {"artifact_id": self.versions[1]}),),
+                        cost_micro=0,
+                    )
+                assert len(results) == 3 and "outside the authorized reader scope" in results[2]
+                return ModelReply("Evidence verified and revocation respected", cost_micro=0)
+            goal = payload["goal"]
+            if goal == "outside":
+                assert not names
+                return ModelReply("Unrelated result", cost_micro=0)
+            if goal == "publish":
+                assert names == {"publish_artifact"}
+                if results:
+                    denied, v1, duplicate, conflict, v2, stale = results
+                    assert "outside the authorized plan" in denied and "another publication" in conflict
+                    assert "version changed" in stale
+                    first, repeat, latest = map(json.loads, (v1, duplicate, v2))
+                    assert first["artifact_id"] == repeat["artifact_id"] and repeat["duplicate"] is True
+                    assert first["version"] == 1 and latest["version"] == 2 and first["sha256"] != latest["sha256"]
+                    self.versions = [first["artifact_id"], latest["artifact_id"]]
+                    self.published.set()
+                    return ModelReply("Both versions registered", cost_micro=0)
+                await self.release_publish.wait()
+                first = {
+                    "name": "sources",
+                    "key": "first",
+                    "expected_version": 0,
+                    "readers": ["verify", "notes"],
+                    "text": "draft v1",
+                }
+                second = {**first, "key": "second", "expected_version": 1, "text": private_text}
+                return ModelReply(
+                    "Publish evidence",
+                    (
+                        Invocation("forbidden", "publish_artifact", {**first, "readers": ["outside"]}),
+                        Invocation("first", "publish_artifact", first),
+                        Invocation("retry", "publish_artifact", first),
+                        Invocation("conflict", "publish_artifact", {**first, "text": "altered"}),
+                        Invocation("second", "publish_artifact", second),
+                        Invocation("stale", "publish_artifact", {**second, "key": "stale"}),
+                    ),
+                    cost_micro=0,
+                )
+            assert names == {"subscribe_artifacts", "read_shared"}
+            if results:
+                assert json.loads(results[0])["revision"] == 1
+                if goal == "unsubscribe":
+                    if len(results) == 1:
+                        self.notes_subscribed.set()
+                        await self.release_notes.wait()
+                        return ModelReply(
+                            "Stop notices",
+                            (Invocation("off", "subscribe_artifacts", {"producer": "author", "enabled": False}),),
+                            cost_micro=0,
+                        )
+                    assert json.loads(results[1]) == {"producer": "author", "enabled": False, "revision": 2}
+                    self.unsubscribed.set()
+                    return ModelReply("Notifications disabled", cost_micro=0)
+                self.subscribed.set()
+                await self.release_reader.wait()
+                return ModelReply("Ready for evidence", cost_micro=0)
+            return ModelReply(
+                "Set subscription",
+                (Invocation("on", "subscribe_artifacts", {"producer": "author", "enabled": True}),),
+                cost_micro=0,
+            )
+
+    model = Model()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="enabled")) as client:
+        base = _model_base(client, _authorize(client, tmp_path))
+        main = _select_main(client, base)
+        receipt = client.post(
+            base + "/turns", json={"key": "artifact", "message": "Verify sources", "session_id": main}
+        ).json()
+        assert model.subscribed.wait(15) and model.notes_subscribed.wait(15)
+        client.portal.call(model.release_publish.set)
+        assert model.published.wait(15)
+        client.portal.call(model.release_notes.set)
+        assert model.unsubscribed.wait(15)
+        client.portal.call(model.release_reader.set)
+        assert model.read.wait(15)
+        [v1, v2] = model.versions
+        objects = _rows(tmp_path, "SELECT object_id FROM owa_artifacts ORDER BY version")
+        public = client.get(_ticket_url(base, receipt), params={"run_id": receipt["run_id"]})
+        assert public.status_code == 200 and private_text not in public.text
+        [visible] = public.json()["artifacts"]
+        assert visible["artifact_id"] == v2 and visible["readers"] == ["notes", "verify"]
+        for (object_id,) in objects:
+            assert client.get(base + f"/objects/{object_id}/content").status_code == 404
+            assert all(row["id"] != object_id for row in client.get(base + "/objects").json()["items"])
+        route = f"/omniweave/sessions/{main}/artifacts/{v2}/shares/verify"
+        assert client.delete(base + route.replace(main, str(uuid4()))).status_code == 404
+        hold_read.set()
+        client.portal.call(model.release_recheck.set)
+        try:
+            assert read_bytes.wait(15)
+            assert client.delete(base + route).status_code == client.delete(base + route).status_code == 204
+        finally:
+            client.portal.call(release_io.set)
+        finished = _wait_tasks(
+            client, base, receipt, dict.fromkeys(("author", "verify", "notes", "outside"), "succeeded")
+        )
+        assert finished["artifacts"][0]["readers"] == ["notes"]
+        assert _rows(
+            tmp_path,
+            "SELECT artifact_id, count(*) FROM owa_artifact_grants WHERE ack_run_id IS NOT NULL GROUP BY artifact_id",
+        ) == [(v2, 1)]
+        assert _rows(tmp_path, "SELECT id FROM owa_artifacts WHERE id=?", (v1,)) == [(v1,)]
+    with TestClient(http_app(tmp_path, model=LocalModel(), omniweave_mode="enabled")) as client:
+        _authorize(client, tmp_path)
+        view = client.get(_ticket_url(base, receipt), params={"run_id": receipt["run_id"]}).json()
+        assert view["artifacts"][0]["readers"] == ["notes"]
+        assert _rows(tmp_path, "SELECT count(*) FROM owa_artifact_grants WHERE ack_run_id IS NOT NULL") == [(1,)]
+        [source] = [
+            row for row in client.get(base + f"/sessions/{main}/messages").json()["items"] if row["role"] == "user"
+        ]
+        assert client.delete(base + f"/messages/{source['id']}").json() == {"erased": True}
+        invalidated = client.get(_ticket_url(base, receipt), params={"run_id": receipt["run_id"]}).json()
+        assert invalidated["artifacts"] == []

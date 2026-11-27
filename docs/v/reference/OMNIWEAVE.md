@@ -101,6 +101,8 @@ Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59
 
 ### 证据引用与回执续接
 
-- `v2_0063` 登记显式沿用与对等消息引用。`request_peer` 与 `reply_peer` 可携带最多 16 条 `{artifact_id, version}` 引用，逐条校验发送方为生产者或持有未撤销授权读取回执，且指向现行版本；引用并入幂等指纹，投递事件携带已解析的名称、版本与摘要，审计记录引用清单。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0063.py) · [邮箱](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py)
-- 修订后的计划任务可声明 `reuse: {task_key, goal_version}` 显式沿用先前版本已验收的结果。登记校验同根家族、较早版本、最新尝试终结且核验通过；复用任务不得再声明工具、期限、对等与读取范围，其余任务不得依赖或引用复用键。交付归约把沿用任务计为已验收并标注 `reused_from_version`，其产物以"沿用证据"列入收尾并保持可下载，未沿用的旧产物仍按修订语义退出。[计划](../../../agent/src/omni/adapters/persistence/omniweave_repository.py) · [归约](../../../agent/src/omni/adapters/persistence/omniweave_delivery.py)
-- OWA Worker 与其他运行一样保存检查点：委派恢复对带检查点的 Worker 延迟终态，交给通用续接；`safe_resume` 对 OWA Worker 开放并随父路由策略传入子运行路由。崩溃重启后，已结算的外部动作从记录回执续接而不重复执行，Worker 完成后交付照常在原主会话提交一次。[恢复](../../../agent/src/omni/adapters/persistence/delegation_repository.py) · [续接测试](../../../agent/tests/v2/http/test_v2_omniweave_receipt_resume.py)
+- `v2_0063` 登记显式沿用与对等消息引用。`request_peer` 与 `reply_peer` 可携带最多 16 条 `{artifact_id, version}` 引用，提交时逐条校验发送方与收件方均为生产者或持有未撤销授权读取回执，且指向现行版本；引用并入幂等指纹，审计记录引用清单。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0063.py) · [邮箱](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py)
+- 实际投递前在同一事务复核每条引用：产物仍是现行版本、发布动作未被擦除、生产者 Mandate 与版本匹配、发送方与收件方授权仍然有效。授权撤回、产物被替代或来源被擦除后，待投递消息的事件不再携带对应产物的名称、ID 或哈希。
+- 修订后的计划任务可声明 `reuse: {task_key, goal_version}` 显式沿用先前版本已验收的结果。登记校验同根家族、较早版本、最新尝试终结、核验通过且来源 Mandate 仍受当前策略、所有者与会话约束；复用任务不得再声明工具、期限、对等与读取范围，其余任务不得依赖或引用复用键。[计划](../../../agent/src/omni/adapters/persistence/omniweave_repository.py)
+- 交付归约在同一事务复核沿用证据：来源运行仍成功、核验回执仍为 verified/not_required、来源授权仍有效。沿用核验任务与现行核验任务一样，须对保留产物的授权读取回执完成覆盖，授权撤回或读取回执缺失时任务保持待核验，交付按部分完成或未完成归约，沿用产物以"沿用证据"列入收尾并保持可下载，未沿用的旧产物仍按修订语义退出。[归约](../../../agent/src/omni/adapters/persistence/omniweave_delivery.py)
+- OWA Worker 与其他运行一样保存检查点：委派恢复对带检查点的 Worker 延迟终态，交给通用续接；`safe_resume` 对 OWA Worker 开放并随父路由策略传入子运行路由，邮箱触发的后续回合沿用同一已捕获策略。崩溃重启后，已结算的外部动作从记录回执续接而不重复执行，Worker 完成后交付照常在原主会话提交一次。[恢复](../../../agent/src/omni/adapters/persistence/delegation_repository.py) · [续接测试](../../../agent/tests/v2/http/test_v2_omniweave_receipt_resume.py)

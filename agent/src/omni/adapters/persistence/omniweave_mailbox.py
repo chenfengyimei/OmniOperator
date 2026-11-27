@@ -118,7 +118,46 @@ def _raw_references(value: JSON) -> list[tuple[str, int]]:
 
 
 class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
-    def _owa_peer_citations(self, agent_id: str, task: Record, captured: Record, value: JSON) -> list[Record]:
+    def _owa_reference_viewer(
+        self, agent_id: str, artifact_id: str, version: JSON, goal_version: int, ticket_id: str, viewer_task_id: str
+    ) -> bool:
+        return (
+            self.connection.execute(
+                select(owa_artifacts.c.id)
+                .where(
+                    owa_artifacts.c.agent_id == agent_id,
+                    owa_artifacts.c.id == artifact_id,
+                    owa_artifacts.c.version == version,
+                    owa_artifacts.c.goal_version == goal_version,
+                    owa_artifacts.c.ticket_id == ticket_id,
+                    current_artifact_version(),
+                    or_(
+                        owa_artifacts.c.producer_id == viewer_task_id,
+                        select(owa_grants.c.id)
+                        .join(owa_links, owa_links.c.id == owa_grants.c.link_id)
+                        .where(
+                            owa_grants.c.artifact_id == owa_artifacts.c.id,
+                            owa_links.c.reader_id == viewer_task_id,
+                            owa_grants.c.reader_version == goal_version,
+                            owa_grants.c.revoked_at.is_(None),
+                        )
+                        .exists(),
+                    ),
+                )
+                .limit(1)
+            ).first()
+            is not None
+        )
+
+    def _owa_peer_citations(
+        self,
+        agent_id: str,
+        task: Record,
+        captured: Record,
+        value: JSON,
+        recipient_id: str,
+        recipient_version: int,
+    ) -> list[Record]:
         citations: list[Record] = []
         authorized = or_(
             owa_artifacts.c.producer_id == task["id"],
@@ -157,10 +196,54 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
                     "A cited artifact is outside this Worker's authorized reader scope",
                     status=404,
                 )
+            if not self._owa_reference_viewer(
+                agent_id, artifact_id, version, recipient_version, str(task["ticket_id"]), recipient_id
+            ):
+                raise BusinessError(
+                    "owa_reference_unauthorized",
+                    "A cited artifact is outside the recipient Worker's authorized reader scope",
+                    status=404,
+                )
             citations.append(
                 {"artifact_id": artifact_id, "version": version, "name": row["name"], "sha256": row["sha256"]}
             )
         return citations
+
+    def _owa_live_citations(
+        self, agent_id: str, sender_id: str, recipient_id: str, goal_version: int, ticket_id: str, citations: JSON
+    ) -> list[Record]:
+        live: list[Record] = []
+        for citation in citations if isinstance(citations, list) else []:
+            if not isinstance(citation, dict):
+                continue
+            artifact_id = str(citation.get("artifact_id"))
+            version = citation.get("version")
+            row = self.connection.execute(
+                select(owa_artifacts.c.producer_id, current_artifact_version().label("current"))
+                .join(s.actions, (s.actions.c.id == owa_artifacts.c.action_id) & (s.actions.c.agent_id == agent_id))
+                .where(
+                    owa_artifacts.c.agent_id == agent_id,
+                    owa_artifacts.c.id == artifact_id,
+                    owa_artifacts.c.version == version,
+                    owa_artifacts.c.goal_version == goal_version,
+                    owa_artifacts.c.ticket_id == ticket_id,
+                    current_artifact_version(),
+                    s.actions.c.body_pruned_at.is_(None),
+                )
+                .limit(1)
+            ).first()
+            if row is None or not row.current:
+                continue
+            producer_run = self.connection.execute(select(latest_run_id(str(row.producer_id)))).scalar_one_or_none()
+            producer_mandate = mandate(self, agent_id, producer_run) if producer_run else None
+            if producer_mandate is None or producer_mandate["goal_version"] != goal_version:
+                continue
+            if not self._owa_reference_viewer(
+                agent_id, artifact_id, version, goal_version, ticket_id, sender_id
+            ) or not self._owa_reference_viewer(agent_id, artifact_id, version, goal_version, ticket_id, recipient_id):
+                continue
+            live.append(citation)
+        return live
 
     def omniweave_worker_tools(self, agent_id: str, run_id: str) -> tuple[ToolSpec, ...]:
         captured = mandate(self, agent_id, run_id)
@@ -191,7 +274,6 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
     ) -> Record:
         target, key, blocking = arguments.get("target"), arguments.get("key"), arguments.get("blocking")
         question = _bounded_text(arguments.get("question"))
-        citations = self._owa_peer_citations(agent_id, task, captured, arguments.get("references"))
         if (
             not isinstance(target, str)
             or not isinstance(key, str)
@@ -199,6 +281,27 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
             or type(blocking) is not bool
         ):
             raise BusinessError("owa_peer_invalid", "Peer request fields are invalid", status=422)
+        target_row = self.connection.execute(
+            select(_links.c.id, _links.c.recipient_id, latest_run_id(s.owa_tasks.c.id).label("run_id"))
+            .join(s.owa_tasks, s.owa_tasks.c.id == _links.c.recipient_id)
+            .where(
+                _links.c.agent_id == agent_id,
+                _links.c.sender_id == task["id"],
+                s.owa_tasks.c.task_key == target,
+                s.owa_tasks.c.ticket_id == task["ticket_id"],
+            )
+        ).one_or_none()
+        if target_row is None:
+            raise BusinessError("not_found", "Peer target is outside the authorized plan", status=404)
+        target_mandate = mandate(self, agent_id, target_row.run_id)
+        citations = self._owa_peer_citations(
+            agent_id,
+            task,
+            captured,
+            arguments.get("references"),
+            str(target_row.recipient_id),
+            cast(int, target_mandate["goal_version"]) if target_mandate is not None else 0,
+        )
         version = captured["goal_version"]
         fingerprint = goal_fingerprint(
             cast(JSON, {"target": target, "question": question, "blocking": blocking, "references": citations})
@@ -221,22 +324,9 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
                     "idempotency_conflict", "Peer key already identifies a different request", status=409
                 )
             return {"request_id": prior["id"], "state": prior["disposition"] or "pending", "duplicate": True}
-        target_row = self.connection.execute(
-            select(_links.c.id, _links.c.recipient_id, latest_run_id(s.owa_tasks.c.id).label("run_id"))
-            .join(s.owa_tasks, s.owa_tasks.c.id == _links.c.recipient_id)
-            .where(
-                _links.c.agent_id == agent_id,
-                _links.c.sender_id == task["id"],
-                s.owa_tasks.c.task_key == target,
-                s.owa_tasks.c.ticket_id == task["ticket_id"],
-            )
-        ).one_or_none()
-        if target_row is None:
-            raise BusinessError("not_found", "Peer target is outside the authorized plan", status=404)
-        target_mandate = mandate(self, agent_id, target_row.run_id)
-        target_run = self._one(s.runs, agent_id, target_row.run_id)
         if target_mandate is None or target_mandate["goal_version"] != version:
             raise BusinessError("owa_peer_version_changed", "Peer goals no longer share a version", status=409)
+        target_run = self._one(s.runs, agent_id, target_row.run_id)
         if target_run["state"] not in {"queued", "running", "waiting_approval"} and not (
             target_run["state"] == "succeeded" and waiting_for_peer(self, agent_id, target_row.run_id)
         ):
@@ -331,7 +421,6 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
     def _owa_reply_peer(self, agent_id: str, run_id: str, task: Record, captured: Record, arguments: Record) -> Record:
         request_id = arguments.get("request_id")
         answer = _bounded_text(arguments.get("answer"))
-        citations = self._owa_peer_citations(agent_id, task, captured, arguments.get("references"))
         row = (
             self.connection.execute(
                 select(_requests)
@@ -349,6 +438,14 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
         )
         if row is None:
             raise BusinessError("not_found", "Peer request was not delivered to this Worker", status=404)
+        citations = self._owa_peer_citations(
+            agent_id,
+            task,
+            captured,
+            arguments.get("references"),
+            str(row["sender_id"]),
+            cast(int, row["sender_version"]),
+        )
         disposition = "declined" if arguments.get("decline") is True else "answered"
         retained = citations or None
         if row["disposition"] == disposition and row["answer"] == answer and row["reply_references"] == retained:
@@ -466,7 +563,17 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
                         "request_id": row["id"],
                         "question": row["question"],
                         "expires_at": row["expires_at"],
-                        "references": row["request_references"] or [],
+                        "references": cast(
+                            list[JSON],
+                            self._owa_live_citations(
+                                agent_id,
+                                str(row["sender_id"]),
+                                task_id,
+                                cast(int, captured["goal_version"]),
+                                str(captured["ticket_id"]),
+                                row["request_references"],
+                            ),
+                        ),
                     }
                 )
                 receipts.append((str(row["id"]), "request_ack_run_id"))
@@ -477,7 +584,17 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
                         "request_id": row["id"],
                         "disposition": row["disposition"],
                         "answer": row["answer"],
-                        "references": row["reply_references"] or [],
+                        "references": cast(
+                            list[JSON],
+                            self._owa_live_citations(
+                                agent_id,
+                                str(row["recipient_id"]),
+                                task_id,
+                                cast(int, captured["goal_version"]),
+                                str(captured["ticket_id"]),
+                                row["reply_references"],
+                            ),
+                        ),
                     }
                 )
                 receipts.append((str(row["id"]), "reply_ack_run_id"))

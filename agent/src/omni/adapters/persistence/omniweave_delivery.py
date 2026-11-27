@@ -12,7 +12,7 @@ from ...domain.omniweave_artifacts import ARTIFACT_MEDIA_TYPE
 from . import schema as s
 from .omniweave_artifacts import artifact_view, current_artifact_version, owa_artifacts
 from .omniweave_attempts import latest_run_id
-from .omniweave_authority import authorize_mandate, mandate
+from .omniweave_authority import authorize_mandate, evidence_authorized, mandate
 from .omniweave_goals import current_goal, goal_blocker, goal_runs
 from .omniweave_mailbox import OmniWeaveMailboxRepositories, waiting_for_peer
 
@@ -227,6 +227,7 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             if profile == "verification":
                 verifiers.setdefault(key, []).append(identity)
         retained_artifacts: list[JSON] = []
+        reused_verifiers: dict[str, list[str]] = {}
         for key, source_id, source_version in self.connection.execute(
             select(
                 s.owa_task_reuse.c.task_key,
@@ -241,14 +242,25 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             prior_run = self.connection.execute(select(latest_run_id(str(source_id)))).scalar_one_or_none()
             if prior_run is None:
                 return None
+            run = self._one(s.runs, agent_id, prior_run)
+            source_mandate = mandate(self, agent_id, prior_run)
+            verified = (
+                run["state"] == "succeeded"
+                and unit.run_completion(agent_id, prior_run)["state"] in ("verified", "not_required")
+                and source_mandate is not None
+                and cast(int, source_mandate["goal_version"]) == cast(int, source_version)
+                and evidence_authorized(self, agent_id, prior_run)
+            )
             tasks[key] = {
                 "key": key,
                 "run_id": prior_run,
-                "state": "succeeded",
-                "error_code": "",
-                "verification_passed": True,
+                "state": str(run["state"]),
+                "error_code": str(run["error_code"]),
+                "verification_passed": verified,
                 "reused_from_version": source_version,
             }
+            if verified and source_mandate is not None and source_mandate["profile"] == "verification":
+                reused_verifiers.setdefault(key, []).append(prior_run)
             retained_artifacts.extend(cast(list[JSON], self._owa_retained_artifacts(agent_id, str(source_id))))
         planned_count = (
             self.connection.execute(
@@ -271,19 +283,23 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             return None
         artifacts = self._owa_public_artifacts(agent_id, ticket_id)
         versioned = {str(item["artifact_id"]): str(item["sha256"]) for item in cast(list[Record], artifacts)}
+        readable = {
+            **versioned,
+            **{str(item["artifact_id"]): str(item["sha256"]) for item in cast(list[Record], retained_artifacts)},
+        }
         grants: list[tuple[str, str, str | None]] = []
-        if versioned and verifiers:
+        if readable and (verifiers or reused_verifiers):
             rows = self.connection.execute(
                 select(s.owa_tasks.c.task_key, s.owa_artifact_grants.c.artifact_id, s.owa_artifact_grants.c.revoked_at)
                 .select_from(s.owa_artifact_grants)
                 .join(s.owa_artifact_links, s.owa_artifact_links.c.id == s.owa_artifact_grants.c.link_id)
                 .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_artifact_links.c.reader_id)
-                .where(s.owa_artifact_grants.c.artifact_id.in_(list(versioned)))
+                .where(s.owa_artifact_grants.c.artifact_id.in_(list(readable)))
             ).all()
             grants = [(str(reader), str(artifact), cast(str | None, revoked)) for reader, artifact, revoked in rows]
-        for key, identities in verifiers.items():
+        for key, identities in {**verifiers, **reused_verifiers}.items():
             assigned = [(artifact, revoked_at) for reader, artifact, revoked_at in grants if reader == key]
-            expected = {(artifact, versioned[artifact]) for artifact, _ in assigned}
+            expected = {(artifact, readable[artifact]) for artifact, _ in assigned}
             if expected and (
                 any(revoked_at is not None for _, revoked_at in assigned)
                 or not expected <= self._owa_verified_artifacts(agent_id, identities)
@@ -321,7 +337,12 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
                 continue
             captured = mandate(self, agent_id, run_id)
             action = self._one(s.actions, agent_id, row["action_id"])
-            if captured is None or captured["goal_version"] != row["goal_version"] or action["body_pruned_at"]:
+            if (
+                captured is None
+                or captured["goal_version"] != row["goal_version"]
+                or action["body_pruned_at"]
+                or not evidence_authorized(self, agent_id, run_id)
+            ):
                 continue
             obj = self._one(s.objects, agent_id, row["object_id"])
             if obj["media_type"] != ARTIFACT_MEDIA_TYPE:
@@ -459,7 +480,12 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             else:
                 detail = f"{task['state']} · {task['error_code'] or '未取得可验收结果'}"
             if task.get("reused_from_version") is not None:
-                detail += f" · 沿用第 {task['reused_from_version']} 版已验收结果"
+                version = task["reused_from_version"]
+                detail += (
+                    f" · 沿用第 {version} 版已验收结果"
+                    if task["verification_passed"]
+                    else f" · 第 {version} 版沿用证据需要复核"
+                )
             lines.append(f"- {task['key']} · {detail}")
         artifacts = cast(list[Record], evidence["artifacts"])
         if artifacts:
