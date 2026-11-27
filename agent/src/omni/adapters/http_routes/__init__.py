@@ -40,7 +40,7 @@ def registered_service(services: Mapping[str, object], feature_id: str, service_
 @dataclass(frozen=True)
 class FeatureRoutes:
     id: str
-    factory: RouteFactory
+    factory: RouteFactory | None
     extra_paths: tuple[str, ...] = field(default=(), kw_only=True)
     instance_scoped: bool = field(default=False, kw_only=True)
 
@@ -49,6 +49,8 @@ class FeatureRoutes:
             raise ValueError("Invalid feature ID")
         if any(not path.startswith("/agents/{agent_id}/") for path in self.extra_paths):
             raise ValueError("Additional feature paths must remain agent-scoped")
+        if self.factory is None and self.extra_paths:
+            raise ValueError("Additional feature paths require a router")
 
 
 def mount_feature_routes(
@@ -71,6 +73,8 @@ def mount_feature_routes(
         for method in (route.methods or ())
     }
     for feature in features:
+        if feature.factory is None:
+            continue
         prefix = ("/" if feature.instance_scoped else "/agents/{agent_id}/") + feature.id
         routes = feature.factory(runtime)
         if routes.prefix != prefix and not (feature.extra_paths and routes.prefix == ""):

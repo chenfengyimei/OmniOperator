@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261121v173" />
     <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261121v173" />
     <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261121v173" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261121v173" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261127owa" />
     <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261121v173" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
@@ -279,6 +279,7 @@
               <span class="material-icons">add</span>
             </button>
           </div>
+          <button id="owa-main-session" type="button" hidden></button>
           <ul id="sessions" aria-label="历史会话"></ul>
         </div>
         <button id="open-services" type="button" class="service-compact" aria-haspopup="dialog">
@@ -362,6 +363,11 @@
                             <option value="retrieval">检索</option>
                             <option value="agent">完整</option>
                             <option value="">跟随设置</option>
+                          </select>
+                        </label>
+                        <label id="owa-goal-picker" class="mode-pick" hidden>
+                          <select id="owa-goal" aria-label="OmniWeave 任务">
+                            <option value="">新请求</option>
                           </select>
                         </label>
                         <button
@@ -2237,6 +2243,6 @@
     <script src="/assets/vendor/xterm.js?v=20261121v173"></script>
     <script src="/assets/vendor/xterm-addon-fit.js?v=20261121v173"></script>
     <script src="/assets/ui/markdown.js?v=20261121v173"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261125kernel2"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261127owa-delivery"></script>
   </body>
 </html>

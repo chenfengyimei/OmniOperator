@@ -1,0 +1,67 @@
+{
+  "date": "2026-11-27",
+  "phase": 3,
+  "baseline": "578ff14ee7fb57b6cc60095bae76d46be81bbf95",
+  "source_sha": "8690801065e673498bbaf6a5ed43d9ff2b800b15",
+  "platform": "Windows, isolated production FastAPI and SQLite, offline model and Chromium",
+  "migration": {
+    "from": "v2_0062",
+    "to": "v2_0063",
+    "tables": 166,
+    "heads": 1,
+    "revisions": 63
+  },
+  "verified_contracts": {
+    "T03": "Peer requests and replies may cite up to 16 artifact versions. A citation is accepted only when the sender is the producer or holds an unrevoked reader grant for the current version; wrong versions and foreign artifacts are rejected. Resolved citations travel in delivered events and the audit ledger, and enter the idempotency fingerprint.",
+    "T04": "After a goal revision the Router plan may declare reuse of an accepted prior-version task. Registration requires the same root family, an earlier goal version, and a terminal accepted attempt; reuse tasks may not declare execution scope and other tasks may not depend on them. The closeout lists reused tasks with their source version, retains their artifacts as downloadable evidence, and leaves non-retained artifacts excluded.",
+    "T06": "An OWA Worker interrupted after an external action settled resumes from its checkpoint on restart. The settled write is replayed as a recorded receipt and never re-executed, the worker completes, and the closeout commits exactly once in the original main session."
+  },
+  "offline_runs": [
+    {
+      "scope": "Production OWA entry points: citations, reuse retention, delivery, mailbox, revisions and workbench",
+      "passed": 30,
+      "failed": 0,
+      "seconds": 304.8,
+      "local_junit": "temp/build/owa-phase3/references-owa-http-86908010.xml",
+      "sha256": "5e2de0a38cf0b8646060e9e6673d068ebca7af7941ddf1e7ad728a489efb57a9"
+    },
+    {
+      "scope": "Delegation recovery, process interruption and kernel checkpoint restart boundaries",
+      "passed": 36,
+      "failed": 0,
+      "seconds": 138.36,
+      "local_junit": "temp/build/owa-phase3/references-recovery-86908010.xml",
+      "sha256": "eaa605034a30397d038a98b284e1004e4f735b2f1c03256264bd54baf97a2f33"
+    },
+    {
+      "scope": "Receipt-backed OWA Worker crash resume through the production dispatch flow",
+      "passed": 1,
+      "failed": 0,
+      "seconds": 12.21,
+      "local_junit": "temp/build/owa-phase3/references-receipt-86908010.xml",
+      "sha256": "97b5fc7adfde6305efcad02c4f80dfde0470a6ed8cdd35c8e5416da52b08bd67"
+    },
+    {
+      "scope": "Historical migration assertions including the v2_0063 head and rollback cases",
+      "passed": 10,
+      "failed": 0,
+      "seconds": 15.54,
+      "local_junit": "temp/build/owa-phase3/references-migration-86908010.xml",
+      "sha256": "457ccb956f5e280a06dbc15fb10e987cdeb7181f2ba1747d163780655980f8eb"
+    }
+  ],
+  "strict": {
+    "files": 519,
+    "errors": 0,
+    "warnings": 0
+  },
+  "es_module_syntax_checks": 88,
+  "ruff": "passed",
+  "full_suite_ran": false,
+  "github_ci_requested": false,
+  "remaining_scope": [
+    "The campus assistant offline end-to-end scenario and Phase 3 release acceptance remain open.",
+    "Bounded long jobs, Watchdog, cleanup and waiting views remain for Phase 4.",
+    "Digital bodies, external triggers and the release candidate remain for Phases 5–7."
+  ]
+}

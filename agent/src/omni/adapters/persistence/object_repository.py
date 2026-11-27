@@ -10,6 +10,7 @@ from ...application.ports import Record
 from ...domain.contracts import JSON, BusinessError
 from ...domain.desktop import CapturedFrame
 from ...domain.objects import Blob, media_type
+from ...domain.omniweave_artifacts import ARTIFACT_MEDIA_TYPE
 from . import schema as s
 from .repository_base import RepositoryBase
 
@@ -87,8 +88,15 @@ class ObjectRepositories(RepositoryBase):
 
     def object_register(self, blob: Blob, mime: str, expires_at: str, pinned: bool = False) -> Record:
         media_type(mime)
+        if mime == ARTIFACT_MEDIA_TYPE:
+            raise BusinessError(
+                "invalid_media_type", "This media type belongs to scoped OmniWeave artifacts", status=422
+            )
         if type(pinned) is not bool:
             raise BusinessError("invalid_pin", "Pin must be boolean", status=422)
+        return self._register_object(blob, mime, expires_at, pinned)
+
+    def _register_object(self, blob: Blob, mime: str, expires_at: str, pinned: bool) -> Record:
         prior = (
             self.connection.execute(
                 select(s.objects).where(s.objects.c.agent_id == blob.agent_id, s.objects.c.sha256 == blob.sha256)
@@ -97,6 +105,8 @@ class ObjectRepositories(RepositoryBase):
             .first()
         )
         if prior:
+            if (mime == ARTIFACT_MEDIA_TYPE) != (prior["media_type"] == ARTIFACT_MEDIA_TYPE):
+                raise BusinessError("object_scope_conflict", "Object content belongs to a different scope", status=409)
             if prior["bytes"] != blob.size:
                 raise BusinessError(
                     "object_integrity_failed", "Stored object size conflicts with its digest", status=503
@@ -118,18 +128,28 @@ class ObjectRepositories(RepositoryBase):
             },
             blob.agent_id,
         )
-        self.audit(
-            blob.agent_id, "object.registered", cast(str, row["id"]), {"sha256": blob.sha256, "bytes": blob.size}
-        )
+        if mime != ARTIFACT_MEDIA_TYPE:
+            self.audit(
+                blob.agent_id, "object.registered", cast(str, row["id"]), {"sha256": blob.sha256, "bytes": blob.size}
+            )
         return row
+
+    def object_register_owa(self, blob: Blob, expires_at: str) -> Record:
+        return self._register_object(blob, ARTIFACT_MEDIA_TYPE, expires_at, False)
 
     def object_get(self, agent_id: str, object_id: str) -> Record:
         row = self._one(s.objects, agent_id, object_id)
+        if row["media_type"] == ARTIFACT_MEDIA_TYPE:
+            raise BusinessError("not_found", "Object does not exist in this scope", status=404)
+        return self._object_references(agent_id, object_id, row)
+
+    def _object_references(self, agent_id: str, object_id: str, row: Record) -> Record:
         row["references"] = sum(
             self.connection.execute(
                 select(func.count()).select_from(t).where(t.c.agent_id == agent_id, column == object_id)
             ).scalar_one()
             for t, column in s.OBJECT_REFERENCES
+            if t is not s.owa_artifacts or row["media_type"] == ARTIFACT_MEDIA_TYPE
         )
         return row
 
@@ -148,7 +168,7 @@ class ObjectRepositories(RepositoryBase):
         return self.object_get(agent_id, object_id)
 
     def object_remove(self, agent_id: str, object_id: str, revision: int) -> None:
-        row = self.object_get(agent_id, object_id)
+        row = self._object_references(agent_id, object_id, self._one(s.objects, agent_id, object_id))
         expires_at = cast(str | None, row["expires_at"])
         if row["pinned"] or row["references"] or not expires_at or expires_at > self.clock.now():
             raise BusinessError("object_protected", "A pinned, referenced or unexpired object cannot be collected")
@@ -168,7 +188,9 @@ class ObjectRepositories(RepositoryBase):
             raise BusinessError("not_found", "Agent does not exist", status=404)
         statement = (
             select(s.objects)
-            .where(s.objects.c.agent_id == agent_id, s.objects.c.id > after)
+            .where(
+                s.objects.c.agent_id == agent_id, s.objects.c.id > after, s.objects.c.media_type != ARTIFACT_MEDIA_TYPE
+            )
             .order_by(s.objects.c.id)
             .limit(limit)
         )

@@ -695,6 +695,69 @@ inbox = scoped(
     scoped_fk("run_id", "runs"),
     UniqueConstraint("agent_id", "channel", "key"),
 )
+owa_threads = scoped(
+    "owa_threads",
+    Column("main_session_id", String(36), nullable=False),
+    Column("owner_id", String(36), ForeignKey("principals.id", ondelete="RESTRICT"), nullable=False),
+    Column("main_selected_at", String(40)),
+    scoped_fk("main_session_id", "sessions"),
+    UniqueConstraint("main_session_id"),
+)
+Index(
+    "uq_owa_threads_selected_main",
+    owa_threads.c.agent_id,
+    unique=True,
+    sqlite_where=owa_threads.c.main_selected_at.is_not(None),
+)
+owa_tickets = scoped(
+    "owa_tickets",
+    Column("thread_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("root_ticket_id", String(36), ForeignKey("owa_tickets.id", ondelete="RESTRICT")),
+    Column("goal_version", Integer, nullable=False, server_default="1"),
+    scoped_fk("thread_id", "owa_threads"),
+    scoped_fk("run_id", "runs"),
+    UniqueConstraint("run_id"),
+    CheckConstraint(
+        "(goal_version = 1 AND root_ticket_id IS NULL) OR (goal_version BETWEEN 2 AND 64 AND root_ticket_id IS NOT NULL)",
+        name="goal_lineage",
+    ),
+)
+Index("uq_owa_tickets_goal_version", owa_tickets.c.root_ticket_id, owa_tickets.c.goal_version, unique=True)
+owa_deliveries = scoped(
+    "owa_deliveries",
+    Column("ticket_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("message_id", String(36)),
+    Column("outcome", String(12)),
+    Column("evidence", JSON(none_as_null=True)),
+    UniqueConstraint("ticket_id"),
+    UniqueConstraint("run_id"),
+    UniqueConstraint("message_id"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("message_id", "messages"),
+    CheckConstraint(
+        "(message_id IS NULL AND outcome IS NULL AND evidence IS NULL) OR "
+        "(message_id IS NOT NULL AND outcome IS NOT NULL AND outcome IN ('completed','partial','failed') "
+        "AND evidence IS NOT NULL AND json_valid(evidence) AND json_type(evidence)='object')",
+        name="receipt",
+    ),
+)
+owa_triggers = scoped(
+    "owa_triggers",
+    Column("ticket_id", String(36), nullable=False),
+    Column("inbox_id", String(36), nullable=False),
+    Column("source", String(20), nullable=False),
+    Column("version", Integer, nullable=False),
+    Column("payload_sha256", String(64), nullable=False),
+    Column("decision", String(20), nullable=False),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("inbox_id", "inbox"),
+    UniqueConstraint("inbox_id"),
+    CheckConstraint("source='owner_web' AND version=1 AND decision='observe'", name="contract"),
+    CheckConstraint("length(payload_sha256)=64 AND payload_sha256 NOT GLOB '*[^0-9a-f]*'", name="fingerprint"),
+)
 actions = scoped(
     "actions",
     Column("run_id", String(36), nullable=False),
@@ -1438,6 +1501,185 @@ source_anchors.append_constraint(
     )
 )
 
+owa_executions = scoped(
+    "owa_executions",
+    Column("ticket_id", String(36), nullable=False),
+    Column("plan_sha256", String(64)),
+    Column("cancelled_at", String(40)),
+    Column("mandate_required", Boolean, nullable=False, server_default="0"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    UniqueConstraint("ticket_id"),
+    CheckConstraint(
+        "plan_sha256 IS NULL OR (length(plan_sha256)=64 AND plan_sha256 NOT GLOB '*[^0-9a-f]*')", name="fingerprint"
+    ),
+)
+
+owa_tasks = scoped(
+    "owa_tasks",
+    Column("ticket_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False),
+    Column("task_key", String(32), nullable=False),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("run_id", "runs"),
+    UniqueConstraint("ticket_id", "task_key"),
+    UniqueConstraint("run_id"),
+    CheckConstraint(
+        "length(task_key) BETWEEN 1 AND 32 AND task_key GLOB '[a-z]*' AND task_key NOT GLOB '*[^a-z0-9-]*'",
+        name="task_key",
+    ),
+)
+
+owa_dependencies = scoped(
+    "owa_dependencies",
+    Column("task_id", String(36), nullable=False),
+    Column("needs_id", String(36), nullable=False),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("needs_id", "owa_tasks"),
+    UniqueConstraint("task_id", "needs_id"),
+    CheckConstraint("task_id!=needs_id", name="different_tasks"),
+)
+
+owa_task_reuse = scoped(
+    "owa_task_reuse",
+    Column("ticket_id", String(36), nullable=False),
+    Column("task_key", String(32), nullable=False),
+    Column("source_task_id", String(36), nullable=False),
+    Column("source_goal_version", Integer, nullable=False),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("source_task_id", "owa_tasks"),
+    UniqueConstraint("ticket_id", "task_key"),
+    CheckConstraint(
+        "length(task_key) BETWEEN 1 AND 32 AND task_key GLOB '[a-z]*' AND task_key NOT GLOB '*[^a-z0-9-]*'",
+        name="task_key",
+    ),
+    CheckConstraint("source_goal_version BETWEEN 1 AND 64", name="source_goal_version"),
+)
+
+owa_mandates = scoped(
+    "owa_mandates",
+    Column("ticket_id", String(36), nullable=False),
+    Column("task_id", String(36)),
+    Column("parent_id", String(36)),
+    Column("run_id", String(36), nullable=False),
+    Column("main_session_id", String(36), nullable=False),
+    Column("owner_id", String(36), ForeignKey("principals.id", ondelete="RESTRICT"), nullable=False),
+    Column("profile", String(32), nullable=False),
+    Column("profile_version", Integer, nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    Column("goal_sha256", String(64), nullable=False),
+    Column("policy_epoch", Integer, nullable=False),
+    Column("history_epoch", String(36), nullable=False),
+    Column("session_epoch", Integer, nullable=False),
+    Column("expires_at", String(40), nullable=False),
+    Column("tools", JSON, nullable=False),
+    Column("budget_micro", Integer, nullable=False),
+    Column("max_calls", Integer, nullable=False),
+    UniqueConstraint("run_id", "goal_version"),
+    UniqueConstraint("task_id", "goal_version"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("parent_id", "owa_mandates"),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("main_session_id", "sessions"),
+)
+
+
+owa_task_attempts = scoped(
+    "owa_task_attempts",
+    Column("task_id", String(36), nullable=False),
+    Column("run_id", String(36), nullable=False, unique=True),
+    Column("attempt_no", Integer, nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    UniqueConstraint("task_id", "attempt_no"),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("run_id", "runs"),
+)
+
+owa_peer_links = scoped(
+    "owa_peer_links",
+    Column("sender_id", String(36), nullable=False),
+    Column("recipient_id", String(36), nullable=False),
+    UniqueConstraint("sender_id", "recipient_id"),
+    scoped_fk("sender_id", "owa_tasks"),
+    scoped_fk("recipient_id", "owa_tasks"),
+)
+
+owa_peer_requests = scoped(
+    "owa_peer_requests",
+    Column("link_id", String(36), nullable=False),
+    Column("sender_id", String(36), nullable=False),
+    Column("sender_run_id", String(36), nullable=False),
+    Column("sender_version", Integer, nullable=False),
+    Column("recipient_version", Integer, nullable=False),
+    Column("request_key", String(80), nullable=False),
+    Column("payload_sha256", String(64), nullable=False),
+    Column("question", Text, nullable=False),
+    Column("blocking", Boolean, nullable=False),
+    Column("expires_at", String(40), nullable=False),
+    Column("cause_id", String(36)),
+    Column("depth", Integer, nullable=False),
+    Column("disposition", String(12)),
+    Column("answer", Text),
+    Column("request_references", JSON),
+    Column("reply_references", JSON),
+    Column("reply_run_id", String(36)),
+    Column("request_ack_run_id", String(36)),
+    Column("reply_ack_run_id", String(36)),
+    UniqueConstraint("sender_id", "sender_version", "request_key"),
+    scoped_fk("link_id", "owa_peer_links"),
+    scoped_fk("sender_id", "owa_tasks"),
+    scoped_fk("cause_id", "owa_peer_requests"),
+    scoped_fk("sender_run_id", "runs"),
+    scoped_fk("reply_run_id", "runs"),
+    scoped_fk("request_ack_run_id", "runs"),
+    scoped_fk("reply_ack_run_id", "runs"),
+)
+
+owa_artifact_links = scoped(
+    "owa_artifact_links",
+    Column("producer_id", String(36), nullable=False),
+    Column("reader_id", String(36), nullable=False),
+    Column("subscription_revision", Integer, nullable=False, server_default="0"),
+    Column("subscribed", Boolean, nullable=False, server_default="0"),
+    UniqueConstraint("producer_id", "reader_id"),
+    scoped_fk("producer_id", "owa_tasks"),
+    scoped_fk("reader_id", "owa_tasks"),
+)
+
+owa_artifacts = scoped(
+    "owa_artifacts",
+    Column("ticket_id", String(36), nullable=False),
+    Column("producer_id", String(36), nullable=False),
+    Column("producer_run_id", String(36), nullable=False),
+    Column("action_id", String(36), nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    Column("name", String(32), nullable=False),
+    Column("version", Integer, nullable=False),
+    Column("command_key", String(32), nullable=False),
+    Column("payload_sha256", String(64), nullable=False),
+    Column("object_id", String(36), nullable=False),
+    UniqueConstraint("producer_id", "goal_version", "command_key"),
+    UniqueConstraint("producer_id", "goal_version", "name", "version"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("producer_id", "owa_tasks"),
+    scoped_fk("producer_run_id", "runs"),
+    scoped_fk("action_id", "actions"),
+    scoped_fk("object_id", "objects"),
+)
+
+owa_artifact_grants = scoped(
+    "owa_artifact_grants",
+    Column("artifact_id", String(36), nullable=False),
+    Column("link_id", String(36), nullable=False),
+    Column("reader_version", Integer, nullable=False),
+    Column("subscription_revision", Integer),
+    Column("ack_run_id", String(36)),
+    Column("revoked_at", String(40)),
+    UniqueConstraint("artifact_id", "link_id"),
+    scoped_fk("artifact_id", "owa_artifacts"),
+    scoped_fk("link_id", "owa_artifact_links"),
+    scoped_fk("ack_run_id", "runs"),
+)
 
 source_documents = scoped(
     "source_documents",

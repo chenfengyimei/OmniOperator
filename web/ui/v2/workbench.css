@@ -2030,6 +2030,9 @@ body[data-ui-page="workbench-v2"] .dock-bar .dock-meta {
 body[data-ui-page="workbench-v2"] .dock-picks .mode-pick {
   margin-right: 0;
 }
+body[data-ui-page="workbench-v2"] .dock-bar #owa-goal {
+  max-inline-size: min(38vw, 18rem);
+}
 
 /* ==========================================================================
    自定义文件选择器（V2 特有，V1 用原生 input）：

@@ -10,7 +10,8 @@ from typing import TypeVar, cast
 from ..domain.contracts import JSON, BusinessError
 from ..domain.desktop import CapturedFrame
 from ..domain.objects import MAX_OBJECT_BYTES, Blob, agent_identity, media_type
-from .ports import Clock, DatabasePort, ObjectFilesPort, Record
+from ..domain.omniweave_artifacts import ARTIFACT_MEDIA_TYPE
+from .ports import Clock, DatabasePort, ObjectFilesPort, Record, UnitOfWork
 
 T = TypeVar("T")
 
@@ -51,6 +52,10 @@ class ObjectService:
     async def publish(self, agent_id: str, content: bytes, mime: str, *, pinned: bool = False) -> Record:
         agent_identity(agent_id)
         media_type(mime)
+        if mime == ARTIFACT_MEDIA_TYPE:
+            raise BusinessError(
+                "invalid_media_type", "This media type belongs to scoped OmniWeave artifacts", status=422
+            )
         if len(content) > MAX_OBJECT_BYTES:
             raise BusinessError("object_too_large", "Object exceeds the 16 MiB limit", status=413)
 
@@ -82,20 +87,50 @@ class ObjectService:
     ) -> Record:
         agent_identity(agent_id)
         frame.validate()
+        return await self.publish_linked(
+            agent_id,
+            frame.content,
+            before_publish=before_publish,
+            attach=lambda u, blob, expires: u.capture_attach(blob, session_id, epoch, operation_id, frame, expires),
+        )
+
+    async def publish_linked(
+        self,
+        agent_id: str,
+        content: bytes,
+        *,
+        before_publish: Callable[[], Awaitable[None]],
+        attach: Callable[[UnitOfWork, Blob, str], Record],
+    ) -> Record:
+        agent_identity(agent_id)
+        if len(content) > MAX_OBJECT_BYTES:
+            raise BusinessError("object_too_large", "Object exceeds the 16 MiB limit", status=413)
 
         async def perform() -> Record:
             await before_publish()
-            blob = await self._files.put(agent_id, frame.content)
+            blob = await self._files.put(agent_id, content)
             await before_publish()
             expires = (dt.datetime.fromisoformat(self._clock.now()) + dt.timedelta(days=1)).isoformat(
                 timespec="microseconds"
             )
             # Register file, scoped FK reference and publication audit in one transaction.
-            return await self._db.write(
-                lambda u: u.capture_attach(blob, session_id, epoch, operation_id, frame, expires)
-            )
+            return await self._db.write(lambda u: attach(u, blob, expires))
 
         return await self._execute(perform)
+
+    async def read_linked(self, authorize: Callable[[UnitOfWork], Record]) -> tuple[Record, bytes]:
+        async def perform() -> tuple[Record, bytes]:
+            row = await self._db.read(authorize)
+            content = await self._files.read(self._blob(row))
+            current = await self._db.read(authorize)
+            if self._blob(current) != self._blob(row):
+                raise BusinessError("object_scope_conflict", "Object reference changed during the read", status=409)
+            return current, content
+
+        return await self._execute(perform)
+
+    async def verify_linked_blob(self, blob: Blob) -> None:
+        await self._execute(lambda: self._files.read(blob))
 
     async def captures(self, agent_id: str, session_id: str, after: str = "", limit: int = 50) -> Record:
         rows = await self._db.read(lambda u: u.capture_page(agent_id, session_id, after, limit))

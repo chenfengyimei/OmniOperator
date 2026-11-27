@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-27",
+  "branch": "owa-tickets",
+  "source_sha": "3cd651ec79c1ce7723fc280e7f0b69ff64fbc682",
+  "initial_source_sha": "d04f8f8e236bd1573bf3a135e1e95aa7893efac7",
+  "platform": "Windows x64",
+  "alembic_previous_head": "v2_0058",
+  "alembic_head": "v2_0059",
+  "metadata_tables": 161,
+  "strict_files": 511,
+  "strict_errors": 0,
+  "strict_warnings": 0,
+  "unique_passing_cases_across_scopes": 134,
+  "full_suite": false,
+  "github_ci_dispatched": false,
+  "command_prefix": "uv run --no-sync pytest -q -n 0 --tb=short",
+  "production_scope": {
+    "source": "d04f8f8e",
+    "files": [
+      "agent/tests/v2/http/test_v2_omniweave_http.py",
+      "agent/tests/v2/core/test_v2_omniweave_migration.py",
+      "agent/tests/v2/core/test_v2_architecture.py",
+      "agent/tests/v2/core/test_v2_delegation.py",
+      "agent/tests/v2/http/test_v2_delegation_http.py",
+      "agent/tests/v2/core/test_v2_kernel.py",
+      "agent/tests/v2/core/test_v2_kernel_restart.py"
+    ],
+    "passed": 74,
+    "failed": 0,
+    "elapsed_s": 372.48,
+    "local_junit": "temp/build/owa-phase2/mailbox-d04f8f8e.xml",
+    "junit_sha256": "4a1f49e686aae1615188b57536d9bbe929ddb187de5311d5a1ccee457b4306d2"
+  },
+  "historical_migrations": {
+    "source": "d04f8f8e",
+    "scope": "Changed test files under agent/tests/v2/core, agent/tests/v2/integrations and agent/tests/v2/platforms, excluding test_v2_omniweave_migration.py already covered by production_scope.",
+    "selection": "migration or upgrade or adds or rebuild or capture_schema_scope",
+    "passed": 59,
+    "failed": 1,
+    "deselected": 58,
+    "elapsed_s": 128.15,
+    "failure_and_repair": "The V49 tool-image seed claimed a root Run before owa_task_attempts existed. The final candidate selects roots using runs.parent_id and tests the failed node with the production mailbox and Worker recovery.",
+    "local_junit": "temp/build/owa-phase2/mailbox-migrations-d04f8f8e.xml",
+    "junit_sha256": "156b9687a5c7c0917b70924a582f48512b32ad5dec39707ea5dc8871ca5f32d2"
+  },
+  "candidate_regressions": [
+    {
+      "source": "3cd651ec",
+      "scope": "test_v0050_upgrade_preserves_user_ledger_and_enables_tool_rows and OWA mailbox, three-Worker scheduling and recovery.",
+      "passed": 6,
+      "failed": 0,
+      "elapsed_s": 91.82,
+      "local_junit": "temp/build/owa-phase2/mailbox-compat-3cd651ec.xml",
+      "junit_sha256": "65bb748a397b488613d7637bd0b32dbef3f5602c7ef841219f40c3481423185e"
+    },
+    {
+      "source": "3cd651ec",
+      "scope": "V2 root execution and legacy delegation concurrency and isolation.",
+      "passed": 6,
+      "failed": 0,
+      "elapsed_s": 40.02,
+      "local_junit": "temp/build/owa-phase2/mailbox-kernel-3cd651ec.xml",
+      "junit_sha256": "b0d8076ba2b020f953585133fe04f044b335b21d9a209df3a2dd95923f1c0955"
+    }
+  ],
+  "verified_contracts": [
+    "Production HTTP submits the Worker plan and its authorized peer links. Out-of-scope requests and cycles across dependencies and blocking requests are rejected.",
+    "An identical request or reply is deduplicated, conflicting requests fail, and each request or reply gets one durable delivery acknowledgement.",
+    "An early reply stays in the mailbox until the sender's previous turn finishes. Delivery starts another Run in the original private Session and workspace.",
+    "Restart before acknowledgement preserves the request. Restart after acknowledgement preserves the exact queued Run and does not append a duplicate input.",
+    "An expired request delivers a timeout to the waiting sender, and the expired request does not start another recipient attempt. A prior verified wait keeps dependencies queued until the subsequent Worker turn finishes.",
+    "Fresh and V53 to V58 fixture copies pass integrity and foreign key checks. The V58 selected main conversation and root authority snapshot survive the upgrade."
+  ]
+}

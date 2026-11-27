@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-27",
+  "branch": "owa-tickets",
+  "source_sha": "c9c47162df52dd0772396f34c78420f88886ef58",
+  "platform": "Windows x64",
+  "alembic_previous_head": "v2_0056",
+  "alembic_head": "v2_0057",
+  "strict_files": 506,
+  "strict_errors": 0,
+  "strict_warnings": 0,
+  "full_suite": false,
+  "github_ci_dispatched": false,
+  "command_prefix": "uv run --no-sync pytest -q -n 0",
+  "production_scope": {
+    "files": [
+      "agent/tests/v2/http/test_v2_omniweave_http.py",
+      "agent/tests/v2/core/test_v2_omniweave_migration.py",
+      "agent/tests/v2/core/test_v2_architecture.py",
+      "agent/tests/v2/http/test_v2_delegation_http.py",
+      "agent/tests/v2/core/test_v2_event_stream.py",
+      "agent/tests/v2/ui/test_v2_agents_ui.py"
+    ],
+    "passed": 45,
+    "failed": 0,
+    "elapsed_s": 160.83,
+    "local_junit": "temp/build/owa-phase2/main-session-c9c47162.xml",
+    "junit_sha256": "bd416f50330e400640c4b26f6107fe20089c5156b2e3f7766321add759861639"
+  },
+  "historical_migrations": {
+    "files": [
+      "agent/tests/v2/core/test_v2_memory_decay.py",
+      "agent/tests/v2/core/test_v2_memory_semantics_migration.py",
+      "agent/tests/v2/core/test_v2_reflection_migration.py",
+      "agent/tests/v2/core/test_v2_schedule_bindings.py",
+      "agent/tests/v2/core/test_v2_tool_image_ledger.py",
+      "agent/tests/v2/integrations/test_v2_images_migration.py",
+      "agent/tests/v2/integrations/test_v2_media.py",
+      "agent/tests/v2/integrations/test_v2_media_upload_migration.py",
+      "agent/tests/v2/integrations/test_v2_routing_migration.py",
+      "agent/tests/v2/integrations/test_v2_skills_migration.py"
+    ],
+    "selection": "upgrade or adds or rebuild",
+    "passed": 13,
+    "failed": 0,
+    "deselected": 44,
+    "elapsed_s": 25.21,
+    "local_junit": "temp/build/owa-phase2/main-session-migrations-c9c47162.xml",
+    "junit_sha256": "c4944e37ad2b7a38b67d55395c1e0238bdfd4163b06bdf8645b8678311a736e8"
+  },
+  "verified_contracts": [
+    "An enabled instance accepts ordinary Web turns until the owner explicitly selects a main conversation.",
+    "Concurrent creation requests return the same selection, and reselecting it after restart returns the same conversation ID.",
+    "The browser can create and reopen the main conversation through the production API.",
+    "Cross-Agent and Worker references are rejected. Revocation after HTTP authentication prevents the selection write.",
+    "The fresh schema and V53/V54/V55/V56 copies pass integrity and foreign key checks. V56 Router admissions are preserved without selecting a new main conversation."
+  ]
+}

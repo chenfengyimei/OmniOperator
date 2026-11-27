@@ -26,6 +26,9 @@ ROOT = REPOSITORY_ROOT
         ["--external-url", "https://fixture.invalid"],
         ["--master-key-file", "private-key-file"],
         ["--stdout-logs"],
+        ["--omniweave-mode", "observe"],
+        ["--omniweave-mode", "enabled"],
+        ["--omniweave-mode", "dispatch"],
         ["--host", "0.0.0.0", "--external-url", "https://fixture.invalid", "--port", "8913"],
     ],
 )
@@ -44,10 +47,13 @@ def test_web_and_cli_serve_share_identical_arguments_and_instance_home(tmp_path,
             "external_url": None,
             "master_key_file": None,
             "stdout_logs": False,
+            "omniweave_mode": "off",
         }
 
 
-@pytest.mark.parametrize("options", [["--port", "bad"], ["--home"], ["init"], ["--unknown"]])
+@pytest.mark.parametrize(
+    "options", [["--port", "bad"], ["--home"], ["init"], ["--unknown"], ["--omniweave-mode", "active"]]
+)
 def test_web_invalid_arguments_do_not_start_a_server(monkeypatch, options):
     calls = []
     monkeypatch.setattr(cli, "serve_instance", lambda *args, **kwargs: calls.append(True))

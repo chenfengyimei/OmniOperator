@@ -14,13 +14,42 @@ from playwright.sync_api import expect
 
 from omni.composition.http import http_app
 from omni.composition.instance import open_instance
-from omni.domain.contracts import ModelReply
+from omni.domain.contracts import Invocation, ModelReply
 from omni_test_support.paths import REPOSITORY_ROOT as REPOSITORY_ROOT
 
 
 class UiModel:
     async def complete(self, messages, tools, settings):
         return ModelReply("V2 test reply", cost_micro=0)
+
+
+class OwaUiModel(UiModel):
+    async def complete(self, messages, tools, settings):
+        offers = {tool.name for tool in tools}
+        last = messages[-1]
+        if "owa_plan" in offers and last["role"] == "user":
+            tasks = [{"key": "research", "goal": "Inspect the request", "profile": "research"}]
+            if last["content"] == "交付校园助手样例":
+                tasks = [
+                    {"key": "author", "goal": "Publish demonstration", "artifact_readers": ["research"]},
+                    {
+                        "key": "research",
+                        "goal": "Inspect demonstration",
+                        "profile": "research",
+                        "depends_on": ["author"],
+                    },
+                ]
+            return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+        if "publish_artifact" in offers and last["role"] == "user":
+            draft = {
+                "name": "campus-sample",
+                "key": "sample",
+                "expected_version": 0,
+                "readers": ["research"],
+                "text": "校园助手交付样例\n",
+            }
+            return ModelReply("Publish", (Invocation("sample", "publish_artifact", draft),), cost_micro=0)
+        return await super().complete(messages, tools, settings)
 
 
 class ServerInfo(tuple):
@@ -64,9 +93,11 @@ def v2_server(tmp_path, request):
     from omni_test_support.v2.v2_delivery_helpers import FakePort
 
     credential_backend = _credential_fixture(request)
+    omniweave = getattr(request, "param", None) == "omniweave"
     app = http_app(
         tmp_path,
-        model=UiModel(),
+        model=OwaUiModel() if omniweave else UiModel(),
+        omniweave_mode="enabled" if omniweave else "off",
         delivery_ports={"qq": FakePort()} if getattr(request, "param", None) == "delivery" else None,
         credential_backend=credential_backend,
     )

@@ -1059,6 +1059,28 @@ function renderMessages(items) {
       } else {
         body.textContent = m.content;
       }
+      for (const item of m.omniweave_delivery?.artifacts || []) {
+        const download = document.createElement('button');
+        download.type = 'button';
+        download.className = 'btn small';
+        download.textContent = `下载 ${item.name} v${item.version}`;
+        download.addEventListener(
+          'click',
+          wrap(async () => {
+            const file = await api(
+              `/agents/${boundAgent}/omniweave/sessions/${boundSession}/artifacts/${item.artifact_id}/content`,
+              { binary: true },
+            );
+            const href = URL.createObjectURL(file),
+              link = document.createElement('a');
+            link.href = href;
+            link.download = `${item.name}-v${item.version}.txt`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(href), 1000);
+          }),
+        );
+        body.append(download);
+      }
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
       // 参考原型：操作是头像行右侧的紧凑图标，名称走 aria-label/title
@@ -1245,10 +1267,64 @@ async function showRunDetails(runId, sessionId) {
     `历史处理 ${latest?.mode === 'complete' ? '完整保留' : latest?.mode === 'summary' ? '已登记摘要' : latest?.mode ? '有省略' : '未登记'}，` +
     `压缩 ${report.attempts.length} 次。`;
 }
+let owaMainSession = null;
+let owaGoalSession = null,
+  owaGoalsRead = 0;
+function renderOwaMainSession() {
+  const button = $('owa-main-session');
+  button.hidden = !owaMainSession?.enabled;
+  if (!button.hidden) {
+    button.textContent = owaMainSession.session_id
+      ? '打开 OWA 主会话'
+      : session
+        ? '设为 OWA 主会话'
+        : '创建 OWA 主会话';
+  }
+  if (!session || !owaMainSession?.enabled || session !== owaMainSession.session_id || owaGoalSession !== session) {
+    $('owa-goal-picker').hidden = true;
+    $('owa-goal').value = '';
+    owaGoalSession = null;
+  }
+}
+async function refreshOwaGoals() {
+  const target = session,
+    stamp = generation,
+    request = ++owaGoalsRead;
+  if (!target || !owaMainSession?.enabled || target !== owaMainSession.session_id) return;
+  const { items } = await api(scope(`/omniweave/sessions/${target}/ticket-options`));
+  if (stamp !== generation || target !== session || request !== owaGoalsRead) return;
+  const selector = $('owa-goal'),
+    selected = selector.value;
+  selector.replaceChildren(
+    new Option('新请求', ''),
+    ...items.map((ticket) => {
+      const option = new Option(`追加到「${ticket.title}」 · 第 ${ticket.goal_version} 版`, ticket.ticket_id);
+      option.dataset.version = ticket.goal_version;
+      return option;
+    }),
+  );
+  selector.value = items.some((item) => item.ticket_id === selected) ? selected : '';
+  owaGoalSession = target;
+  $('owa-goal-picker').hidden = items.length === 0;
+}
+async function openConversation(sessionId) {
+  const current = generation;
+  session = sessionId;
+  clearContext();
+  renderOwaMainSession();
+  const [{ items: history }] = await Promise.all([api(scope(`/sessions/${sessionId}/messages`)), refreshOwaGoals()]);
+  if (current !== generation || session !== sessionId) return;
+  renderMessages(history);
+  for (const row of $('sessions').children) row.classList.toggle('active', row.dataset.id === sessionId);
+  const lastRun = [...history].reverse().find((message) => message.run_id)?.run_id || null;
+  await showRunDetails(lastRun, sessionId);
+}
 async function refreshSessions() {
   const current = generation,
-    data = await api(scope('/sessions'));
+    [data, main] = await Promise.all([api(scope('/sessions')), api(scope('/omniweave/main-session'))]);
   if (generation !== current) return;
+  owaMainSession = main;
+  renderOwaMainSession();
   $('sessions').replaceChildren(
     ...data.items.map((item) => {
       const row = document.createElement('li');
@@ -1278,16 +1354,7 @@ async function refreshSessions() {
       row.append(main);
       row.addEventListener(
         'click',
-        wrap(async () => {
-          session = item.id;
-          clearContext();
-          const history = (await api(scope(`/sessions/${session}/messages`))).items;
-          renderMessages(history);
-          for (const other of $('sessions').children) other.classList.toggle('active', other === row);
-          // 打开历史会话时，技术详情要跟着切到该会话最近一次运行，否则整块空白
-          const lastRun = [...history].reverse().find((m) => m.run_id)?.run_id || null;
-          await showRunDetails(lastRun, session);
-        }),
+        wrap(() => openConversation(item.id)),
       );
       return row;
     }),
@@ -1525,7 +1592,10 @@ async function pollBody() {
       run = null;
       $('cancel').disabled = true;
       setThinking(false);
-      if (session === result.session_id) renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
+      if (session === result.session_id) {
+        renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
+        await refreshOwaGoals();
+      }
     }
   }
   if (page === 'logs' && $('live-logs').checked && !logLoading) await loadLogs(false);
@@ -1644,6 +1714,8 @@ async function selectAgentBody(selectedGeneration) {
   $('object-list').replaceChildren();
   agent = $('agents').value;
   session = run = null;
+  owaMainSession = null;
+  renderOwaMainSession();
   chatImages.change();
   pendingKey = null;
   $('settings-fields').disabled = true;
@@ -1940,8 +2012,30 @@ $('new-session').addEventListener('click', () => {
   session = null;
   clearContext();
   pendingKey = null;
+  renderOwaMainSession();
   renderMessages([]);
 });
+$('owa-main-session').addEventListener(
+  'click',
+  wrap(async (event) => {
+    const button = event.currentTarget,
+      current = generation;
+    if (!owaMainSession?.enabled) return;
+    button.disabled = true;
+    try {
+      if (!owaMainSession.session_id) {
+        const receipt = await api(scope('/omniweave/main-session'), { method: 'PUT', body: { session_id: session } });
+        if (current !== generation) return;
+        owaMainSession = receipt;
+        await refreshSessions();
+        if (current !== generation) return;
+      }
+      if (owaMainSession.session_id) await openConversation(owaMainSession.session_id);
+    } finally {
+      button.disabled = false;
+    }
+  }),
+);
 $('send').addEventListener(
   'submit',
   wrap(async () => {
@@ -1955,19 +2049,38 @@ $('send').addEventListener(
     const draftKey = `${agent}/${session || 'new'}`;
     const mode = $('chat-mode').value || null,
       skillIds = skillsPanel.snapshot();
-    const signature = JSON.stringify([boundAgent, boundSession, text, imageIds, mode, skillIds]);
+    const selected = $('owa-goal').selectedOptions[0];
+    const goal =
+      !$('owa-goal-picker').hidden && selected?.value
+        ? { ticket_id: selected.value, expected_goal_version: Number(selected.dataset.version) }
+        : null;
+    const signature = JSON.stringify([boundAgent, boundSession, text, imageIds, mode, skillIds, goal]);
     if (pendingKey?.signature !== signature) pendingKey = { signature, value: crypto.randomUUID() };
-    const receipt = await api(scope('/turns'), {
-      method: 'POST',
-      body: {
-        key: pendingKey.value,
-        session_id: session,
-        message: text,
-        image_ids: imageIds,
-        mode,
-        skill_ids: skillIds,
-      },
-    });
+    let receipt;
+    try {
+      receipt = await api(scope('/turns'), {
+        method: 'POST',
+        body: {
+          key: pendingKey.value,
+          session_id: session,
+          message: text,
+          image_ids: imageIds,
+          mode,
+          skill_ids: skillIds,
+          ...(goal ? { goal_update: goal } : {}),
+        },
+      });
+    } catch (error) {
+      if (
+        goal &&
+        ['revision_conflict', 'owa_ticket_cancelled', 'not_found'].includes(error.code) &&
+        stamp === generation &&
+        session === boundSession
+      ) {
+        await refreshOwaGoals();
+      }
+      throw error;
+    }
     chatImages.sent(draftKey, imageIds);
     if (stamp !== generation || agent !== boundAgent || session !== boundSession) return;
     pendingKey = null;

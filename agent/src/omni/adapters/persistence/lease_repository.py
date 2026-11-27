@@ -7,7 +7,7 @@ import hashlib
 import json
 from typing import cast
 
-from sqlalchemy import Table, insert, literal, or_, select, update
+from sqlalchemy import Table, func, insert, literal, or_, select, update
 from sqlalchemy.sql.elements import ColumnElement
 
 from ...application.ports import Record
@@ -22,6 +22,13 @@ LIVE = ("queued", "running", "waiting_approval", "cancelling")
 
 
 class LeaseRepositories(RepositoryBase):
+    def require_turn_capacity(self, count: int) -> None:
+        queued, live = self.connection.execute(
+            select(func.count().filter(s.runs.c.state == "queued"), func.count()).where(s.runs.c.state.in_(LIVE))
+        ).one()
+        if queued + count > 64 or live + count > 68:
+            raise BusinessError("queue_full", "Execution queue is full", retryable=True, status=429)
+
     def lease_acquire(self, agent_id: str, resource: str, run_id: str | None = None) -> Record | None:
         key = (s.leases.c.agent_id == agent_id, s.leases.c.resource == resource)
         old = self.connection.execute(select(s.leases).where(*key)).mappings().first()
@@ -76,6 +83,14 @@ class LeaseRepositories(RepositoryBase):
             .one()
         )
         return cast(Record, dict(row))
+
+    def _requeue_turn(self, run_id: str, work_id: str) -> None:
+        self.connection.execute(update(s.runs).where(s.runs.c.id == run_id).values(state="queued", ended_at=None))
+        self.connection.execute(
+            update(s.work_items)
+            .where(s.work_items.c.id == work_id)
+            .values(state="pending", claim_token=None, lease_fence=None, claimed_by=None)
+        )
 
     def assert_run_lease(self, agent_id: str, run_id: str) -> None:
         work = self._work(agent_id, run_id)
@@ -237,10 +252,12 @@ class LeaseRepositories(RepositoryBase):
         earlier = self.connection.execute(
             select(s.runs.c.id)
             .join(s.messages, s.messages.c.id == s.runs.c.input_message_id)
+            .join(s.work_items, (s.work_items.c.run_id == s.runs.c.id) & (s.work_items.c.kind == "turn"))
             .where(
                 s.runs.c.session_id == run["session_id"],
                 s.runs.c.state.in_(LIVE),
                 s.messages.c.seq < message["seq"],
+                (s.runs.c.state != "queued") | func.json_extract(s.work_items.c.payload, "$.owa_delivery").is_not(True),
             )
             .limit(1)
         ).first()
@@ -260,12 +277,19 @@ class LeaseRepositories(RepositoryBase):
                 attempt=cast(int, work["attempt"]) + 1,
             )
         )
-        return {**run, "claim_token": lease["token"], "lease_fence": lease["fence"]}
+        payload = work["payload"]
+        return {
+            **run,
+            "claim_token": lease["token"],
+            "lease_fence": lease["fence"],
+            "owa_delivery": isinstance(payload, dict) and payload.get("owa_delivery") is True,
+        }
 
-    def claim_runs(self, limit: int) -> list[Record]:
+    def claim_runs(self, limit: int, *, include_owa_deliveries: bool = False) -> list[Record]:
         result: list[Record] = []
         rows = self.connection.execute(
             select(s.work_items.c.agent_id, s.work_items.c.run_id)
+            .join(s.runs, s.runs.c.id == s.work_items.c.run_id)
             .join(
                 s.agents,
                 s.agents.c.id == s.work_items.c.agent_id,
@@ -274,7 +298,12 @@ class LeaseRepositories(RepositoryBase):
                 s.work_items.c.kind == "turn",
                 s.work_items.c.state == "pending",
                 s.agents.c.enabled.is_(True),
-                s.work_items.c.run_id.not_in(select(s.run_delegations.c.child_run_id)),
+                s.runs.c.parent_id.is_(None),
+                *(
+                    ()
+                    if include_owa_deliveries
+                    else (func.json_extract(s.work_items.c.payload, "$.owa_delivery").is_not(True),)
+                ),
             )
             .order_by(s.work_items.c.queue_sequence)
             .limit(64)

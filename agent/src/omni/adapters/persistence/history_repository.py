@@ -29,6 +29,8 @@ class HistoryRepositories(RepositoryBase):
             scope_id = agent_id
             if run_id:
                 self._one(s.runs, agent_id, run_id)
+                if self.connection.execute(select(s.owa_tasks.c.id).where(s.owa_tasks.c.run_id == run_id)).first():
+                    raise BusinessError("not_found", "Run does not exist in this Agent space", status=404)
         elif agent_id:
             raise BusinessError("invalid_history_query", "Instance history has no Agent filter", status=422)
         epoch = self.connection.execute(select(s.history_identity.c.epoch)).scalar_one()
@@ -67,6 +69,8 @@ class HistoryRepositories(RepositoryBase):
             statement = statement.where(table.c.agent_id == agent_id)
         if run_id:
             statement = statement.where(table.c.run_id == run_id)
+        if kind == "events":
+            statement = statement.where(s.run_events.c.run_id.not_in(select(s.owa_tasks.c.run_id)))
         rows = [
             dict(row)
             for row in self.connection.execute(statement.order_by(table.c.sequence).limit(limit + 1)).mappings()

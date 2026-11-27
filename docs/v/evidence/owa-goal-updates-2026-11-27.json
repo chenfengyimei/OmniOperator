@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-27",
+  "phase": 3,
+  "baseline": "0b87a101a1885ed68575eeb4cbec84a318e949f4",
+  "source_sha": "32793f77b1706e363828789e229534fd15be3a1a",
+  "platform": "Windows, isolated real FastAPI and SQLite, offline models, Playwright Chromium",
+  "migration": {
+    "from": "v2_0060",
+    "to": "v2_0061",
+    "heads": 1,
+    "revisions": 61,
+    "tables": 164,
+    "fresh_and_prior_snapshots": true,
+    "integrity_check": "ok",
+    "foreign_key_errors": 0
+  },
+  "verified_contracts": {
+    "OW-01": "An owner selects one Ticket in the existing Web session. The Router acknowledges the accepted input on the same session. Multiple selectable Tickets are disambiguated by explicit target.",
+    "T05": "Two competing updates of one version yield a single 202 and one 409. Same-key same-payload replay reuses the receipt, a changed target version conflicts, and failure after cancellation rolls back message, goal and approval changes.",
+    "T06": "Restart preserves the same public Ticket and its current goal. Queued Workers wait for review of an older unknown write, then proceed after the original action review resolves it. One dispatch is observed.",
+    "T10": "Existing Web and legacy delegation contracts pass. A cross-session goal update is rejected, and a cancelled goal requires a new request. Empty databases and copied V53 through V60 databases pass migration checks.",
+    "T11": "The revised Ticket projects only its current version. An older artifact remains stored but a Worker with the new version's reader role cannot access it. Old approval cannot dispatch. The browser preserves a stale draft while refreshing its selected goal."
+  },
+  "offline_runs": [
+    {
+      "scope": "OWA HTTP and migrations, architecture and frozen DDL, legacy delegation and HTTP",
+      "passed": 73,
+      "failed": 0,
+      "seconds": 321.79,
+      "local_junit": "temp/build/owa-phase3/goals-32793f77.xml",
+      "sha256": "8c572b38075204dbedbf3de980ace1416a5fb4349998a6f7df4f0b76a0083751"
+    },
+    {
+      "scope": "Existing caller migrations whose head assertion changed, filtered by migration, upgrade, adds, or rebuild",
+      "passed": 13,
+      "failed": 0,
+      "deselected": 44,
+      "seconds": 21.45,
+      "local_junit": "temp/build/owa-phase3/goal-migrations-32793f77.xml",
+      "sha256": "4387b81ad7b1b4e8e8432b2e9baeda4f08f864cd2076c4613ff0d460292c5210"
+    },
+    {
+      "scope": "Production workbench Ticket selection, conflicting external update and retained draft, plus standard chat and Agent-space regressions",
+      "passed": 12,
+      "failed": 0,
+      "seconds": 114.31,
+      "local_junit": "temp/build/owa-phase3/goal-workbench-32793f77.xml",
+      "sha256": "939860d234de1ca479f853c20844daaf0c901a67e6b6f49fdc22638db3edd10a"
+    },
+    {
+      "scope": "Strict module documentation and updated configuration guard",
+      "passed": 2,
+      "failed": 0,
+      "seconds": 0.42,
+      "local_junit": "temp/build/owa-phase3/goal-typecheck-scope.xml",
+      "sha256": "07f9eac14913095fb1b70ce5ade1a3eae2f5969fff33da90778d2910cc229884"
+    }
+  ],
+  "distinct_scoped_passed": 100,
+  "strict": {
+    "files": 516,
+    "errors": 0,
+    "warnings": 0,
+    "seconds": 18.924,
+    "configuration_sha256": "cec2f7693acee8c2ebaaaaeef39994cac8f8be2a0c73b07445589f2ecb80a727",
+    "local_report": "temp/build/owa-phase3/goal-strict-final.json",
+    "sha256": "2f9a0309bfb3b77431406cc29fbac9cd11301cf224b4565a045001184ff9c1fb"
+  },
+  "es_module_syntax_checks": 88,
+  "ruff": "passed",
+  "full_suite_ran": false,
+  "github_ci_requested": false,
+  "remaining_scope": [
+    "Revisions currently replan the whole Worker group. Explicit reuse of unaffected, still verified evidence is pending.",
+    "Final same-session delivery requires current-version evidence and transactional finalization after the Router acknowledgement.",
+    "Peer message evidence references and receipt-backed continuation remain to be integrated into the campus assistant scenario."
+  ]
+}

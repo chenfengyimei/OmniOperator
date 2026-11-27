@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-27",
+  "branch": "owa-tickets",
+  "source_sha": "57990c472cb3774ecfd2c3406ed64f11d1a8bb1a",
+  "spec_source_sha": "788a701149f2a876165154e7649a0f39eff2b1d0",
+  "v2_base_sha": "d897f2867e4b0a25fe961075264854f002c1ee5b",
+  "platform": "Windows x64",
+  "python": "3.12.14",
+  "alembic_head": "v2_0055",
+  "command_prefix": "uv run --no-sync pytest -q -n 0",
+  "scope": [
+    "agent/tests/v2/http/test_v2_omniweave_http.py",
+    "agent/tests/v2/http/test_v2_delegation_http.py",
+    "agent/tests/v2/core/test_v2_delegation.py",
+    "agent/tests/v2/core/test_v2_capability_plugins.py",
+    "agent/tests/v2/core/test_v2_feature_plugins.py",
+    "agent/tests/v2/core/test_v2_entrypoints.py",
+    "agent/tests/v2/core/test_v2_architecture.py",
+    "agent/tests/v2/core/test_v2_omniweave_migration.py",
+    "agent/tests/v2/core/test_v2_kernel_restart.py",
+    "agent/tests/v2/core/test_v2_memory_prefix.py"
+  ],
+  "passed": 109,
+  "failed": 0,
+  "skipped": 0,
+  "elapsed_s": 297.63,
+  "local_junit": "temp/build/owa-phase2/spec-alignment-57990c47.xml",
+  "junit_sha256": "6bdc298198f3005031c07092238ceb385071fa00aeb4db4df14ee8ba98d34392",
+  "strict_files": 502,
+  "strict_errors": 0,
+  "strict_warnings": 0,
+  "full_suite": false,
+  "github_ci_dispatched": false,
+  "verified_contracts": [
+    "A Router model receives only the OWA plan and status capabilities in agent mode. A forged files_read call creates no action.",
+    "Worker tool references resolve against the installed catalog and current Agent policy. A Worker requires owner approval for a private workspace write.",
+    "The owner's profile is present in the Router request and excluded from the Worker request.",
+    "Three blocked Workers leave room for an actual Router response; an independent fourth Worker remains queued.",
+    "A new Web session receives the ordinary V2 response and does not create an OWA execution for the same Agent."
+  ]
+}

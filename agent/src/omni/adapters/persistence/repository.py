@@ -8,7 +8,7 @@ import json
 from dataclasses import asdict
 from typing import Any, cast
 
-from sqlalchemy import and_, func, insert, literal_column, select, update
+from sqlalchemy import and_, insert, literal_column, select, update
 
 from ...application.ports import Record
 from ...domain.contracts import (
@@ -21,6 +21,7 @@ from ...domain.contracts import (
     ToolSpec,
     check_transition,
 )
+from ...domain.omniweave import GoalUpdate
 from ...domain.run_recovery import arguments_digest
 from ...domain.verification_stop import completion_report
 from . import schema as s
@@ -43,6 +44,7 @@ from .media_repository import MediaRepositories
 from .memory_organization_repository import MemoryOrganizationRepositories
 from .memory_semantic_repository import MemorySemanticRepositories
 from .object_repository import ObjectRepositories
+from .omniweave_repository import OmniWeaveRepositories
 from .operations_repository import OperationsRepositories
 from .people_repository import PeopleRepositories
 from .qq_repository import QQRepositories
@@ -97,6 +99,7 @@ class Repositories(
     HistoryRepositories,
     SessionSearchRepositories,
     ObjectRepositories,
+    OmniWeaveRepositories,
     PeopleRepositories,
     ContextRepositories,
     ScheduleRepositories,
@@ -234,6 +237,7 @@ class Repositories(
         mode: str | None = None,
         skill_ids: tuple[str, ...] = (),
         skill_platform: str = "",
+        goal_update: GoalUpdate | None = None,
     ) -> Record:
         if origin not in {"chat", "qq"}:
             raise BusinessError("invalid_turn_origin", "Unknown turn origin")
@@ -250,6 +254,8 @@ class Repositories(
         images = checked_image_ids(image_ids)
         if images and (origin != "chat" or not model_required):
             raise BusinessError("image_channel_unsupported", "This channel cannot attach image messages", status=422)
+        if session_id and self.omniweave_private_scope(agent_id, "session_id", session_id):
+            raise BusinessError("not_found", "Session does not exist in this Agent space", status=404)
         if (
             session_id
             and origin != "qq"
@@ -269,6 +275,11 @@ class Repositories(
                     **({"image_ids": images} if images else {}),
                     **({"mode": route_mode} if route_mode != "default" else {}),
                     **({"skill_ids": selected_skills} if selected_skills else {}),
+                    **(
+                        {"goal_update": [goal_update.ticket_id, goal_update.expected_goal_version]}
+                        if goal_update
+                        else {}
+                    ),
                 },
                 sort_keys=True,
             ).encode()
@@ -309,16 +320,7 @@ class Repositories(
                     s.sessions, {"title": text[:80] or "Image conversation", "revision": 1, "next_seq": 0}, agent_id
                 )["id"],
             )
-        unfinished = self.connection.execute(
-            select(func.count())
-            .select_from(s.runs)
-            .where(s.runs.c.state.in_(["queued", "running", "waiting_approval", "cancelling"]))
-        ).scalar_one()
-        queued = self.connection.execute(
-            select(func.count()).select_from(s.runs).where(s.runs.c.state == "queued")
-        ).scalar_one()
-        if unfinished >= 68 or queued >= 64:
-            raise BusinessError("queue_full", "Execution queue is full", retryable=True, status=429)
+        self.require_turn_capacity(1)
         assert session_id is not None
         message = self._message(agent_id, session_id, "user", text)
         for position, object_id in enumerate(images):
@@ -739,6 +741,7 @@ class Repositories(
         run = self.get_run(agent_id, run_id)
         if run["state"] != "running":
             raise BusinessError("run_not_running", "Run no longer accepts actions")
+        self.omniweave_assert_action(agent_id, run_id, spec)
         current = self.settings(agent_id)
         current_value = cast(Record, current["value"])
         if current["policy_revision"] != policy or spec.name in cast(
@@ -1067,6 +1070,7 @@ class Repositories(
         return completion_report(rows[:200], objects, limited=len(rows) > 200 or sum(map(len, objects.values())) > 200)
 
     def cancel(self, agent_id: str, run_id: str) -> None:
+        self.omniweave_cancel(agent_id, run_id)
         for child_id in self.delegation_children(agent_id, run_id):
             self.cancel(agent_id, child_id)
         run = self.get_run(agent_id, run_id)
@@ -1290,6 +1294,12 @@ class Repositories(
             statement = statement.where(table.c.deleted_at.is_(None))
         if kind == "memory":
             statement = statement.where(table.c.kind.not_in(["profile", "resident"]))
+        if kind == "runs":
+            statement = statement.where(s.runs.c.id.not_in(select(s.owa_task_attempts.c.run_id)))
+        if kind in {"sessions", "summaries"}:
+            private_sessions = select(s.runs.c.session_id).join(s.owa_tasks, s.owa_tasks.c.run_id == s.runs.c.id)
+            session = s.sessions.c.id if kind == "sessions" else s.summaries.c.session_id
+            statement = statement.where(session.not_in(private_sessions))
         cursor = table.c.sequence if "sequence" in table.c else None
         if cursor is not None:
             statement = statement.where(cursor > after).order_by(cursor)

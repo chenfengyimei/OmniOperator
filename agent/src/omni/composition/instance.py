@@ -20,7 +20,7 @@ from opentelemetry.trace import Span, StatusCode
 from omni.adapters.platform.runtime.paths import InstanceLock, InstancePaths
 from omni.adapters.platform.runtime.runtime_identity import RuntimeIdentityFiles, canonical_proof, process_identity
 from omni.adapters.platform.runtime.secrets import FileVault
-from omni.adapters.platform.runtime.workspaces import WorkspacePolicy
+from omni.adapters.platform.runtime.workspaces import WorkerWorkspaces, WorkspacePolicy
 from omni.adapters.platform.services.service_launch import consume_launch
 
 from ..adapters.build_identity import CODE_CACHE_DIRS, CODE_SUFFIXES, LAYERS
@@ -64,6 +64,7 @@ from ..application.memory_semantics import MemorySemanticService
 from ..application.memory_services import MemoryServices
 from ..application.model_calls import ModelCalls
 from ..application.objects import ObjectService
+from ..application.omniweave import OmniWeaveService
 from ..application.operations import OperationsService
 from ..application.people import PeopleService, PeopleServices
 from ..application.persona import PersonaGrowthService
@@ -97,6 +98,7 @@ from ..application.vision_services import VisionServices
 from ..application.visual_subagent import VisualSubagentService
 from ..domain.background_review import READ_TOOLS
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome
+from ..domain.omniweave import OmniWeaveMode, checked_mode
 from .capabilities import builtin_plugins
 from .channel_providers import register_channel_providers
 from .features import FeatureContext, FeaturePlugin, KernelFeatureContext, WorkflowFeatureContext, install_features
@@ -331,6 +333,7 @@ async def open_instance(
     delegation_enabled: bool | None = None,
     verify_on_stop: bool = False,
     model_recovery: bool = False,
+    omniweave_mode: OmniWeaveMode = "off",
     master_key_file: Path | None = None,
     stderr_only: bool = False,
     process_diagnostics: bool = False,
@@ -342,6 +345,7 @@ async def open_instance(
     control_backend: DesktopControlPort | None = None,
     deployment: Record | None = None,
 ) -> Instance:
+    omniweave_mode = checked_mode(omniweave_mode)
     initial_plugins = (*BUILTIN_FEATURES, *feature_plugins)
     declared_plugins = (*initial_plugins, *BUILTIN_WORKFLOW_FEATURES, *BUILTIN_KERNEL_FEATURES)
     if len({plugin.id for plugin in declared_plugins}) != len(declared_plugins):
@@ -548,6 +552,7 @@ async def open_instance(
             todos=TodoService(database) if capabilities is None else None,
             reflections=learning.reflections if capabilities is None else None,
             delegation_enabled=capabilities is None if delegation_enabled is None else delegation_enabled,
+            worker_workspace=WorkerWorkspaces(paths.home).prepare if omniweave_mode == "dispatch" else None,
             background_review=learning.review if capabilities is None else None,
             clarify=ClarifyService(database) if capabilities is None else None,
             verify_on_stop=verify_on_stop,
@@ -567,6 +572,8 @@ async def open_instance(
                 runtime_health=lambda: current_instance.health(),
                 metrics=measurements,
                 sink=sink,
+                omniweave_mode=omniweave_mode,
+                worker_tool_specs=tuple(cap.spec for cap in agent_capabilities),
             ),
             registered_services,
         )
@@ -574,6 +581,10 @@ async def open_instance(
         qq = kernel_features.require("qq", QQService)
         action_reviews = kernel_features.require("action-reviews", ActionReviewService)
         operations = kernel_features.require("system", OperationsService)
+        if omniweave_mode == "dispatch":
+            application.attach_omniweave_delivery(
+                kernel_features.require("omniweave", OmniWeaveService).finish_delivery
+            )
         for plugin in kernel_features.capabilities:
             application.attach_plugin(plugin)
         for provider in (*features.providers, *workflow_features.providers, *kernel_features.providers):

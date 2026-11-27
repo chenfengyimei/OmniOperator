@@ -13,7 +13,7 @@ from .metering import wire_tools
 
 MODES = ("chat", "retrieval", "agent")
 REQUESTED = (*MODES, "auto", "default")
-CHAT_TOOLS = frozenset({"memory_search"})
+CHAT_TOOLS = frozenset({"memory_search", "owa_status"})
 RETRIEVAL_TOOLS = CHAT_TOOLS | {
     "document_search",
     "document_read",
@@ -53,7 +53,9 @@ DISCOVER_TOOLS = ToolSpec(
         "additionalProperties": False,
     },
 )
-_WINDOW_CORE = frozenset({"files_read", "files_list", "files_search", "todo_list", "clarify", "request_mode"})
+_WINDOW_CORE = frozenset(
+    {"files_read", "files_list", "files_search", "todo_list", "clarify", "request_mode", "owa_plan", "owa_status"}
+)
 REQUEST_MODE = ToolSpec(
     "request_mode",
     "Request one upward capability tier for the next model call. Keeps this run's captured model, budget and permissions; never approves actions. Use when more tools are needed.",

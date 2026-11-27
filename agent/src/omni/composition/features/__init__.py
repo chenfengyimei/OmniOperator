@@ -31,6 +31,7 @@ from ...application.ports import (
     TokenCounter,
 )
 from ...domain.contracts import ToolSpec
+from ...domain.omniweave import OmniWeaveMode
 from ..channel_providers import ChannelProviders
 from ..lifecycle import Lifetime
 from ..platform_providers import PlatformPorts
@@ -83,6 +84,8 @@ class KernelFeatureContext:
     runtime_health: Callable[[], Record]
     metrics: MetricsPort
     sink: JsonLogSink
+    omniweave_mode: OmniWeaveMode = "off"
+    worker_tool_specs: tuple[ToolSpec, ...] = ()
 
 
 @dataclass(frozen=True)

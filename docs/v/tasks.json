@@ -1,5 +1,5 @@
 {
-  "summary": "V2 Everything is a Plugin 架构迁移已验收。正式实例装配二十一项业务，CLI 通过同一登记解析和执行。冻结源码 `1a2810ea` 离线全量 8739 项通过、0 失败、10 项跳过。正式产物与真实环境验收继续按各自任务记录。",
+  "summary": "V2 Everything is a Plugin 架构迁移已验收。冻结源码 `1a2810ea` 离线全量 8739 项通过、0 失败、10 项跳过。OmniWeave 已同步正式规格，Web 观察、Router 与 Worker 并行及未派发恢复已分批实现，正在补齐授权和协作合同。正式产物与真实环境验收继续按各自任务记录。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -107,6 +107,14 @@
         "docs/v/evidence/kernel-parity-2026-11-25.json",
         "docs/v/evidence/kernel-plugins-2026-11-25.json"
       ]
+    },
+    {
+      "id": "OMNIWEAVE",
+      "title": "OWA 主会话编排与发布验收",
+      "status": "development_in_progress",
+      "next": "Phase 3 已接持久邮箱、Worker 轮次、授权产物与订阅、主会话追加、目标修订、Router 原位交付，以及对等消息授权证据引用、未受修订影响证据的显式沿用和外部动作回执后的检查点续接。引用与续接源码 `86908010` 的 30 项生产入口、36 项委派与重启恢复、10 项迁移专项及严格类型检查（519 文件）通过，迁移头为 `v2_0063`。接下来跑校园助手全链离线验收，再进入 Phase 4 长作业与 Watchdog。以 OW-01–OW-06 和 T01–T13 的分阶段证据验收。",
+      "contract": "docs/v/reference/OMNIWEAVE.md",
+      "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json", "docs/v/evidence/owa-spec-alignment-2026-11-27.json", "docs/v/evidence/owa-worker-capacity-2026-11-27.json", "docs/v/evidence/owa-main-session-2026-11-27.json", "docs/v/evidence/owa-worker-mandates-2026-11-27.json", "docs/v/evidence/owa-peer-mailbox-2026-11-27.json", "docs/v/evidence/owa-artifact-subscriptions-2026-11-27.json", "docs/v/evidence/owa-goal-updates-2026-11-27.json", "docs/v/evidence/owa-router-delivery-2026-11-27.json", "docs/v/evidence/owa-evidence-references-2026-11-27.json"]
     },
     {
       "id": "CAPABILITY-PLUGINS",

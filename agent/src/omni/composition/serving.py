@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from ..domain.contracts import BusinessError
+from ..domain.omniweave import OmniWeaveMode
 from .http import http_app
 
 
@@ -21,6 +22,7 @@ def serve_instance(
     master_key_file: Path | None,
     stdout_logs: bool,
     deployment: dict[str, Any] | None = None,
+    omniweave_mode: OmniWeaveMode = "off",
 ) -> None:
     import uvicorn
 
@@ -55,6 +57,7 @@ def serve_instance(
             stderr_only=stdout_logs,
             process_diagnostics=True,
             deployment=deployment,
+            omniweave_mode=omniweave_mode,
             shutdown=request_shutdown,
         ),
         loop="omni.adapters.platform.runtime.event_loop:create_event_loop",

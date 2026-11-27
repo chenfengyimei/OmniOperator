@@ -208,6 +208,7 @@ class ModelCalls:
 
                     def authorize_send(u: UnitOfWork) -> None:
                         authorize(u)
+                        u.omniweave_assert_model_tools(agent_id, run_id, tools)
                         if (
                             exposed_tools is not None
                             or settings["model_revision_id"] != u.get_run(agent_id, run_id)["model_revision_id"]

@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from uuid import UUID
 
 from omni.domain.contracts import BusinessError
+
+from .permissions import private_path
 
 
 class WorkspacePolicy:
@@ -25,3 +28,24 @@ class WorkspacePolicy:
             )
         if path.is_relative_to(self.installed_package) or self.installed_package.is_relative_to(path):
             raise BusinessError("installed_workspace", "Workspace cannot expose the running installation", status=422)
+
+
+class WorkerWorkspaces:
+    def __init__(self, home: Path) -> None:
+        self._root = home.resolve() / "owa-workspaces"
+
+    def prepare(self, run_id: str) -> str:
+        try:
+            if str(UUID(run_id)) != run_id:
+                raise ValueError("Expected a canonical Worker identity")
+            folder = self._root / run_id
+            for path in (self._root, folder):
+                if path.is_symlink() or path.is_junction() or path.resolve() != path:
+                    raise OSError("Worker workspace cannot contain links")
+                path.mkdir(mode=0o700, exist_ok=True)
+                private_path(path, directory=True)
+        except (OSError, ValueError):
+            raise BusinessError(
+                "owa_workspace_unavailable", "The private Worker workspace cannot be prepared"
+            ) from None
+        return str(folder)

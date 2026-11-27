@@ -112,7 +112,7 @@ def baseline(paths):
 
 def assert_schema(unit):
     reflection = inspect(unit.connection)
-    assert len(s.metadata.tables) == 151 and set(s.metadata.tables) <= set(reflection.get_table_names())
+    assert len(s.metadata.tables) == 166 and set(s.metadata.tables) <= set(reflection.get_table_names())
     for name in TABLES:
         table = s.metadata.tables[name]
         assert {column["name"]: column["nullable"] for column in reflection.get_columns(name)} == {

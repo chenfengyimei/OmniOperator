@@ -210,31 +210,29 @@ class ContextRepositories(RetentionRepositories):
         self._capture_memories(agent_id, cast(str, snapshot), memory_ids)
 
     def prepare_context(self, agent_id: str, run_id: str) -> Record:
-        child = cast(UnitOfWork, self).delegation_link(agent_id, run_id)
+        unit = cast(UnitOfWork, self)
+        child = unit.delegation_link(agent_id, run_id)
         if child:
             self.assert_context(agent_id, run_id)
             identity = self.snapshot(agent_id, run_id, [], [])
-            rows = (
-                self.connection.execute(
+            if not unit.omniweave_private_scope(agent_id, "run_id", run_id):
+                rows = self.connection.execute(
                     select(s.context_memories).where(
                         s.context_memories.c.snapshot_id == child["parent_snapshot_id"],
                         s.context_memories.c.agent_id == agent_id,
                     )
-                )
-                .mappings()
-                .all()
-            )
-            for row in rows:
-                self._record(
-                    s.context_memories,
-                    {
-                        "snapshot_id": identity,
-                        "memory_id": row["memory_id"],
-                        "memory_revision_id": row["memory_revision_id"],
-                        "state": row["state"],
-                    },
-                    agent_id,
-                )
+                ).mappings()
+                for row in rows.all():
+                    self._record(
+                        s.context_memories,
+                        {
+                            "snapshot_id": identity,
+                            "memory_id": row["memory_id"],
+                            "memory_revision_id": row["memory_revision_id"],
+                            "state": row["state"],
+                        },
+                        agent_id,
+                    )
             self.connection.execute(
                 update(s.context_snapshots).where(s.context_snapshots.c.id == identity).values(mode="preparing")
             )
