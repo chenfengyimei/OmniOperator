@@ -251,6 +251,9 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
                 and cast(int, source_mandate["goal_version"]) == cast(int, source_version)
                 and evidence_authorized(self, agent_id, prior_run)
             )
+            verifier = source_mandate is not None and source_mandate["profile"] == "verification"
+            if verified and verifier and not self._owa_reuse_receipts_covered(agent_id, str(source_id), prior_run):
+                verified = False
             tasks[key] = {
                 "key": key,
                 "run_id": prior_run,
@@ -259,7 +262,7 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
                 "verification_passed": verified,
                 "reused_from_version": source_version,
             }
-            if verified and source_mandate is not None and source_mandate["profile"] == "verification":
+            if verified and verifier:
                 reused_verifiers.setdefault(key, []).append(prior_run)
             retained_artifacts.extend(cast(list[JSON], self._owa_retained_artifacts(agent_id, str(source_id))))
         planned_count = (
@@ -335,6 +338,40 @@ class OmniWeaveDeliveryRepositories(OmniWeaveMailboxRepositories):
             "artifacts": artifacts,
             "retained_artifacts": retained_artifacts,
         }
+
+    def _owa_reuse_receipts_covered(self, agent_id: str, source_task_id: str, prior_run: str) -> bool:
+        # Reused verification counts only when the source verifier's durable
+        # read receipts cover every artifact it was granted before its attempt
+        # ended, even when that artifact is no longer visible in this version.
+        window = str(
+            self.connection.execute(
+                select(func.max(s.runs.c.ended_at)).where(s.runs.c.id == prior_run)
+            ).scalar_one()
+            or ""
+        )
+        rows = self.connection.execute(
+            select(
+                s.owa_artifact_grants.c.revoked_at,
+                owa_artifacts.c.id,
+                owa_artifacts.c.created_at,
+                s.objects.c.sha256,
+            )
+            .select_from(s.owa_artifact_grants)
+            .join(s.owa_artifact_links, s.owa_artifact_links.c.id == s.owa_artifact_grants.c.link_id)
+            .join(owa_artifacts, owa_artifacts.c.id == s.owa_artifact_grants.c.artifact_id)
+            .join(s.objects, s.objects.c.id == owa_artifacts.c.object_id)
+            .where(
+                s.owa_artifact_grants.c.agent_id == agent_id,
+                s.owa_artifact_links.c.reader_id == source_task_id,
+            )
+        ).all()
+        in_window = [row for row in rows if str(row.created_at) <= window]
+        if not in_window:
+            return True
+        if any(row.revoked_at is not None for row in in_window):
+            return False
+        expected = {(str(row.id), str(row.sha256)) for row in in_window}
+        return expected <= self._owa_verified_artifacts(agent_id, [prior_run])
 
     def _owa_retained_artifacts(self, agent_id: str, producer_task_id: str) -> list[Record]:
         rows = (

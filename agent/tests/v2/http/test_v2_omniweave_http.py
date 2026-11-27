@@ -1865,6 +1865,108 @@ def test_reused_verifier_without_current_reads_stays_unverified(tmp_path):
         }
 
 
+def test_previous_unverified_worker_cannot_be_reused_by_itself(tmp_path):
+    class Model:
+        async def complete(self, messages, tools, settings):
+            if messages[0]["content"] == REVIEW_PROMPT:
+                return ModelReply("No reusable procedure in this test turn", cost_micro=0)
+            if str(messages[0]["content"]).startswith("OMNI_CONTEXT_SUMMARY_V1"):
+                return ModelReply("Campus stale verifier", cost_micro=0)
+            goal = _worker_goal(messages)
+            last = messages[-1]
+            if goal == "publish baseline":
+                if last["role"] == "tool":
+                    return ModelReply("Baseline published", cost_micro=0)
+                return ModelReply(
+                    "Publish",
+                    (
+                        Invocation(
+                            "publish",
+                            "publish_artifact",
+                            {
+                                "name": "baseline",
+                                "key": "baseline",
+                                "expected_version": 0,
+                                "readers": ["verify"],
+                                "text": "baseline evidence v1",
+                            },
+                        ),
+                    ),
+                    cost_micro=0,
+                )
+            if goal == "claim verified":
+                return ModelReply("Claimed verification without reading", cost_micro=0)
+            current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
+            if not current.startswith("OmniWeave Worker."):
+                if last["role"] == "tool":
+                    return ModelReply("Plan queued in the main conversation", cost_micro=0)
+                if current == "Campus stale verifier":
+                    tasks = [
+                        {
+                            "key": "research",
+                            "goal": "publish baseline",
+                            "profile": "research",
+                            "artifact_readers": ["verify"],
+                        },
+                        {
+                            "key": "verify",
+                            "goal": "claim verified",
+                            "profile": "verification",
+                            "depends_on": ["research"],
+                        },
+                    ]
+                else:
+                    assert current == "Campus verifier revision", current
+                    tasks = [
+                        {
+                            "key": "verify",
+                            "goal": "claim verified",
+                            "profile": "verification",
+                            "reuse": {"task_key": "verify", "goal_version": 1},
+                        },
+                    ]
+                return ModelReply("Plan", (Invocation("plan", "owa_plan", {"tasks": tasks}),), cost_micro=0)
+            raise AssertionError("Unexpected worker turn")
+
+    model = Model()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        session_id = _select_main(client, base)
+        root = client.post(
+            base + "/turns", json={"key": "campus", "session_id": session_id, "message": "Campus stale verifier"}
+        ).json()
+        ticket = _wait_tasks(client, base, root, {"research": "succeeded", "verify": "succeeded"})
+        revised = client.post(
+            base + "/turns",
+            json={
+                "key": "revision",
+                "session_id": session_id,
+                "message": "Campus verifier revision",
+                "goal_update": {"ticket_id": ticket["ticket_id"], "expected_goal_version": 1},
+            },
+        ).json()
+        assert revised["run_id"] != root["run_id"]
+        closeout = None
+        for _ in range(400):
+            closeout = next(
+                (
+                    row
+                    for row in client.get(base + f"/sessions/{session_id}/messages").json()["items"]
+                    if row["role"] == "assistant" and "OmniWeave 交付 · 第 2 版" in row["content"]
+                ),
+                closeout,
+            )
+            if closeout is not None:
+                break
+            time.sleep(0.025)
+        assert closeout is not None
+        assert "verify · 执行结束，仍需核验 · 第 1 版沿用证据需要复核" in closeout["content"]
+        links = closeout["omniweave_delivery"]
+        assert links["outcome"] != "completed", closeout["content"]
+        assert dict(_rows(tmp_path, "SELECT task_key, source_goal_version FROM owa_task_reuse")) == {"verify": 1}
+
+
 def test_reuse_rejected_when_source_authorization_changed(tmp_path):
     rejected = Event()
 
