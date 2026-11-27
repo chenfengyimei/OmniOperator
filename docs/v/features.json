@@ -317,6 +317,8 @@
         "agent/src/omni/adapters/persistence/migrations/versions/v0058.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0059.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0060.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0061.py",
+        "agent/src/omni/adapters/persistence/omniweave_goals.py#prior_goal_blocker",
         "agent/src/omni/adapters/persistence/omniweave_artifacts.py#OmniWeaveArtifactRepositories.omniweave_artifact_read",
         "agent/src/omni/adapters/persistence/omniweave_authority.py#authorize_mandate",
         "agent/src/omni/adapters/persistence/omniweave_attempts.py#task_for_run",

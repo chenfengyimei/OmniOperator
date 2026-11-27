@@ -2,7 +2,7 @@
 
 > **全仓严格类型尚未完成。** 本文件记录已纳入 strict 的模块、当前基线例外与推进规则；默认入口为V2（Windows离线候选），真实平台与整个V2仍待验收。
 
-当前显式清单为 502 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 调度链路。下方历史基线按当时的提交保留。
+当前显式清单为 516 个文件，包含能力注册表、提供者、业务功能安装器和 OWA 调度链路。下方历史基线按当时的提交保留。
 
 
 ## 1. 门禁
@@ -109,6 +109,7 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/domain/releases.py` | 发布/恢复计划、栅栏文件与路径分离纯校验（经公共桥） |
 | `agent/src/omni/domain/routing.py` | 能力档位/路由策略/工具筛选纯规则 |
 | `agent/src/omni/domain/omniweave.py` | OWA 模式与规范事件版本 |
+| `agent/src/omni/domain/omniweave_artifacts.py` | 产物内容、版本及共享工具参数 |
 | `agent/src/omni/domain/run_recovery.py` | 安全接续的固定上限与参数指纹 |
 | `agent/src/omni/domain/settings.py` | Agent 设置与运行配置纯校验 |
 | `agent/src/omni/domain/scheduling.py` | 数值 cron/下次到期/到期选择纯规则 |
@@ -203,6 +204,19 @@ strict 配置显式将 `agent/src` 加入导入根，隔离源码副本也解析
 | `agent/src/omni/adapters/persistence/delivery_predicates.py` | 出站待处理/未决谓词（持久化适配） |
 | `agent/src/omni/adapters/persistence/skill_repository.py` | 不可变技能版本/审阅状态/逐运行绑定（对齐端口 Record、清单宽字典边界 cast、代次与容量收窄、不触包与文件系统） |
 | `agent/src/omni/adapters/persistence/omniweave_repository.py` | 主会话、根 Run、入站回执的同库作用域绑定 |
+| `agent/src/omni/adapters/persistence/omniweave_authority.py` | 运行时 Mandate 和工具范围核对 |
+| `agent/src/omni/adapters/persistence/omniweave_attempts.py` | Worker 轮次和原 Session 的绑定 |
+| `agent/src/omni/adapters/persistence/omniweave_mailbox.py` | 同目标版本的对端请求、回复和持久投递 |
+| `agent/src/omni/adapters/persistence/omniweave_artifacts.py` | 对象版本、订阅投递与读者授权 |
+| `agent/src/omni/adapters/persistence/omniweave_goals.py` | 当前目标查询、历史账本与续接闸门 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0054.py` | 主会话观察与规范来源 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0055.py` | Worker 执行和依赖登记 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0056.py` | 私有会话与 Worker 路由边界 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0057.py` | 主会话显式选择 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0058.py` | 根目标与 Worker Mandate |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0059.py` | Worker 轮次与持久邮箱 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0060.py` | 产物版本与订阅回执 |
+| `agent/src/omni/adapters/persistence/migrations/versions/v0061.py` | 目标版本谱系与旧授权退役 |
 | `agent/src/omni/adapters/persistence/sqlite_access.py` | 离线 SQLite 连接（只读/备份，含 WAL） |
 | `agent/src/omni/adapters/persistence/terminal_repository.py` | 终端意图事务与不可变回执（对齐端口 Record、修订号 int 收窄、不启原生进程不存正文） |
 | `agent/src/omni/adapters/persistence/terminal_review_repository.py` | 终端 unknown 观测复核与可抹证据（对齐端口 Record、来源三元组显式、回执与原生生命周期不变、不授权重放） |

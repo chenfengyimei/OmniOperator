@@ -284,7 +284,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L594)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L601)
 
 **领域规则**
 
@@ -293,7 +293,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/integrations/test_v2_mcp.py agent
 
 **应用服务**
 
-- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L179)
+- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L180)
 - [agent/src/omni/application/capabilities.py#CapabilityRegistry.capture](../../../agent/src/omni/application/capabilities.py#L106)
 
 **适配器与仓储**
@@ -348,8 +348,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L594)
-- [agent/src/omni/adapters/http.py#create_app.event_stream](../../../agent/src/omni/adapters/http.py#L642)
+- [agent/src/omni/adapters/http.py#create_app.turn](../../../agent/src/omni/adapters/http.py#L601)
+- [agent/src/omni/adapters/http.py#create_app.event_stream](../../../agent/src/omni/adapters/http.py#L659)
 - [agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.ticket](../../../agent/src/omni/adapters/http_routes/omniweave.py#L32)
 - [agent/src/omni/adapters/http_routes/omniweave.py#omniweave_router.select_main_session](../../../agent/src/omni/adapters/http_routes/omniweave.py#L24)
 
@@ -359,14 +359,14 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 
 **应用服务**
 
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L66)
-- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L101)
-- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L179)
-- [agent/src/omni/application/engine.py#Application._dispatch](../../../agent/src/omni/application/engine.py#L239)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.web_admission](../../../agent/src/omni/application/omniweave.py#L67)
+- [agent/src/omni/application/omniweave.py#OmniWeaveService.invoke](../../../agent/src/omni/application/omniweave.py#L107)
+- [agent/src/omni/application/engine.py#Application.submit_turn](../../../agent/src/omni/application/engine.py#L180)
+- [agent/src/omni/application/engine.py#Application._dispatch](../../../agent/src/omni/application/engine.py#L261)
 
 **适配器与仓储**
 
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L128)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_observe](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L131)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0054.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0054.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0055.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0055.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0056.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0056.py)
@@ -374,13 +374,15 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_kernel.py agent/test
 - [agent/src/omni/adapters/persistence/migrations/versions/v0058.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0058.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0059.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0059.py)
 - [agent/src/omni/adapters/persistence/migrations/versions/v0060.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0060.py)
+- [agent/src/omni/adapters/persistence/migrations/versions/v0061.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0061.py)
+- [agent/src/omni/adapters/persistence/omniweave_goals.py#prior_goal_blocker](../../../agent/src/omni/adapters/persistence/omniweave_goals.py#L42)
 - [agent/src/omni/adapters/persistence/omniweave_artifacts.py#OmniWeaveArtifactRepositories.omniweave_artifact_read](../../../agent/src/omni/adapters/persistence/omniweave_artifacts.py#L245)
 - [agent/src/omni/adapters/persistence/omniweave_authority.py#authorize_mandate](../../../agent/src/omni/adapters/persistence/omniweave_authority.py#L41)
 - [agent/src/omni/adapters/persistence/omniweave_attempts.py#task_for_run](../../../agent/src/omni/adapters/persistence/omniweave_attempts.py#L14)
 - [agent/src/omni/adapters/persistence/omniweave_mailbox.py#OmniWeaveMailboxRepositories.omniweave_mailbox_tick](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py#L285)
-- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L224)
-- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L270)
-- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.delegation_recover](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L423)
+- [agent/src/omni/adapters/persistence/omniweave_repository.py#OmniWeaveRepositories.omniweave_plan](../../../agent/src/omni/adapters/persistence/omniweave_repository.py#L307)
+- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.claim_delegated_runs](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L272)
+- [agent/src/omni/adapters/persistence/delegation_repository.py#DelegationRepositories.delegation_recover](../../../agent/src/omni/adapters/persistence/delegation_repository.py#L432)
 - [agent/src/omni/adapters/persistence/lease_repository.py#LeaseRepositories.claim_runs](../../../agent/src/omni/adapters/persistence/lease_repository.py#L280)
 
 **组装点**
@@ -421,7 +423,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_omniweave_http.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L695)
+- [agent/src/omni/adapters/http.py#create_app.session_context_overview](../../../agent/src/omni/adapters/http.py#L712)
 
 **领域规则**
 
@@ -843,7 +845,7 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/core/test_v2_browser_dialog.py ag
 
 **从这里读**
 
-- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L548)
+- [agent/src/omni/adapters/http.py#create_app.upload_object](../../../agent/src/omni/adapters/http.py#L555)
 
 **领域规则**
 
@@ -1338,8 +1340,8 @@ uv run --no-sync pytest -q -n 0 agent/tests/v2/http/test_v2_terminals_http.py
 **从这里读**
 
 - [agent/src/omni/adapters/http_routes/operations.py#operations_router.logs](../../../agent/src/omni/adapters/http_routes/operations.py#L117)
-- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L510)
-- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L471)
+- [agent/src/omni/adapters/http.py#create_app.owner_token_rotate](../../../agent/src/omni/adapters/http.py#L517)
+- [agent/src/omni/adapters/http.py#create_app.capabilities](../../../agent/src/omni/adapters/http.py#L478)
 - [agent/src/omni/adapters/http_routes/operations.py#operations_router.audit](../../../agent/src/omni/adapters/http_routes/operations.py#L68)
 
 **领域规则**

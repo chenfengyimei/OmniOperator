@@ -80,6 +80,15 @@ Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59
 - `v2_0060` 在现有对象库中保存不可变内容，版本、源 Run、动作、授权读者及通知回执进入同一数据库。`subscribe_artifacts` 控制后续发布通知，关闭订阅会使未消费的旧通知失效。通知携带版本引用，经原 Worker 内会话接续。`read_shared` 在读取前后核对同根、双方目标版本、来源与共享授权。新版替换旧版的可读资格。[数据库合同](../../../agent/src/omni/adapters/persistence/migrations/versions/v0060.py) · [产物仓储](../../../agent/src/omni/adapters/persistence/omniweave_artifacts.py)
 - 主会话 Ticket 进度返回当前产物元数据与读者键。所有者可用 `DELETE /api/v1/agents/{agent_id}/omniweave/sessions/{session_id}/artifacts/{artifact_id}/shares/{reader_key}` 撤回该读者对该版本的访问。来源擦除后产物退出当前投影。普通对象列表与下载入口排除 OWA 私有对象。[HTTP](../../../agent/src/omni/adapters/http_routes/omniweave.py)
 
-产物批 `f1b9a261` 通过 82 项生产入口、对象和委派专项及 16 项截屏调用方回归。历史迁移首轮 58 项通过、1 项失败，`b6a26088` 修正 V49 普通对象引用统计后，20 项修复复验通过。合计 157 个不同用例通过。验证覆盖投递前取消订阅、旧版拒读、对象读取中撤权、重启、通用对象入口拒绝及来源擦除。当前迁移头为 `v2_0060`。严格类型检查覆盖 514 个文件，零错误、零警告。[产物批证据](../evidence/owa-artifact-subscriptions-2026-11-27.json)
+产物批 `f1b9a261` 通过 82 项生产入口、对象和委派专项及 16 项截屏调用方回归。历史迁移首轮 58 项通过、1 项失败，`b6a26088` 修正 V49 普通对象引用统计后，20 项修复复验通过。合计 157 个不同用例通过。验证覆盖投递前取消订阅、旧版拒读、对象读取中撤权、重启、通用对象入口拒绝及来源擦除。该批迁移头为 `v2_0060`。严格类型检查覆盖 514 个文件，零错误、零警告。[产物批证据](../evidence/owa-artifact-subscriptions-2026-11-27.json)
 
-接续目标是主会话追加与目标修订、Router 原位交付、关联证明引用，以及外部动作已有明确回执后的检查点续接。Phase 3 用校园助手离线场景验收完整链路。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。
+### 主会话追加与目标修订
+
+- 所有者可在主会话的输入栏选择一个已规划的 Ticket，查看它的标题和当前目标版本，再发送补充要求。发生版本冲突时，工作台刷新候选并保留输入草稿，用户核对版本后可再次发送。[工作台入口](../../../web/ui/v2/main.js)
+- `POST /api/v1/agents/{agent_id}/turns` 接受可选的 `goal_update: {ticket_id, expected_goal_version}`。它要求启用 dispatch、显式指定已选的主会话并提供文字。原有 HTTP 202 回执继续使用 `run_id`、`session_id` 和 `duplicate`。同键重试按完整请求指纹返回原回执。不同键引用同一旧版本时，后到的事务返回 `409 revision_conflict`。已取消的目标从新请求启动。[HTTP](../../../agent/src/omni/adapters/http.py) · [准入事务](../../../agent/src/omni/adapters/persistence/omniweave_repository.py)
+- `v2_0061` 为同一个公开 Ticket 保存最多 64 个连续的目标版本。新增版本、源消息、路由、授权、旧工作取消和审批撤回在同一事务。Task 投影和 Router 查询只取当前版本，历史对象和账本保留原归属。当前修订按整组受影响处理，重新规划 Worker，分别使用新 Mandate、私有 Session 和工作区。所有版本共享根 Ticket 调用账本。[迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0061.py) · [跨版本账本](../../../agent/src/omni/adapters/persistence/omniweave_goals.py)
+- 新 Router 可以在主会话确认追加。新 Worker 等先前执行和租约退出，未知动作、费用与投递回执留在原账本。投影返回 `prior_work: draining | needs_review | null`。已完成的动作核查可解锁调度，旧动作不会自动重发。[调度闸门](../../../agent/src/omni/adapters/persistence/omniweave_repository.py)
+
+源码 `32793f77` 通过 98 项生产入口、历史迁移与浏览器专项。另有 2 项类型清单守卫通过，严格类型检查覆盖 516 个文件，零错误、零警告。以上均为本批专项，完整套件待候选集成收尾统一运行。[目标修订批证据](../evidence/owa-goal-updates-2026-11-27.json)
+
+接续目标是 Router 原位交付、关联证明引用，以及外部动作已有明确回执后的检查点续接。Phase 3 用校园助手离线场景验收完整链路。Phase 4–7 依次覆盖长作业与 Watchdog、数字身体、外部事件和发布。发布候选按实际 SHA 执行全量、配对基准、包生命周期、独立机器、真实平台和 72 小时常驻验收。

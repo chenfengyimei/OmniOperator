@@ -497,6 +497,7 @@
     "agent/src/omni/adapters/persistence/migrations/versions/v0058.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0059.py",
     "agent/src/omni/adapters/persistence/migrations/versions/v0060.py",
+    "agent/src/omni/adapters/persistence/migrations/versions/v0061.py",
     "agent/src/omni/adapters/persistence/omniweave_artifacts.py",
     "agent/src/omni/domain/omniweave_artifacts.py",
     "agent/src/omni/adapters/persistence/omniweave_attempts.py",
