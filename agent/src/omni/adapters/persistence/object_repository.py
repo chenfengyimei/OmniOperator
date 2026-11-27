@@ -149,6 +149,7 @@ class ObjectRepositories(RepositoryBase):
                 select(func.count()).select_from(t).where(t.c.agent_id == agent_id, column == object_id)
             ).scalar_one()
             for t, column in s.OBJECT_REFERENCES
+            if t is not s.owa_artifacts or row["media_type"] == ARTIFACT_MEDIA_TYPE
         )
         return row
 
