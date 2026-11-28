@@ -1,5 +1,5 @@
 {
-  "summary": "V2 Everything is a Plugin 架构迁移已验收。冻结源码 `1a2810ea` 离线全量 8739 项通过、0 失败、10 项跳过。OmniWeave 已同步正式规格，Web 观察、Router 与 Worker 并行及未派发恢复已分批实现，正在补齐授权和协作合同。正式产物与真实环境验收继续按各自任务记录。",
+  "summary": "V2 Everything is a Plugin 架构迁移已验收。冻结源码 `1a2810ea` 离线全量 8739 项通过、0 失败、10 项跳过。OmniWeave Phase 3 收尾已集成，覆盖对等引用复核、沿用证据核验、邮箱续接及校园助手离线场景。Phase 4 受管长作业与 Watchdog 仍在开发。正式产物与真实环境验收继续按各自任务记录。",
   "windows_stage": {
     "status": "completed_windows_offline_candidate",
     "summary": "Windows 用户域服务在 `30bea914` 构建的 wheel 上完成注册、启动、只读状态、停止、卸载共 14 步。干净机仍须对最终产物验证安装、升级、回滚和卸载，记录 wheel SHA、PID 与就绪回执。"
@@ -112,7 +112,7 @@
       "id": "OMNIWEAVE",
       "title": "OWA 主会话编排与发布验收",
       "status": "development_in_progress",
-      "next": "Phase 3 收尾批已登记 `88a851b0`：110 离线用例通过——交付归约按来源版本授权产物复核沿用的核验回执（旧 Verification 未读取必需产物时不得交付 completed），邮箱回合在模型消费前按当前授权、产物版本与来源状态复核对等引用（入队确认后撤权/替换/擦除只下发活引用），邮箱续接回合派发后回执落盘前的真实进程中断保留 unknown 且核查前零重放；校园全链、回执续接、内核重启、委派恢复、导航、严格类型清单与 schema release 同批回归。严格类型 519 文件 0 错误，迁移头保持 `v2_0063`。下一批 Phase 4（owa-recovery）：受管长作业生命周期（稳定 job_id、status/cancel/回执协议、waiting_external 归约、过期 fence 不结算新分配、清理后释放资源）与 Watchdog（30 秒扫描、5 分钟无实质进展告警、限次自动重排、OWA 领取开关在恢复完成前关闭）。",
+      "next": "Phase 3 收尾批已登记 `88a851b0`：110 离线用例通过——交付归约按来源版本授权产物复核沿用的核验回执（旧 Verification 未读取必需产物时不得交付 completed），邮箱回合在模型消费前按当前授权、产物版本与来源状态复核对等引用（入队确认后撤权/替换/擦除只下发活引用），邮箱续接回合派发后回执落盘前的真实进程中断保留 unknown 且核查前零重放；校园全链、回执续接、内核重启、委派恢复、导航、严格类型清单与 schema release 同批回归。严格类型 519 文件 0 错误，迁移头保持 `v2_0063`。主线集成了收尾证据提交 05d5ee30。Phase 4 先接续 Windows 本地的 v2_0064 长作业原稿：复验旧库升级合同与严格类型清单，核对结算和 Run 终态的事务边界、过期 fence、实际清理期间的资源归属，并补 status/cancel 及 waiting_external 专项。随后实现 Watchdog（30 秒扫描、5 分钟无实质进展告警、限次自动重排），用启动与关闭故障注入验证 OWA 领取闸门。",
       "contract": "docs/v/reference/OMNIWEAVE.md",
       "evidence": ["docs/v/evidence/owa-phase1-2026-11-26.json", "docs/v/evidence/owa-phase2-2026-11-26.json", "docs/v/evidence/owa-pre-dispatch-recovery-2026-11-26.json", "docs/v/evidence/owa-spec-alignment-2026-11-27.json", "docs/v/evidence/owa-worker-capacity-2026-11-27.json", "docs/v/evidence/owa-main-session-2026-11-27.json", "docs/v/evidence/owa-worker-mandates-2026-11-27.json", "docs/v/evidence/owa-peer-mailbox-2026-11-27.json", "docs/v/evidence/owa-artifact-subscriptions-2026-11-27.json", "docs/v/evidence/owa-goal-updates-2026-11-27.json", "docs/v/evidence/owa-router-delivery-2026-11-27.json", "docs/v/evidence/owa-evidence-references-2026-11-27.json", "docs/v/evidence/owa-acceptance-blockers-2026-11-27.json", "docs/v/evidence/owa-consumption-guards-2026-11-28.json"]
     },
