@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="OmniOperator UI V3-1 多 Worker 数字工作空间三方向比较原型，本地合成数据。">
+  <title>OmniOperator · 历史设计对照</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="direction-a.css">
+  <link rel="stylesheet" href="direction-b.css">
+  <link rel="stylesheet" href="direction-c.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <h1 class="sr-only">OmniOperator UI V3-1 多 Worker 工作空间三方向比较原型</h1>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.1"/><path d="m15.3 15.3 4.2 4.2"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2M12 19.2v2M2.8 12h2M19.2 12h2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M18.5 5.5l-1.4 1.4M6.9 17.1l-1.4 1.4"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.3A8.2 8.2 0 0 1 9.7 4a8.3 8.3 0 1 0 10.3 10.3Z"/></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 5.5h14v10H9l-4 3.2v-3.2H5Z"/><path d="M8.5 9h7M8.5 12h4.5"/></symbol>
+      <symbol id="i-workers" viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.4"/><circle cx="5.5" cy="17" r="2.4"/><circle cx="18.5" cy="17" r="2.4"/><path d="M10.4 8.1 7 14.8M13.6 8.1l3.4 6.7M8 17h8"/></symbol>
+      <symbol id="i-tasks" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="m8 12 2.4 2.4L16 8.8"/></symbol>
+      <symbol id="i-approval" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.4c0 4.2-2.6 7.2-7 9.1-4.4-1.9-7-4.9-7-9.1V6Z"/><path d="m8.8 11.8 2.1 2.1 4.4-4.5"/></symbol>
+      <symbol id="i-files" viewBox="0 0 24 24"><path d="M3.8 7.5h6l1.7 2h8.7v8.8H3.8Z"/><path d="M3.8 7.5V5.2h5.7l1.5 1.8"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3.8h8l4 4v12.4H6Z"/><path d="M14 3.8v4.5h4M9 13h6M9 16h4"/></symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+      <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+      <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.8 21 20H3Z"/><path d="M12 9v4.8M12 17.2h.01"/></symbol>
+      <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1"/></symbol>
+      <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/></symbol>
+      <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M12 7.5V12l3.1 2"/></symbol>
+      <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 4H4v5M15 4h5v5M20 15v5h-5M4 15v5h5"/></symbol>
+      <symbol id="i-collapse" viewBox="0 0 24 24"><path d="M4 9h5V4M20 9h-5V4M15 20v-5h5M9 20v-5H4"/></symbol>
+      <symbol id="i-dock" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M15 4.5v15M8 9h4M8 12h4"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M3.5 12s3.1-5.3 8.5-5.3 8.5 5.3 8.5 5.3-3.1 5.3-8.5 5.3S3.5 12 3.5 12Z"/><circle cx="12" cy="12" r="2.2"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><path d="M12 11v5M12 8h.01"/></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19 8.5V4l-2 2A7.6 7.6 0 1 0 19.4 14"/><path d="M19 4h-4.5"/></symbol>
+    </defs>
+  </svg>
+
+  <div class="prototype-frame">
+    <header class="prototype-bar" aria-label="原型方案切换">
+      <div class="prototype-identity">
+        <span class="proto-kicker">V3-1 / Clean Slate</span>
+        <strong>多 Worker 工作空间</strong>
+      </div>
+      <div class="proto-tabs" role="tablist" aria-label="选择比较原型">
+        <button class="proto-tab" id="tab-a" role="tab" aria-selected="true" aria-controls="proto-a" data-proto-tab="a">
+          <span class="proto-letter">A</span>
+          <span class="proto-name">Precision Workspace</span>
+        </button>
+        <button class="proto-tab" id="tab-b" role="tab" aria-selected="false" aria-controls="proto-b" data-proto-tab="b" tabindex="-1">
+          <span class="proto-letter">B</span>
+          <span class="proto-name">Agent Command Center</span>
+        </button>
+        <button class="proto-tab" id="tab-c" role="tab" aria-selected="false" aria-controls="proto-c" data-proto-tab="c" tabindex="-1">
+          <span class="proto-letter">C</span>
+          <span class="proto-name">Immersive AI Workspace</span>
+        </button>
+      </div>
+      <div class="prototype-meta">
+        <span class="local-dot" aria-hidden="true"></span>
+        <span>历史演示 · 开放日资料整理</span>
+      </div>
+    </header>
+
+    <!-- =====================================================================
+         A — Precision Workspace
+         ================================================================== -->
+    <section class="proto-panel proto-a" id="proto-a" role="tabpanel" aria-labelledby="tab-a" data-proto="a" data-theme="light">
+      <a class="skip-link" href="#a-main">跳到主内容</a>
+      <header class="a-header">
+        <div class="a-brand">
+          <span class="a-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <div class="a-brand-copy">
+            <strong>OmniOperator</strong>
+            <span>历史演示 · 开放日资料整理</span>
+          </div>
+        </div>
+        <div class="a-session-state" aria-label="当前主会话状态">
+          <span class="a-state-dot" aria-hidden="true"></span>
+          <span>主会话已选定</span>
+          <span class="a-separator" aria-hidden="true">/</span>
+          <span class="a-muted">本地演示</span>
+        </div>
+        <div class="a-header-actions">
+          <button class="a-header-button" type="button" data-theme-toggle aria-label="切换深浅主题">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-moon"></use></svg>
+            <span class="a-theme-label">深色</span>
+          </button>
+          <button class="a-settings-button" type="button" data-open-settings aria-label="全局设置">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <span>全局设置</span>
+            <kbd>Ctrl K</kbd>
+          </button>
+        </div>
+      </header>
+
+      <div class="a-app">
+        <nav class="a-nav" aria-label="A 方案主导航">
+          <span class="a-nav-label">工作区</span>
+          <button class="a-nav-item is-active" type="button" data-view-target="session" aria-current="page">
+            <svg class="icon" aria-hidden="true"><use href="#i-chat"></use></svg>
+            <span>主会话</span>
+          </button>
+          <button class="a-nav-item" type="button" data-view-target="workers">
+            <svg class="icon" aria-hidden="true"><use href="#i-workers"></use></svg>
+            <span>Worker</span>
+          </button>
+          <button class="a-nav-item" type="button" data-view-target="tasks">
+            <svg class="icon" aria-hidden="true"><use href="#i-tasks"></use></svg>
+            <span>任务</span>
+          </button>
+          <button class="a-nav-item" type="button" data-view-target="approvals">
+            <svg class="icon" aria-hidden="true"><use href="#i-approval"></use></svg>
+            <span>审批</span>
+            <span class="a-nav-count" data-approval-count="" aria-label="1 项待审批">1</span>
+          </button>
+          <button class="a-nav-item" type="button" data-view-target="tools">
+            <svg class="icon" aria-hidden="true"><use href="#i-files"></use></svg>
+            <span>文件</span>
+          </button>
+          <div class="a-nav-foot">
+            <span class="a-nav-rule" aria-hidden="true"></span>
+            <span>本地<br>原型</span>
+          </div>
+        </nav>
+
+        <aside class="a-sessions" aria-label="会话列表">
+          <div class="a-sessions-head">
+            <div>
+              <span class="a-eyebrow">Conversations</span>
+              <h2>会话</h2>
+            </div>
+            <button class="a-icon-button" type="button" aria-label="新建会话（本地演示不可用）" title="本地演示不创建真实会话" disabled>
+              <svg class="icon" aria-hidden="true"><use href="#i-chat"></use></svg>
+            </button>
+          </div>
+          <label class="a-search-field">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <span class="sr-only">搜索会话</span>
+            <input type="search" placeholder="搜索会话" data-session-search autocomplete="off">
+            <kbd>/</kbd>
+          </label>
+          <div class="a-session-list" data-session-list>
+            <button class="a-session-item is-selected js-session-item" type="button" data-session-key="open-day" aria-current="true">
+              <span class="a-session-top"><strong>开放日资料（演示）</strong><span>09:41</span></span>
+              <span class="a-session-sub">整理校园开放日资料</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="active">进行中</span><span>4 个 Worker</span></span>
+            </button>
+            <button class="a-session-item js-session-item" type="button" data-session-key="guide">
+              <span class="a-session-top"><strong>开放日导览文案</strong><span>昨天</span></span>
+              <span class="a-session-sub">家长版 · 短句与路线</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="done">已完成</span><span>7 条消息</span></span>
+            </button>
+            <button class="a-session-item js-session-item" type="button" data-session-key="questions">
+              <span class="a-session-top"><strong>家长问答初稿</strong><span>周三</span></span>
+              <span class="a-session-sub">高频问题与未确认项</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="quiet">草稿</span><span>草稿仅本页</span></span>
+            </button>
+            <button class="a-session-item js-session-item" type="button" data-session-key="venue">
+              <span class="a-session-top"><strong>场地物资核对</strong><span>周二</span></span>
+              <span class="a-session-sub">桌牌、指引与电源</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="done">已完成</span><span>2 个 Worker</span></span>
+            </button>
+            <div class="a-sessions-empty" data-session-empty hidden>
+              <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+              <strong>没有匹配的会话</strong>
+              <span>试试更短的关键词，或清除搜索。</span>
+            </div>
+          </div>
+          <div class="a-side-note">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"></use></svg>
+            <span>选择与草稿只保存在当前浏览器</span>
+          </div>
+        </aside>
+
+        <main class="a-main" id="a-main" tabindex="-1">
+          <header class="a-contextbar">
+            <div class="a-crumbs" aria-label="当前位置">
+              <span>工作空间</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+              <span>OmniOperator</span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+              <strong data-view-name>主会话</strong>
+            </div>
+            <div class="a-context-actions">
+              <button class="a-text-button a-mobile-session-trigger" type="button" data-open-session-modal>
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-chat"></use></svg>
+                <span>会话</span>
+              </button>
+              <button class="a-text-button" type="button" data-toggle-inspector aria-expanded="true" aria-controls="a-inspector">
+                <svg class="icon icon-sm" aria-hidden="true"><use href="#i-dock"></use></svg>
+                <span>Inspector</span>
+              </button>
+            </div>
+          </header>
+
+          <div class="a-screens">
+            <section class="a-screen is-active" data-screen="session" aria-labelledby="a-session-title">
+              <div class="a-session-grid">
+                <div class="a-thread">
+                  <header class="a-thread-head">
+                    <div class="a-thread-kicker">
+                      <span class="status-pill" data-status="running">进行中</span>
+                      <span>Ticket 示例 · OW-2604</span>
+                      <button class="status-pill" data-status="approval" type="button" data-view-link="approvals" data-awaiting-approval>查看待审批</button>
+                    </div>
+                    <h2 id="a-session-title">整理校园开放日资料</h2>
+                    <p>由主 Agent 控制 4 个 Worker。下方依赖、状态和文件均为演示样例。</p>
+                  </header>
+
+                  <div class="a-conversation" role="log" aria-label="主会话消息与执行记录" data-view-scroll>
+                    <article class="a-message a-message-user">
+                      <header><span>你</span><span>09:41</span></header>
+                      <p>请把本周六校园开放日的零散通知、院系展位表和旧导览整理成一份家长导览，并标出还缺什么。</p>
+                    </article>
+
+                    <article class="a-message a-message-agent">
+                      <header>
+                        <span class="a-agent-avatar" aria-hidden="true">A</span>
+                        <div><strong>小鱼</strong><span>主 Agent · 09:42</span></div>
+                      </header>
+                      <div class="a-prose">
+                        <p>收到。我会保留原始来源，拆出清点、展位提取、时间核验和导览稿四个任务；写入汇总文件前会单独请求你的批准。</p>
+                      </div>
+
+                      <section class="a-activity" aria-labelledby="a-activity-title">
+                        <header>
+                          <h3 id="a-activity-title">执行记录 <span>3 项</span></h3>
+                          <button class="a-disclosure" type="button" data-disclosure="a-activity-detail" aria-expanded="false" aria-controls="a-activity-detail">
+                            <span>详情</span>
+                            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
+                          </button>
+                        </header>
+                        <ol class="a-activity-list">
+                          <li>
+                            <span class="a-activity-mark" data-mark="done" aria-hidden="true"><svg class="icon icon-sm"><use href="#i-check"></use></svg></span>
+                            <div><strong>来源清点已完成</strong><span>3 个来源：通知 PDF、院系展位 CSV、旧导览 Markdown</span></div>
+                            <time>09:42</time>
+                          </li>
+                          <li>
+                            <span class="a-activity-mark" data-mark="done" aria-hidden="true"><svg class="icon icon-sm"><use href="#i-check"></use></svg></span>
+                            <div><strong>时间地点核验已完成</strong><span>发现“体育馆下午开放时间”缺失，保留为未知</span></div>
+                            <time>09:44</time>
+                          </li>
+                          <li>
+                            <span class="a-activity-mark" data-mark="approval" aria-hidden="true"><svg class="icon icon-sm"><use href="#i-approval"></use></svg></span>
+                            <div><strong>写入资料汇编待审批</strong><span>目标：campus-open-day/资料汇编.md</span></div>
+                            <time>09:46</time>
+                          </li>
+                        </ol>
+                        <div class="a-activity-detail" id="a-activity-detail" hidden>
+                          <p><span class="a-mono">files_read</span> · 读取 sources/开放日通知.pdf 与 sources/院系展位.csv（只读）</p>
+                          <p><span class="a-mono">owa_status</span> · 主 Agent 在 09:45 查询任务进度，Worker 列表来自样例投影</p>
+                        </div>
+                      </section>
+
+                      <section class="a-approval js-approval-card" data-approval-state="pending" aria-labelledby="a-approval-title">
+                        <div class="a-approval-head">
+                          <div>
+                            <span class="a-eyebrow">需要你的决定</span>
+                            <h3 id="a-approval-title">写入工作区文件</h3>
+                          </div>
+                          <span class="status-pill js-approval-badge" data-status="approval">待审批</span>
+                        </div>
+                        <p class="a-approval-lead">主 Agent 请求把已完成内容写入 <span class="a-inline-code">campus-open-day/资料汇编.md</span>。批准只针对这一次工具调用。</p>
+                        <dl class="a-facts">
+                          <div><dt>请求工具</dt><dd><span class="a-mono">files_write</span></dd></div>
+                          <div><dt>作用范围</dt><dd>本次 Worker 的隔离工作区</dd></div>
+                          <div><dt>风险等级</dt><dd><span class="a-unknown-inline">未知</span><span class="a-fact-note">接口未返回风险字段</span></dd></div>
+                          <div><dt>有效期</dt><dd><span class="a-unknown-inline">未知</span><span class="a-fact-note">由服务端审批状态管理</span></dd></div>
+                        </dl>
+                        <div class="a-approval-actions js-approval-actions">
+                          <button class="a-quiet-button" type="button" data-view-link="tools" data-file-target="summary">查看目标文件</button>
+                          <span class="a-action-spacer"></span>
+                          <button class="a-quiet-button" type="button" data-deny-approval>拒绝</button>
+                          <button class="a-primary-button" type="button" data-approve>批准一次</button>
+                        </div>
+                        <div class="a-approval-result js-approval-result" hidden>
+                          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                          <p><strong>本地演示已记录决定。</strong>未写入真实文件；真实状态以服务端回执为准。若需再次申请，应由主 Agent 新回合发起。</p>
+                        </div>
+                      </section>
+
+                      <aside class="a-gap" aria-labelledby="a-gap-title">
+                        <span class="a-gap-icon" aria-hidden="true"><svg class="icon"><use href="#i-alert"></use></svg></span>
+                        <div>
+                          <span class="a-eyebrow">资料缺口 · 未知</span>
+                          <h3 id="a-gap-title">体育馆下午开放时间</h3>
+                          <p>现有通知、展位表和旧导览都没有给出明确时段。这里不猜测，也不补写“通常开放”。</p>
+                          <button class="a-inline-link" type="button" data-view-link="tools" data-file-target="notice">查看来源 <svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>
+                        </div>
+                      </aside>
+
+                      <div class="a-turn-foot">
+                        <span>执行仍在继续</span>
+                        <span class="a-mono">本地演示 · 无真实工具调用</span>
+                      </div>
+                    </article>
+                  </div>
+
+                  <form class="a-composer" data-composer>
+                    <div class="a-composer-top">
+                      <label for="a-draft">与主 Agent 继续</label>
+                      <span>草稿保存在此页</span>
+                    </div>
+                    <div class="a-composer-input">
+                      <textarea id="a-draft" rows="2" data-draft placeholder="补充问题，或要求主 Agent 调整导览结构…"></textarea>
+                      <button class="a-send" type="submit">
+                        <span>保存草稿</span>
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-send"></use></svg>
+                      </button>
+                    </div>
+                    <div class="a-composer-meta">
+                      <span data-composer-note aria-live="polite">本原型不会发起网络请求。</span>
+                      <span><span data-char-count>0</span> / 2000</span>
+                    </div>
+                  </form>
+                </div>
+
+                <aside class="a-inspector" id="a-inspector" aria-label="Inspector 检查器" data-inspector>
+                  <header class="a-inspector-head">
+                    <div><span class="a-eyebrow">Inspector</span><h2>上下文检查器</h2></div>
+                    <button class="a-icon-button" type="button" data-close-inspector aria-label="关闭 Inspector">
+                      <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+                    </button>
+                  </header>
+                  <div class="a-inspector-tabs" role="tablist" aria-label="检查器视图">
+                    <button class="is-active" type="button" role="tab" aria-selected="true" data-inspector-tab="overview" aria-controls="a-inspector-overview">任务</button>
+                    <button type="button" role="tab" aria-selected="false" data-inspector-tab="timeline" aria-controls="a-inspector-timeline">时间线</button>
+                    <button type="button" role="tab" aria-selected="false" data-inspector-tab="file" aria-controls="a-inspector-file">文件</button>
+                  </div>
+                  <div class="a-inspector-body">
+                    <section class="a-inspector-panel is-active" data-inspector-panel="overview" id="a-inspector-overview" role="tabpanel">
+                      <h3>任务状态</h3>
+                      <ul class="a-mini-tasks">
+                        <li><span class="a-mini-status" data-tone="done">已完成</span><div><strong>清点来源</strong><span>research · 本地样例</span></div></li>
+                        <li><span class="a-mini-status" data-tone="active">进行中</span><div><strong>提取院系展位</strong><span>research · 依赖清点</span></div></li>
+                        <li><span class="a-mini-status" data-tone="waiting">等待依赖</span><div><strong>生成家长导览</strong><span>documentation · 依赖 2 项</span></div></li>
+                        <li><span class="a-mini-status" data-tone="approval">待审批</span><div><strong>写入资料汇编</strong><span>coding · 单次文件写入</span></div></li>
+                      </ul>
+                      <div class="a-inspector-section">
+                        <h3>会话属性</h3>
+                        <dl class="a-properties">
+                          <div><dt>主会话</dt><dd>所选会话（样例）</dd></div>
+                          <div><dt>控制者</dt><dd>单一主 Agent</dd></div>
+                          <div><dt>服务端队列</dt><dd>未连接</dd></div>
+                          <div><dt>未知字段</dt><dd>1 项</dd></div>
+                        </dl>
+                      </div>
+                    </section>
+                    <section class="a-inspector-panel" data-inspector-panel="timeline" id="a-inspector-timeline" role="tabpanel" hidden>
+                      <h3>样例时间线</h3>
+                      <ol class="a-timeline">
+                        <li><time>09:41</time><div><strong>主回合已受理</strong><span>收到整理开放日资料的目标</span></div></li>
+                        <li><time>09:42</time><div><strong>计划登记</strong><span>4 个任务，2 条明确依赖</span></div></li>
+                        <li><time>09:43</time><div><strong>来源清点完成</strong><span>3 个来源可读，1 个字段缺失</span></div></li>
+                        <li><time>09:44</time><div><strong>时间地点核验完成</strong><span>体育馆下午时段未知</span></div></li>
+                        <li><time>09:46</time><div><strong>审批门出现</strong><span>等待单次文件写入决定</span></div></li>
+                      </ol>
+                    </section>
+                    <section class="a-inspector-panel" data-inspector-panel="file" id="a-inspector-file" role="tabpanel" hidden>
+                      <h3>当前读取文件</h3>
+                      <div class="a-file-caption">
+                        <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                        <div><strong>院系展位.csv</strong><span>只读样例 · 12 行，节选</span></div>
+                      </div>
+                      <pre class="a-file-preview" aria-label="院系展位 CSV 节选"><code>院系,展位,开放时段
+文学院,A-03,09:00–16:00
+理学院,B-11,09:00–16:00
+工程学院,C-02,10:00–16:00
+…</code></pre>
+                      <button class="a-quiet-button" type="button" data-view-link="tools" data-file-target="booths">在文件视图打开</button>
+                    </section>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            <section class="a-screen" data-screen="workers" aria-labelledby="a-workers-title" hidden>
+              <div class="a-page" data-view-scroll>
+                <header class="a-page-head">
+                  <div>
+                    <span class="a-eyebrow">Execution</span>
+                    <h2 id="a-workers-title">Worker 中心</h2>
+                    <p>每个 Worker 使用独立会话与工作区。这里的标识、时间线和状态均为本地合成样例。</p>
+                  </div>
+                  <div class="a-page-count" aria-label="样例状态计数">
+                    <span><strong>1</strong> 运行中</span>
+                    <span><strong>1</strong> 待审批</span>
+                    <span><strong>1</strong> 已完成</span>
+                    <span><strong>1</strong> 等依赖</span>
+                  </div>
+                </header>
+
+                <section class="a-section" aria-labelledby="a-worker-list-title">
+                  <div class="a-section-head">
+                    <h3 id="a-worker-list-title">当前 Worker</h3>
+                    <span>仅显示样例中可确认的任务事实，不把 task_key 猜测为 delegation 子运行。</span>
+                  </div>
+                  <ul class="a-worker-list">
+                    <li class="a-worker-row js-worker" data-worker="source">
+                      <div class="a-worker-ident">
+                        <span class="a-worker-index">01</span>
+                        <div><strong>来源清点</strong><span>research · Worker 样例 A1</span></div>
+                      </div>
+                      <div class="a-worker-status"><span class="status-pill" data-status="succeeded">已完成</span><span class="a-worker-run">run 样例 · source</span></div>
+                      <div class="a-worker-activity"><span>最后动作</span><strong>已提交 3 个来源摘要</strong></div>
+                      <div class="a-worker-actions">
+                        <details class="a-details">
+                          <summary>时间线</summary>
+                          <ol><li>09:42 任务登记</li><li>09:43 来源清点完成</li></ol>
+                        </details>
+                      </div>
+                    </li>
+                    <li class="a-worker-row js-worker" data-worker="exhibit">
+                      <div class="a-worker-ident">
+                        <span class="a-worker-index">02</span>
+                        <div><strong>院系展位提取</strong><span>research · Worker 样例 A2</span></div>
+                      </div>
+                      <div class="a-worker-status"><span class="status-pill js-worker-state" data-status="running">进行中</span><span class="a-worker-run">run 样例 · exhibit</span></div>
+                      <div class="a-worker-activity"><span>当前动作</span><strong>提取院系展位信息</strong></div>
+                      <div class="a-worker-actions">
+                        <button class="a-quiet-button a-stop-button" type="button" data-cancel-run="exhibit" data-run-label="院系展位提取">
+                          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-stop"></use></svg>
+                          取消运行
+                        </button>
+                        <details class="a-details">
+                          <summary>时间线</summary>
+                          <ol><li>09:43 依赖满足并启动</li><li>09:44 读取院系展位.csv</li></ol>
+                        </details>
+                      </div>
+                    </li>
+                    <li class="a-worker-row js-worker" data-worker="guide">
+                      <div class="a-worker-ident">
+                        <span class="a-worker-index">03</span>
+                        <div><strong>家长导览稿</strong><span>documentation · Worker 样例 A3</span></div>
+                      </div>
+                      <div class="a-worker-status"><span class="status-pill" data-status="queued">等待依赖</span><span class="a-worker-run">run 样例 · guide</span></div>
+                      <div class="a-worker-activity"><span>等待对象</span><strong>院系展位提取、时间地点核验</strong></div>
+                      <div class="a-worker-actions"><span class="a-worker-note">依赖未完成，不显示虚构进度</span></div>
+                    </li>
+                    <li class="a-worker-row js-worker" data-worker="write">
+                      <div class="a-worker-ident">
+                        <span class="a-worker-index">04</span>
+                        <div><strong>写入资料汇编</strong><span>coding · Worker 样例 A4</span></div>
+                      </div>
+                      <div class="a-worker-status"><span class="status-pill" data-status="approval">待审批</span><span class="a-worker-run">run 样例 · write</span></div>
+                      <div class="a-worker-activity"><span>审批对象</span><strong>files_write · 单次写入</strong></div>
+                      <div class="a-worker-actions"><button class="a-text-button" type="button" data-view-link="approvals">查看审批</button></div>
+                    </li>
+                  </ul>
+                  <div class="a-inline-note js-cancel-note" aria-live="polite">
+                    <svg class="icon icon-sm" aria-hidden="true"><use href="#i-info"></use></svg>
+                    <span>取消是 run 级请求，存在申请与终态；本原型只模拟状态，不调用取消接口。</span>
+                  </div>
+                </section>
+
+                <section class="a-section a-empty-panel" aria-labelledby="a-worker-empty-title">
+                  <span class="a-empty-icon" aria-hidden="true"><svg class="icon"><use href="#i-workers"></use></svg></span>
+                  <div>
+                    <h3 id="a-worker-empty-title">没有已终止的 Worker</h3>
+                    <p>当前样例中没有失败、已取消或结果未知的子运行。若在此取消运行，状态会更新为“已取消（演示）”。</p>
+                  </div>
+                </section>
+              </div>
+            </section>
+
+            <section class="a-screen" data-screen="tasks" aria-labelledby="a-tasks-title" hidden>
+              <div class="a-page" data-view-scroll>
+                <header class="a-page-head">
+                  <div>
+                    <span class="a-eyebrow">Task topology</span>
+                    <h2 id="a-tasks-title">任务中心</h2>
+                    <p>只表达样例中明确写出的依赖。不根据 task_key、delegation 子运行或时间顺序猜测关联。</p>
+                  </div>
+                  <div class="a-legend" aria-label="任务状态图例">
+                    <span class="status-pill" data-status="succeeded">已完成</span>
+                    <span class="status-pill" data-status="running">进行中</span>
+                    <span class="status-pill" data-status="queued">等依赖</span>
+                    <span class="status-pill" data-status="approval">待审批</span>
+                  </div>
+                </header>
+
+                <section class="a-section" aria-labelledby="a-dependency-title">
+                  <div class="a-section-head">
+                    <h3 id="a-dependency-title">明确依赖路径</h3>
+                    <span>样例事实 · 2 条依赖汇入导览稿</span>
+                  </div>
+                  <div class="a-dependency-map">
+                    <div class="a-dep-level">
+                      <span class="a-dep-label">独立开始</span>
+                      <div class="a-dep-node" data-state="succeeded"><span>来源清点</span><strong>已完成</strong></div>
+                      <div class="a-dep-node" data-state="succeeded"><span>时间地点核验</span><strong>已完成</strong></div>
+                    </div>
+                    <div class="a-dep-connector"><span>来源清点完成后</span><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></div>
+                    <div class="a-dep-level">
+                      <span class="a-dep-label">第二层</span>
+                      <div class="a-dep-node" data-state="running"><span>院系展位提取</span><strong>进行中</strong></div>
+                    </div>
+                    <div class="a-dep-connector"><span>两项完成后汇入</span><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></div>
+                    <div class="a-dep-level">
+                      <span class="a-dep-label">汇合</span>
+                      <div class="a-dep-node a-dep-node-wide" data-state="queued"><span>家长导览稿</span><strong>等待依赖 · 依赖 2 项</strong></div>
+                    </div>
+                    <div class="a-dep-connector"><span>导览内容完成后</span><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></div>
+                    <div class="a-dep-level">
+                      <span class="a-dep-label">写入</span>
+                      <div class="a-dep-node a-dep-node-wide" data-state="approval"><span>写入资料汇编</span><strong data-approval-detail>待审批 · 单次文件写入</strong></div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="a-section" aria-labelledby="a-task-table-title">
+                  <div class="a-section-head">
+                    <h3 id="a-task-table-title">任务记录</h3>
+                    <span>状态文字始终与颜色同时出现</span>
+                  </div>
+                  <div class="a-table-wrap">
+                    <table class="a-table">
+                      <thead>
+                        <tr><th scope="col">任务</th><th scope="col">Profile</th><th scope="col">状态</th><th scope="col">样例依赖</th><th scope="col">说明</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr class="js-task" data-task="source"><th scope="row">清点来源与缺口</th><td>research</td><td><span class="status-pill" data-status="succeeded">已完成</span></td><td><span class="a-muted">无</span></td><td>3 个来源；1 个未知字段</td></tr>
+                        <tr class="js-task" data-task="exhibit"><th scope="row">提取院系展位信息</th><td>research</td><td><span class="status-pill js-task-state" data-status="running">进行中</span></td><td>来源清点</td><td>读取院系展位.csv</td></tr>
+                        <tr class="js-task" data-task="time"><th scope="row">核验时间与地点</th><td>verification</td><td><span class="status-pill" data-status="succeeded">已完成</span></td><td><span class="a-muted">无</span></td><td>体育馆下午时段未知</td></tr>
+                        <tr class="js-task" data-task="guide"><th scope="row">生成家长导览稿</th><td>documentation</td><td><span class="status-pill js-task-state" data-status="queued">等待依赖</span></td><td>来源清点、院系展位提取、时间地点核验</td><td>尚未执行</td></tr>
+                        <tr class="js-task" data-task="write"><th scope="row">写入资料汇编</th><td>coding</td><td><span class="status-pill" data-status="approval">待审批</span></td><td>家长导览稿</td><td>单次 files_write</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
+            </section>
+
+            <section class="a-screen" data-screen="approvals" aria-labelledby="a-approvals-title" hidden>
+              <div class="a-page" data-view-scroll>
+                <header class="a-page-head">
+                  <div>
+                    <span class="a-eyebrow">Permission gate</span>
+                    <h2 id="a-approvals-title">审批</h2>
+                    <p>审批是工作流中的可见门，不藏在 toast 里。风险字段缺失时明确标为未知。</p>
+                  </div>
+                  <span class="a-approval-counter" data-approval-count="0 项待决定">1 项待决定</span>
+                </header>
+
+                <div class="a-approval-layout">
+                  <section class="a-approval-queue a-section" aria-labelledby="a-approval-queue-title">
+                    <div class="a-section-head"><h3 id="a-approval-queue-title">待处理</h3><span>按到达顺序</span></div>
+                    <button class="a-approval-list-item is-selected" type="button" aria-current="true">
+                      <span class="a-approval-list-top"><span class="status-pill" data-status="approval">待审批</span><span>09:46</span></span>
+                      <strong>写入工作区文件</strong>
+                      <span><span class="a-mono">files_write</span> · 单次调用</span>
+                    </button>
+                    <div class="a-section-head a-history-head"><h3>已处理</h3><span>样例历史</span></div>
+                    <ul class="a-history-list">
+                      <li><span class="status-pill" data-status="succeeded">已批准</span><div><strong>读取来源目录</strong><span>只读 · 所有者</span></div></li>
+                      <li><span class="status-pill" data-status="cancelled">已撤回</span><div><strong>写入旧草稿</strong><span>目标版本变更后失效</span></div></li>
+                    </ul>
+                    <div class="a-approval-rule">
+                      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"></use></svg>
+                      <p>不自动批准，不把风险未知改写为低风险。审批生效后仍需服务端回执确认。</p>
+                    </div>
+                  </section>
+
+                  <section class="a-approval-detail a-section js-approval-card" data-approval-state="pending" aria-labelledby="a-approval-detail-title">
+                    <div class="a-approval-detail-head">
+                      <div>
+                        <span class="a-eyebrow">Request / write</span>
+                        <h3 id="a-approval-detail-title">写入工作区文件</h3>
+                        <p>由主 Agent 发起，作用于一个 Worker 的隔离工作区。</p>
+                      </div>
+                      <span class="status-pill js-approval-badge" data-status="approval">待审批</span>
+                    </div>
+                    <dl class="a-detail-ledger">
+                      <div><dt>请求工具</dt><dd><span class="a-mono">files_write</span></dd></div>
+                      <div><dt>目标</dt><dd><span class="a-inline-code">campus-open-day/资料汇编.md</span></dd></div>
+                      <div><dt>作用范围</dt><dd>仅本次 Worker run 的工作区</dd></div>
+                      <div><dt>申请原因</dt><dd><span class="a-unknown-inline">未知</span> 接口未返回原因字段</dd></div>
+                      <div><dt>风险等级</dt><dd><span class="a-unknown-inline">未知</span> 不推断为低风险</dd></div>
+                      <div><dt>审批有效期</dt><dd><span class="a-unknown-inline">未知</span> 由服务端管理</dd></div>
+                    </dl>
+                    <div class="a-request-quote">
+                      <span>Worker 请求摘要</span>
+                      <p>把已核验的开放日资料写入资料汇编，供主 Agent 在主会话中交付。</p>
+                    </div>
+                    <div class="a-approval-actions js-approval-actions">
+                      <button class="a-quiet-button" type="button" data-view-link="tools" data-file-target="summary">查看目标文件</button>
+                      <span class="a-action-spacer"></span>
+                      <button class="a-quiet-button" type="button" data-deny-approval>拒绝</button>
+                      <button class="a-primary-button" type="button" data-approve>批准一次</button>
+                    </div>
+                    <div class="a-approval-result js-approval-result" hidden>
+                      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                      <p><strong>本地演示已记录决定。</strong>没有调用审批 API，也没有写入文件。新的申请需要主 Agent 的新回合。</p>
+                    </div>
+                    <div class="a-audit">
+                      <span>样例审计线索</span>
+                      <p><span class="a-mono">approval.synthetic</span> · 09:46 · 等待所有者操作</p>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </section>
+
+            <section class="a-screen" data-screen="tools" aria-labelledby="a-tools-title" hidden>
+              <div class="a-page a-page-tools" data-view-scroll>
+                <header class="a-page-head">
+                  <div>
+                    <span class="a-eyebrow">Read / inspect</span>
+                    <h2 id="a-tools-title">工具与文件</h2>
+                    <p>读取内容与执行记录并排保留。这里的文件是可读样例，不请求通用文件 API。</p>
+                  </div>
+                  <div class="a-tool-badge"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-lock"></use></svg> 只读样例</div>
+                </header>
+
+                <div class="a-tools-grid">
+                  <section class="a-tree" aria-labelledby="a-tree-title">
+                    <div class="a-tree-head">
+                      <h3 id="a-tree-title">campus-open-day</h3>
+                      <span>4 项</span>
+                    </div>
+                    <label class="a-search-field a-tree-search">
+                      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+                      <span class="sr-only">筛选文件</span>
+                      <input type="search" placeholder="筛选文件" data-file-search autocomplete="off">
+                    </label>
+                    <div class="a-file-list" data-file-list>
+                      <button class="a-file-button" type="button" data-file-open="notice">
+                        <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                        <span><strong>开放日通知.pdf</strong><span>sources · 只读</span></span>
+                      </button>
+                      <button class="a-file-button is-selected" type="button" data-file-open="booths" aria-current="true">
+                        <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                        <span><strong>院系展位.csv</strong><span>sources · 12 行</span></span>
+                      </button>
+                      <button class="a-file-button" type="button" data-file-open="guide">
+                        <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                        <span><strong>旧导览.md</strong><span>reference · 只读</span></span>
+                      </button>
+                      <button class="a-file-button" type="button" data-file-open="summary">
+                        <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                        <span><strong>资料汇编.md</strong><span>target · 待审批</span></span>
+                      </button>
+                      <div class="a-file-empty" data-file-empty hidden>
+                        <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                        <strong>没有匹配的文件</strong>
+                        <span>清除筛选以查看 4 个样例文件。</span>
+                      </div>
+                    </div>
+                    <div class="a-tool-history">
+                      <h3>最近工具调用</h3>
+                      <ol>
+                        <li><span class="a-mono">files_read</span><span>读取 2 个来源</span><span class="a-tool-state">已完成</span></li>
+                        <li><span class="a-mono">owa_status</span><span>查询 Ticket 进度</span><span class="a-tool-state">已完成</span></li>
+                        <li><span class="a-mono">files_write</span><span>等待审批</span><span class="a-tool-state is-waiting">待审批</span></li>
+                      </ol>
+                    </div>
+                  </section>
+
+                  <section class="a-preview" aria-label="文件内容预览">
+                    <header class="a-preview-head">
+                      <div>
+                        <span class="a-eyebrow" data-file-kind>CSV · 只读来源</span>
+                        <h3 data-file-title>院系展位.csv</h3>
+                      </div>
+                      <span class="a-preview-meta" data-file-meta>12 行 · 合成样例</span>
+                    </header>
+                    <div class="a-preview-body">
+                      <div class="a-file-panel" data-file-panel="notice">
+                        <article class="a-document">
+                          <h4>校园开放日安排（节选）</h4>
+                          <p>时间：本周六 09:00–16:00</p>
+                          <p>集合点：南门广场。家长请携带预约凭证，由学生志愿者分组带入。</p>
+                          <p>院系展位分布在文学院、理学院与工程学院。部分实验室仅开放一层参观通道。</p>
+                          <p class="a-document-mark">体育馆：上午场次明确；下午开放时间未在本通知中给出。</p>
+                        </article>
+                      </div>
+                      <div class="a-file-panel is-active" data-file-panel="booths">
+                        <pre class="a-code"><code>院系,展位,开放时段,备注
+文学院,A-03,09:00–16:00,二层报告厅有短讲
+理学院,B-11,09:00–16:00,实验区请勿触碰展品
+工程学院,C-02,10:00–16:00,一层参观通道
+商学院,C-05,09:00–15:30,
+……共 12 行（样例节选）</code></pre>
+                      </div>
+                      <div class="a-file-panel" data-file-panel="guide">
+                        <article class="a-document">
+                          <h4>家长导览 · 旧版</h4>
+                          <p>建议从南门进入，先到文学院二层报告厅，再沿主路前往理学院与工程学院。</p>
+                          <p>旧版曾写有“体育馆全天开放”，但本次通知没有确认下午时段，因此不沿用该说法。</p>
+                          <p class="a-document-mark">版本：历史样例 · 不作为当前事实来源</p>
+                        </article>
+                      </div>
+                      <div class="a-file-panel" data-file-panel="summary">
+                        <div class="a-empty-file">
+                          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                          <h4>尚未生成</h4>
+                          <p>目标文件等待单次写入审批。本原型不会创建文件，也不会调用 <span class="a-mono">files_write</span>。</p>
+                          <button class="a-quiet-button" type="button" data-view-link="approvals">前往审批</button>
+                        </div>
+                      </div>
+                    </div>
+                    <footer class="a-preview-foot">
+                      <span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-eye"></use></svg> 内容只读；没有通用任意路径文件接口</span>
+                      <span data-file-source>来源：sources/院系展位.csv</span>
+                    </footer>
+                  </section>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+
+      <dialog class="modal-dialog a-session-modal" id="a-session-modal" aria-labelledby="a-session-modal-title">
+        <header class="modal-header">
+          <div>
+            <span class="modal-eyebrow">Sessions</span>
+            <h2 class="modal-title" id="a-session-modal-title">切换会话样例</h2>
+            <p class="modal-description">本地演示只切换选择状态，不加载或提交真实会话。</p>
+          </div>
+          <form method="dialog"><button class="icon-button" aria-label="关闭会话列表"><svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg></button></form>
+        </header>
+        <div class="a-session-modal-body">
+          <label class="a-search-field">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <span class="sr-only">搜索会话</span>
+            <input type="search" placeholder="搜索会话" data-session-search autocomplete="off">
+          </label>
+          <div class="a-session-list" data-session-list>
+            <button class="a-session-item is-selected js-session-item" type="button" data-session-key="open-day" aria-current="true">
+              <span class="a-session-top"><strong>开放日资料（演示）</strong><span>09:41</span></span>
+              <span class="a-session-sub">整理校园开放日资料</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="active">进行中</span><span>4 个 Worker</span></span>
+            </button>
+            <button class="a-session-item js-session-item" type="button" data-session-key="guide">
+              <span class="a-session-top"><strong>开放日导览文案</strong><span>昨天</span></span>
+              <span class="a-session-sub">家长版 · 短句与路线</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="done">已完成</span><span>7 条消息</span></span>
+            </button>
+            <button class="a-session-item js-session-item" type="button" data-session-key="questions">
+              <span class="a-session-top"><strong>家长问答初稿</strong><span>周三</span></span>
+              <span class="a-session-sub">高频问题与未确认项</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="quiet">草稿</span><span>草稿仅本页</span></span>
+            </button>
+            <button class="a-session-item js-session-item" type="button" data-session-key="venue">
+              <span class="a-session-top"><strong>场地物资核对</strong><span>周二</span></span>
+              <span class="a-session-sub">桌牌、指引与电源</span>
+              <span class="a-session-meta"><span class="a-mini-status" data-tone="done">已完成</span><span>2 个 Worker</span></span>
+            </button>
+            <div class="a-sessions-empty" data-session-empty hidden>
+              <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+              <strong>没有匹配的会话</strong>
+              <span>试试更短的关键词，或清除搜索。</span>
+            </div>
+          </div>
+        </div>
+      </dialog>
+    </section>
+
+    <!-- =====================================================================
+         B — Agent Command Center
+         ================================================================== -->
+    <section class="proto-panel proto-b" id="proto-b" role="tabpanel" aria-labelledby="tab-b" data-proto="b" data-theme="dark" hidden>
+      <a class="skip-link" href="#b-main">跳到主内容</a>
+      <header class="b-header">
+        <button class="b-menu-button" type="button" data-b-nav-toggle aria-expanded="false" aria-controls="b-nav">
+          <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
+          <span>导航</span>
+        </button>
+        <div class="b-brand">
+          <span class="b-brand-mark" aria-hidden="true">O<span>/</span>W</span>
+          <div>
+            <strong>OmniOperator</strong>
+            <span>AGENT COMMAND CENTER</span>
+          </div>
+        </div>
+        <div class="b-header-scope">
+          <span class="b-scope-label">主会话</span>
+          <strong>开放日资料（演示）</strong>
+          <span class="b-scope-sep" aria-hidden="true">/</span>
+          <span class="b-scope-ticket">TICKET SYNTH-2604</span>
+        </div>
+        <div class="b-header-live">
+          <span class="b-live-dot" aria-hidden="true"></span>
+          <span>SYNTHETIC RUNTIME</span>
+          <span class="b-live-local">LOCAL DEMO</span>
+        </div>
+        <div class="b-header-actions">
+          <button class="b-top-button" type="button" data-theme-toggle aria-label="切换深浅主题">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-sun"></use></svg>
+            <span class="b-theme-label">浅色</span>
+          </button>
+          <button class="b-settings-button" type="button" data-open-settings aria-label="全局设置">
+            <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+            <span>全局设置</span>
+            <kbd>Ctrl K</kbd>
+          </button>
+        </div>
+      </header>
+
+      <div class="b-app">
+        <div class="b-nav-scrim" data-b-nav-close hidden></div>
+        <aside class="b-nav" id="b-nav" aria-label="B 方案主导航">
+          <div class="b-nav-head">
+            <span>CONTROL DECK</span>
+            <button class="b-nav-close" type="button" data-b-nav-close aria-label="关闭导航">
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </button>
+          </div>
+          <button class="b-nav-item is-active" type="button" data-view-target="session" aria-current="page">
+            <span class="b-nav-index">01</span>
+            <span class="b-nav-label">主会话<small>MAIN THREAD</small></span>
+            <span class="b-nav-signal" aria-hidden="true"></span>
+          </button>
+          <button class="b-nav-item" type="button" data-view-target="workers">
+            <span class="b-nav-index">02</span>
+            <span class="b-nav-label">Worker 中心<small>EXECUTION</small></span>
+            <span class="b-nav-count">4</span>
+          </button>
+          <button class="b-nav-item" type="button" data-view-target="tasks">
+            <span class="b-nav-index">03</span>
+            <span class="b-nav-label">任务中心<small>DEPENDENCIES</small></span>
+            <span class="b-nav-count is-warn">1</span>
+          </button>
+          <button class="b-nav-item" type="button" data-view-target="approvals">
+            <span class="b-nav-index">04</span>
+            <span class="b-nav-label">审批<small>APPROVAL GATE</small></span>
+            <span class="b-nav-count is-warn" data-approval-count="">1</span>
+          </button>
+          <button class="b-nav-item" type="button" data-view-target="tools">
+            <span class="b-nav-index">05</span>
+            <span class="b-nav-label">工具 / 文件<small>EVIDENCE</small></span>
+          </button>
+          <div class="b-nav-divider" aria-hidden="true"></div>
+          <div class="b-nav-section">
+            <span class="b-nav-section-title">RUN SCOPE</span>
+            <dl>
+              <div><dt>Controller</dt><dd>主 Agent</dd></div>
+              <div><dt>Workers</dt><dd>4 个样例 Worker</dd></div>
+              <div><dt>Approval</dt><dd class="is-warn" data-approval-count="0 项待审批">1 项待审批</dd></div>
+              <div><dt>Queue</dt><dd>local only</dd></div>
+            </dl>
+          </div>
+          <div class="b-nav-foot">
+            <span class="b-nav-pulse" aria-hidden="true"></span>
+            <div><strong>SYNTHETIC FEED</strong><span>无真实 API / 工具调用</span></div>
+          </div>
+        </aside>
+
+        <main class="b-main" id="b-main" tabindex="-1">
+          <div class="b-command-strip" aria-label="运行摘要">
+            <div class="b-command-context">
+              <span class="b-kicker">MISSION CONTROL</span>
+              <strong>开放日资料整理</strong>
+              <span>单主 Agent 控制 · 4 个样例 Worker</span>
+            </div>
+            <div class="b-metrics">
+              <div><span>任务</span><strong>05</strong></div>
+              <div><span>运行中</span><strong class="is-cyan" data-running-count>01</strong></div>
+              <div><span>待审批</span><strong class="is-amber" data-approval-count="00">01</strong></div>
+              <div><span>等依赖</span><strong class="is-red">01</strong></div>
+            </div>
+            <div class="b-strip-state">
+              <button class="status-pill" data-status="approval" type="button" data-view-link="approvals" data-awaiting-approval>查看待审批</button>
+              <span class="b-strip-note">本地样例 · <span data-view-name>主会话</span></span>
+            </div>
+          </div>
+
+          <div class="b-screens">
+            <section class="b-screen is-active" data-screen="session" aria-labelledby="b-session-title">
+              <div class="b-session-layout">
+                <div class="b-thread">
+                  <header class="b-thread-head">
+                    <div>
+                      <span class="b-kicker">THREAD / MAIN SESSION</span>
+                      <h2 id="b-session-title">整理校园开放日资料</h2>
+                    </div>
+                    <div class="b-thread-meta">
+                      <span class="status-pill" data-status="running">执行中</span>
+                      <span>Ticket 示例 OW-2604</span>
+                      <span>主回合已结束</span>
+                    </div>
+                  </header>
+
+                  <div class="b-conversation" data-view-scroll role="log" aria-label="主会话消息与执行记录">
+                    <article class="b-message b-user-message">
+                      <div class="b-message-rail"><span>YOU</span><time>09:41</time></div>
+                      <p>请把本周六校园开放日的零散通知、院系展位表和旧导览整理成一份家长导览，并标出还缺什么。</p>
+                    </article>
+
+                    <article class="b-message b-agent-message">
+                      <div class="b-message-rail"><span>ROUTER</span><time>09:42</time></div>
+                      <div class="b-agent-body">
+                        <div class="b-agent-head">
+                          <span class="b-agent-badge">A</span>
+                          <div><strong>小鱼</strong><span>主 Agent / 控制与验收</span></div>
+                          <span class="b-agent-route">owa_plan accepted</span>
+                        </div>
+                        <p>目标已受理。我会清点来源、提取展位、核验时间地点并整理家长导览。写入汇总文件是第五项任务，需要你批准。</p>
+                        <div class="b-plan-strip">
+                          <div><span>01</span><strong>来源清点</strong><em data-state="done">完成</em></div>
+                          <div><span>02</span><strong>展位提取</strong><em data-state="live">运行中</em></div>
+                          <div><span>03</span><strong>导览稿</strong><em data-state="wait">等依赖</em></div>
+                          <div><span>04</span><strong>文件写入</strong><em data-state="gate">待审批</em></div>
+                        </div>
+                      </div>
+                    </article>
+
+                    <section class="b-event-log" aria-labelledby="b-event-title">
+                      <header>
+                        <h3 id="b-event-title">EVENT STREAM <span>样例</span></h3>
+                        <span>按发生顺序</span>
+                      </header>
+                      <ol>
+                        <li><time>09:42:10</time><span class="b-event-code">owa.planned</span><span>计划登记 5 个任务</span></li>
+                        <li><time>09:43:04</time><span class="b-event-code">task.succeeded</span><span>来源清点完成 · 3 个来源可读</span></li>
+                        <li><time>09:44:26</time><span class="b-event-code">task.succeeded</span><span>时间地点核验完成 · 发现 1 个未知字段</span></li>
+                        <li><time>09:45:12</time><span class="b-event-code">worker.running</span><span>院系展位提取读取 CSV</span></li>
+                        <li><time>09:46:01</time><span class="b-event-code is-gate">approval.waiting</span><span>写入资料汇编等待所有人决定</span></li>
+                      </ol>
+                    </section>
+
+                    <section class="b-approval js-approval-card" data-approval-state="pending" aria-labelledby="b-approval-title">
+                      <div class="b-gate-rail" aria-hidden="true"><span>GATE</span></div>
+                      <div class="b-gate-body">
+                        <header>
+                          <div>
+                            <span class="b-kicker">APPROVAL REQUIRED</span>
+                            <h3 id="b-approval-title">批准写入资料汇编</h3>
+                          </div>
+                          <span class="status-pill js-approval-badge" data-status="approval">待审批</span>
+                        </header>
+                        <div class="b-gate-grid">
+                          <div><span>TOOL</span><strong>files_write</strong></div>
+                          <div><span>TARGET</span><strong>campus-open-day/资料汇编.md</strong></div>
+                          <div><span>SCOPE</span><strong>单次 · Worker 工作区</strong></div>
+                          <div><span>RISK</span><strong class="b-unknown">未知 <small>接口未返回</small></strong></div>
+                        </div>
+                        <p class="b-gate-copy">批准只覆盖这一次文件写入。风险等级未知，不按低风险处理；拒绝后不会尝试自动重试。</p>
+                        <div class="b-gate-actions js-approval-actions">
+                          <button class="b-ghost-button" type="button" data-view-link="tools" data-file-target="summary">查看目标</button>
+                          <span class="b-spacer"></span>
+                          <button class="b-ghost-button" type="button" data-deny-approval>拒绝</button>
+                          <button class="b-primary-button" type="button" data-approve>批准一次</button>
+                        </div>
+                        <div class="b-gate-result js-approval-result" hidden>
+                          <svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                          <span><strong>LOCAL:</strong> 决定已记录于页面内存，未调用审批 API，也未写入文件。</span>
+                        </div>
+                      </div>
+                    </section>
+
+                    <aside class="b-unknown-row" aria-labelledby="b-unknown-title">
+                      <span class="b-unknown-icon" aria-hidden="true"><svg class="icon"><use href="#i-alert"></use></svg></span>
+                      <div>
+                        <span class="b-kicker">UNKNOWN FACT</span>
+                        <h3 id="b-unknown-title">体育馆下午开放时间</h3>
+                        <p>所有现有来源都未给出明确时段。标记为未知，未使用旧导览中的“全天开放”。</p>
+                      </div>
+                      <button class="b-text-link" type="button" data-view-link="tools" data-file-target="notice">查看来源 <svg class="icon icon-sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>
+                    </aside>
+                  </div>
+
+                  <form class="b-composer" data-composer>
+                    <div class="b-composer-mark" aria-hidden="true"><span>›</span></div>
+                    <div class="b-composer-field">
+                      <label for="b-draft">发给主 Agent</label>
+                      <textarea id="b-draft" rows="2" data-draft placeholder="继续对话，或补充导览范围…"></textarea>
+                      <div class="b-composer-foot">
+                        <span data-composer-note aria-live="polite">本机草稿 · 预览中可保留。</span>
+                        <span><span data-char-count>0</span> / 2000</span>
+                      </div>
+                    </div>
+                    <button class="b-send" type="submit">
+                      <span>保存草稿</span>
+                      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-send"></use></svg>
+                    </button>
+                  </form>
+                </div>
+
+                <aside class="b-controls" aria-label="运行控制">
+                  <div class="b-controls-head">
+                    <div><span class="b-kicker">LIVE CONTROL</span><h2>运行控制</h2></div>
+                    <span class="b-controls-local">LOCAL</span>
+                  </div>
+                  <section class="b-control-block">
+                    <div class="b-control-title"><span>RUN SNAPSHOT</span><span>synthetic</span></div>
+                    <dl class="b-run-facts">
+                      <div><dt>控制者</dt><dd>主 Agent</dd></div>
+                      <div><dt>主会话</dt><dd>已选定</dd></div>
+                      <div><dt>主回合</dt><dd><span class="status-pill" data-status="succeeded">已结束</span></dd></div>
+                      <div><dt>Worker 运行</dt><dd><span class="status-pill" data-status="running">1 个运行中</span></dd></div>
+                      <div><dt>服务端队列</dt><dd>未连接</dd></div>
+                    </dl>
+                  </section>
+                  <section class="b-control-block">
+                    <div class="b-control-title"><span>任务编排</span><button class="b-mini-link" type="button" data-view-link="tasks">全部</button></div>
+                    <ol class="b-queue-list">
+                      <li><span class="b-queue-num">01</span><div><strong>来源清点</strong><span>已完成</span></div><span class="b-queue-state is-done">DONE</span></li>
+                      <li class="is-live"><span class="b-queue-num">02</span><div><strong>院系展位提取</strong><span>依赖 01 · 运行中</span></div><span class="b-queue-state">RUN</span></li>
+                      <li><span class="b-queue-num">03</span><div><strong>家长导览稿</strong><span>等待 02 / 03 核验</span></div><span class="b-queue-state is-wait">WAIT</span></li>
+                      <li><span class="b-queue-num">04</span><div><strong>写入资料汇编</strong><span>审批门</span></div><span class="b-queue-state is-gate">GATE</span></li>
+                    </ol>
+                  </section>
+                  <section class="b-control-block">
+                    <div class="b-control-title"><span>ACTIVE WORKER</span><span>1</span></div>
+                    <div class="b-active-worker js-worker" data-worker="exhibit">
+                      <div class="b-active-worker-head">
+                        <div><strong>院系展位提取</strong><span>research · run 样例 exhibit</span></div>
+                        <span class="status-pill js-worker-state" data-status="running">运行中</span>
+                      </div>
+                      <div class="b-worker-line"><span>当前动作</span><strong>提取院系展位信息</strong></div>
+                      <button class="b-stop-button" type="button" data-cancel-run="exhibit" data-run-label="院系展位提取">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-stop"></use></svg>
+                        取消此 run
+                      </button>
+                      <p class="b-control-note js-cancel-note" aria-live="polite">取消按 run 发起，存在申请与终态；本页只做本地状态演示。</p>
+                    </div>
+                  </section>
+                  <section class="b-control-block">
+                    <div class="b-control-title"><span>APPROVAL PATH</span><button class="b-mini-link" type="button" data-view-link="approvals">打开</button></div>
+                    <div class="b-path-row">
+                      <span class="b-path-node is-done">Worker</span><span class="b-path-line" aria-hidden="true"></span>
+                      <span class="b-path-node is-current">审批门</span><span class="b-path-line" aria-hidden="true"></span>
+                      <span class="b-path-node">继续</span>
+                    </div>
+                    <p class="b-control-note">风险未知，等待所有者决定。审批请求不进入 toast。</p>
+                  </section>
+                  <div class="b-controls-foot">
+                    <span class="b-nav-pulse" aria-hidden="true"></span>
+                    <span>STATIC SYNTHETIC FEED</span>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            <section class="b-screen" data-screen="workers" aria-labelledby="b-workers-title" hidden>
+              <div class="b-page" data-view-scroll>
+                <header class="b-page-head">
+                  <div>
+                    <span class="b-kicker">EXECUTION DECK / 02</span>
+                    <h2 id="b-workers-title">Worker 中心</h2>
+                    <p>队列、运行状态和阻塞原因在同一屏。样例标识不反推 task_key 与 delegation 子运行的关联。</p>
+                  </div>
+                  <div class="b-legend"><span class="status-pill" data-status="succeeded">已完成</span><span class="status-pill" data-status="running">运行中</span><span class="status-pill" data-status="queued">等待</span><span class="status-pill" data-status="approval">待审批</span></div>
+                </header>
+
+                <div class="b-lanes">
+                  <section class="b-lane" aria-labelledby="b-lane-running">
+                    <header><h3 id="b-lane-running">RUNNING</h3><span>01</span></header>
+                    <div class="b-lane-card js-worker" data-worker="exhibit">
+                      <div class="b-lane-top"><span class="status-pill js-worker-state" data-status="running">运行中</span><span class="b-lane-run">run 样例 exhibit</span></div>
+                      <h4>院系展位提取</h4>
+                      <p>当前动作：提取院系展位信息</p>
+                      <dl><div><dt>PROFILE</dt><dd>research</dd></div><div><dt>DEPENDS</dt><dd>来源清点</dd></div></dl>
+                      <button class="b-stop-button" type="button" data-cancel-run="exhibit" data-run-label="院系展位提取"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-stop"></use></svg> 取消运行</button>
+                    </div>
+                  </section>
+                  <section class="b-lane" aria-labelledby="b-lane-wait">
+                    <header><h3 id="b-lane-wait">WAITING / GATED</h3><span>02</span></header>
+                    <div class="b-lane-card">
+                      <div class="b-lane-top"><span class="status-pill" data-status="queued">等待依赖</span><span class="b-lane-run">run 样例 guide</span></div>
+                      <h4>家长导览稿</h4>
+                      <p>依赖院系展位提取与时间地点核验，不显示虚构进度。</p>
+                      <dl><div><dt>PROFILE</dt><dd>documentation</dd></div><div><dt>DEPENDS</dt><dd>2 项</dd></div></dl>
+                    </div>
+                    <div class="b-lane-card">
+                      <div class="b-lane-top"><span class="status-pill" data-status="approval">待审批</span><span class="b-lane-run">run 样例 write</span></div>
+                      <h4>写入资料汇编</h4>
+                      <p>工具 <span class="b-mono">files_write</span> · 单次调用</p>
+                      <dl><div><dt>PROFILE</dt><dd>coding</dd></div><div><dt>GATE</dt><dd class="b-unknown">风险未知</dd></div></dl>
+                      <button class="b-ghost-button" type="button" data-view-link="approvals">查看审批</button>
+                    </div>
+                  </section>
+                  <section class="b-lane" aria-labelledby="b-lane-done">
+                    <header><h3 id="b-lane-done">COMPLETED</h3><span>01</span></header>
+                    <div class="b-lane-card">
+                      <div class="b-lane-top"><span class="status-pill" data-status="succeeded">已完成</span><span class="b-lane-run">run 样例 source</span></div>
+                      <h4>来源清点</h4>
+                      <p>提交 3 个来源摘要，保留 1 个未知字段。</p>
+                      <dl><div><dt>PROFILE</dt><dd>research</dd></div><div><dt>RESULT</dt><dd>3 sources</dd></div></dl>
+                    </div>
+                  </section>
+                  <section class="b-lane b-lane-empty" aria-labelledby="b-lane-stopped">
+                    <header><h3 id="b-lane-stopped">STOPPED / FAILED</h3><span>00</span></header>
+                    <div class="b-lane-empty-state">
+                      <svg class="icon" aria-hidden="true"><use href="#i-stop"></use></svg>
+                      <strong>没有终止的运行</strong>
+                      <span>此样例没有失败、取消或未知写入。取消运行后会在运行队列中显示演示终态。</span>
+                    </div>
+                  </section>
+                </div>
+
+                <section class="b-terminal" aria-labelledby="b-terminal-title">
+                  <header><h3 id="b-terminal-title">RUNTIME NOTES</h3><span>LOCAL / SYNTHETIC</span></header>
+                  <div class="b-terminal-body">
+                    <p><span>09:42</span> 主 Agent 登记 4 个任务；没有根据 task_key 猜测子运行。</p>
+                    <p><span>09:45</span> research / verification Worker 的读取范围只来自样例计划。</p>
+                    <p><span>--:--</span> 取消、重试与恢复不由本原型发出；真实语义以服务端事件为准。</p>
+                  </div>
+                </section>
+              </div>
+            </section>
+
+            <section class="b-screen" data-screen="tasks" aria-labelledby="b-tasks-title" hidden>
+              <div class="b-page" data-view-scroll>
+                <header class="b-page-head">
+                  <div>
+                    <span class="b-kicker">DEPENDENCY MATRIX / 03</span>
+                    <h2 id="b-tasks-title">任务中心</h2>
+                    <p>依赖来自样例计划中的明确声明，不按时间先后推断。阻塞与审批路径直接可见。</p>
+                  </div>
+                  <div class="b-task-summary"><span><strong>04</strong> TASKS</span><span><strong>01</strong> READY</span><span><strong>01</strong> RUN</span><span><strong>01</strong> GATE</span></div>
+                </header>
+
+                <div class="b-task-layout">
+                  <section class="b-task-matrix" aria-labelledby="b-matrix-title">
+                    <div class="b-matrix-head"><h3 id="b-matrix-title">EXECUTION QUEUE</h3><span>样例依赖顺序</span></div>
+                    <ol class="b-task-list">
+                      <li>
+                        <span class="b-task-num">01</span>
+                        <div class="b-task-main"><div><h4>清点来源与缺口</h4><span class="status-pill" data-status="succeeded">已完成</span></div><p>research · 3 个来源 · 1 个未知字段</p><div class="b-task-deps"><span>DEPENDS</span><em>—</em></div></div>
+                        <span class="b-task-bar" data-state="done" aria-hidden="true"></span>
+                      </li>
+                      <li class="is-running">
+                        <span class="b-task-num">02</span>
+                        <div class="b-task-main"><div><h4>提取院系展位信息</h4><span class="status-pill" data-status="running">进行中</span></div><p>research · 读取院系展位.csv</p><div class="b-task-deps"><span>DEPENDS</span><em>01 来源清点</em></div></div>
+                        <span class="b-task-bar" data-state="live" aria-hidden="true"></span>
+                      </li>
+                      <li>
+                        <span class="b-task-num">03</span>
+                        <div class="b-task-main"><div><h4>核验时间与地点</h4><span class="status-pill" data-status="succeeded">已完成</span></div><p>verification · 体育馆下午时段未知</p><div class="b-task-deps"><span>DEPENDS</span><em>—</em></div></div>
+                        <span class="b-task-bar" data-state="done" aria-hidden="true"></span>
+                      </li>
+                      <li class="is-blocked">
+                        <span class="b-task-num">04</span>
+                        <div class="b-task-main"><div><h4>生成家长导览稿</h4><span class="status-pill" data-status="queued">等待依赖</span></div><p>documentation · 尚未执行</p><div class="b-task-deps"><span>DEPENDS</span><em>02 / 03</em></div></div>
+                        <span class="b-task-bar" data-state="wait" aria-hidden="true"></span>
+                      </li>
+                      <li class="is-gated">
+                        <span class="b-task-num">05</span>
+                        <div class="b-task-main"><div><h4>写入资料汇编</h4><span class="status-pill" data-status="approval">待审批</span></div><p>coding · files_write · 单次写入</p><div class="b-task-deps"><span>DEPENDS</span><em>04 导览稿</em></div></div>
+                        <span class="b-task-bar" data-state="gate" aria-hidden="true"></span>
+                      </li>
+                    </ol>
+                  </section>
+
+                  <aside class="b-dependency-rail" aria-labelledby="b-path-title">
+                    <div class="b-panel-title"><span id="b-path-title">CRITICAL PATH</span><span>样例</span></div>
+                    <ol class="b-cpath">
+                      <li data-state="done"><span>01</span><div><strong>来源清点</strong><small>COMPLETED</small></div></li>
+                      <li data-state="live"><span>02</span><div><strong>院系展位提取</strong><small>RUNNING</small></div></li>
+                      <li data-state="wait"><span>04</span><div><strong>家长导览稿</strong><small>WAITING · 2 DEPS</small></div></li>
+                      <li data-state="gate"><span>05</span><div><strong>写入资料汇编</strong><small>APPROVAL GATE</small></div></li>
+                    </ol>
+                    <div class="b-rail-note">
+                      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-info"></use></svg>
+                      <p>依赖只表达样例事实：导览稿需要展位信息与时间核验；写入需要导览稿。其余关联未知。</p>
+                    </div>
+                    <div class="b-rail-unknown">
+                      <span class="b-kicker">FACT GAP</span>
+                      <strong>体育馆下午开放时间</strong>
+                      <span>未知 · 不阻断当前运行，但应出现在最终导览的证据缺口里。</span>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+            </section>
+
+            <section class="b-screen" data-screen="approvals" aria-labelledby="b-approvals-title" hidden>
+              <div class="b-page" data-view-scroll>
+                <header class="b-page-head">
+                  <div>
+                    <span class="b-kicker">APPROVAL GATE / 04</span>
+                    <h2 id="b-approvals-title">审批</h2>
+                    <p>审批是运行中的一道门。风险和原因缺失时，界面明确显示未知，不推测。</p>
+                  </div>
+                  <span class="b-gate-counter">01 PENDING</span>
+                </header>
+
+                <div class="b-approval-layout">
+                  <section class="b-approval-queue" aria-labelledby="b-approval-queue-title">
+                    <div class="b-panel-title"><span id="b-approval-queue-title">DECISION QUEUE</span><span>09:46</span></div>
+                    <button class="b-queue-card is-selected" type="button" aria-current="true">
+                      <span class="b-queue-card-top"><span class="status-pill" data-status="approval">待审批</span><span class="b-mono">files_write</span></span>
+                      <strong>写入资料汇编.md</strong>
+                      <span>单次 · Worker 工作区</span>
+                      <small>风险未知 · 等待所有者</small>
+                    </button>
+                    <div class="b-panel-title b-panel-title-spaced"><span>RESOLVED</span><span>样例</span></div>
+                    <ul class="b-resolved">
+                      <li><span class="status-pill" data-status="succeeded">已批准</span><div><strong>读取 sources</strong><span>只读 · 单次</span></div></li>
+                      <li><span class="status-pill" data-status="cancelled">已失效</span><div><strong>写入旧草稿</strong><span>目标版本变更</span></div></li>
+                    </ul>
+                  </section>
+
+                  <section class="b-approval-detail js-approval-card" data-approval-state="pending" aria-labelledby="b-approval-detail-title">
+                    <header class="b-approval-detail-head">
+                      <div><span class="b-kicker">REQUEST / EVIDENCE</span><h3 id="b-approval-detail-title">写入工作区文件</h3></div>
+                      <span class="status-pill js-approval-badge" data-status="approval">待审批</span>
+                    </header>
+                    <div class="b-gate-path" aria-label="审批路径">
+                      <div data-state="done"><span>01</span><strong>Worker 请求</strong><small>已到达</small></div>
+                      <div data-state="live"><span>02</span><strong>审批门</strong><small>等待决定</small></div>
+                      <div><span>03</span><strong>运行继续</strong><small>需服务端回执</small></div>
+                    </div>
+                    <dl class="b-approval-facts">
+                      <div><dt>请求工具</dt><dd>files_write</dd></div>
+                      <div><dt>目标</dt><dd>campus-open-day/资料汇编.md</dd></div>
+                      <div><dt>作用范围</dt><dd>本次 Worker run · 单次调用</dd></div>
+                      <div><dt>申请原因</dt><dd><span class="b-unknown">未知</span> 接口未返回</dd></div>
+                      <div><dt>风险等级</dt><dd><span class="b-unknown">未知</span> 不降级为低风险</dd></div>
+                      <div><dt>有效期</dt><dd><span class="b-unknown">未知</span> 服务端管理</dd></div>
+                    </dl>
+                    <div class="b-quote-box">
+                      <span>WORKER REQUEST</span>
+                      <p>将已核验的开放日资料写入资料汇编，供主 Agent 在主会话中交付。</p>
+                      <small>样例摘要 · 不包含真实模型输出</small>
+                    </div>
+                    <div class="b-gate-actions js-approval-actions">
+                      <button class="b-ghost-button" type="button" data-view-link="tools" data-file-target="summary">查看文件</button>
+                      <span class="b-spacer"></span>
+                      <button class="b-ghost-button" type="button" data-deny-approval>拒绝</button>
+                      <button class="b-primary-button" type="button" data-approve>批准一次</button>
+                    </div>
+                    <div class="b-gate-result js-approval-result" hidden>
+                      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                      <span><strong>LOCAL:</strong> 审批决定仅写入本页状态。未调用 API，未执行写入；再次请求需新的主 Agent 回合。</span>
+                    </div>
+                    <footer class="b-approval-audit"><span>AUDIT TRACE</span><code>approval.synthetic · 09:46 · owner pending</code></footer>
+                  </section>
+                </div>
+              </div>
+            </section>
+
+            <section class="b-screen" data-screen="tools" aria-labelledby="b-tools-title" hidden>
+              <div class="b-page b-page-tools" data-view-scroll>
+                <header class="b-page-head">
+                  <div>
+                    <span class="b-kicker">EVIDENCE CONSOLE / 05</span>
+                    <h2 id="b-tools-title">工具 / 文件</h2>
+                    <p>文件、来源和工具调用保持在同一控制台。只读样例不请求任意路径文件 API。</p>
+                  </div>
+                  <span class="b-tool-scope">READ-ONLY / SYNTHETIC</span>
+                </header>
+
+                <div class="b-console">
+                  <div class="b-console-top">
+                    <span class="b-console-prompt">campus-open-day</span><span class="b-console-divider">/</span><span>evidence</span>
+                    <span class="b-console-live"><span aria-hidden="true"></span>LOCAL</span>
+                  </div>
+                  <div class="b-console-grid">
+                    <section class="b-file-browser" aria-labelledby="b-browser-title">
+                      <div class="b-browser-head"><h3 id="b-browser-title">FILES</h3><span>4</span></div>
+                      <label class="b-file-search">
+                        <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+                        <span class="sr-only">筛选文件</span>
+                        <input type="search" placeholder="grep files…" data-file-search autocomplete="off">
+                      </label>
+                      <div class="b-file-list" data-file-list>
+                        <button class="b-file-row" type="button" data-file-open="notice"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-file"></use></svg><span>sources/开放日通知.pdf</span><em>PDF</em></button>
+                        <button class="b-file-row is-selected" type="button" data-file-open="booths" aria-current="true"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-file"></use></svg><span>sources/院系展位.csv</span><em>CSV</em></button>
+                        <button class="b-file-row" type="button" data-file-open="guide"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-file"></use></svg><span>reference/旧导览.md</span><em>MD</em></button>
+                        <button class="b-file-row" type="button" data-file-open="summary"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-file"></use></svg><span>target/资料汇编.md</span><em>GATE</em></button>
+                        <div class="b-file-empty" data-file-empty hidden><strong>0 RESULTS</strong><span>没有匹配文件。</span></div>
+                      </div>
+                      <div class="b-tool-calls">
+                        <div class="b-browser-head"><h3>TOOL CALLS</h3><span>3</span></div>
+                        <div class="b-call-row"><code>files_read</code><span>sources × 2</span><em class="is-ok">OK</em></div>
+                        <div class="b-call-row"><code>owa_status</code><span>Ticket 进度</span><em class="is-ok">OK</em></div>
+                        <div class="b-call-row"><code>files_write</code><span>资料汇编.md</span><em class="is-gate">GATE</em></div>
+                      </div>
+                    </section>
+
+                    <section class="b-preview" aria-label="文件预览">
+                      <header class="b-preview-head">
+                        <div><span class="b-kicker" data-file-kind>CSV / SOURCE</span><h3 data-file-title>院系展位.csv</h3></div>
+                        <span class="b-preview-facts" data-file-meta>12 rows · read only</span>
+                      </header>
+                      <div class="b-preview-body">
+                        <div class="b-file-panel" data-file-panel="notice">
+                          <pre class="b-code"><code># 校园开放日安排（节选）
+
+时间：本周六 09:00–16:00
+集合点：南门广场
+院系展位：文学院 / 理学院 / 工程学院
+体育馆：上午明确；下午开放时间未给出。
+
+[状态] 只读来源 · 合成样例</code></pre>
+                        </div>
+                        <div class="b-file-panel is-active" data-file-panel="booths">
+                          <div class="b-code-gutter" aria-hidden="true">01
+02
+03
+04
+05</div>
+                          <pre class="b-code"><code>院系,展位,开放时段,备注
+文学院,A-03,09:00–16:00,二层短讲
+理学院,B-11,09:00–16:00,实验区只读
+工程学院,C-02,10:00–16:00,一层通道
+商学院,C-05,09:00–15:30,
+…共 12 行（样例节选）</code></pre>
+                        </div>
+                        <div class="b-file-panel" data-file-panel="guide">
+                          <pre class="b-code"><code># 家长导览 · 旧版
+
+建议路线：南门 → 文学院 → 理学院 → 工程学院。
+旧版写有“体育馆全天开放”，本次通知未确认，
+因此当前不沿用该说法。</code></pre>
+                        </div>
+                        <div class="b-file-panel" data-file-panel="summary">
+                          <div class="b-empty-file">
+                            <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                            <h4>BLOCKED BY APPROVAL</h4>
+                            <p>目标文件尚未生成。等待单次写入审批；本原型不创建文件。</p>
+                            <button class="b-ghost-button" type="button" data-view-link="approvals">打开审批门</button>
+                          </div>
+                        </div>
+                      </div>
+                      <footer class="b-preview-foot"><span><svg class="icon icon-sm" aria-hidden="true"><use href="#i-eye"></use></svg> 本地只读预览</span><span data-file-source>sources/院系展位.csv</span></footer>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </section>
+
+<section class="proto-panel proto-c" id="proto-c" role="tabpanel" aria-labelledby="tab-c" data-proto="c" data-theme="light" hidden>
+  <a class="skip-link" href="#c-main">跳到主内容</a>
+  <header class="c-topbar">
+    <div class="c-identity"><span class="c-glyph" aria-hidden="true">C</span><div><span class="c-eyebrow">Immersive AI Workspace</span><strong>OmniOperator · 开放日演示</strong></div></div>
+    <div class="c-topbar-actions"><span class="c-local"><span class="c-dot" aria-hidden="true"></span>本地合成 · 无 API</span>
+      <button class="c-ghost" type="button" data-theme-toggle aria-label="切换深浅主题"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-moon"></use></svg><span data-theme-label>深色</span></button>
+      <button class="c-icon-btn" type="button" data-settings-open aria-label="全局设置"><svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg><span>全局设置</span></button>
+    </div>
+  </header>
+  <main class="c-main" id="c-main" tabindex="-1">
+    <div class="c-workbook">
+      <nav class="c-nav" aria-label="C 方案工作册视图">
+        <span class="c-nav-label">工作册</span>
+        <button class="c-tab is-active" type="button" data-view-target="session" aria-current="page">主会话</button>
+        <button class="c-tab" type="button" data-view-target="workers">Worker <span class="c-count">3</span></button>
+        <button class="c-tab" type="button" data-view-target="tasks">任务</button>
+        <button class="c-tab" type="button" data-view-target="approvals">审批 <span class="c-count" data-approval-count="">1</span></button>
+        <button class="c-tab" type="button" data-view-target="tools">证据</button>
+      </nav>
+      <div class="c-sheets">
+        <section class="c-view" data-view="session" aria-label="主 Agent 会话与产物">
+          <header class="c-session-head">
+            <div><span class="c-eyebrow">主会话 · 唯一指令入口</span><h2>整理校园开放日资料</h2></div>
+            <div class="c-head-actions"><button class="status-pill" data-status="approval" type="button" data-view-link="approvals" data-awaiting-approval>查看待审批</button><button class="c-artifact" type="button" data-view-link="tools" data-file-target="summary"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-file"></use></svg><span>资料汇编.md</span><span aria-hidden="true">· 未生成</span></button></div>
+          </header>
+          <div class="c-log" role="log" aria-label="主会话消息与执行记录" data-view-scroll>
+            <article class="c-msg c-msg-user"><header><span>你</span><time>09:41</time></header><p>请把本周六校园开放日的通知、院系展位表和旧导览整理成一份家长可用的摘要，并标出还缺什么。</p></article>
+            <article class="c-msg c-msg-agent">
+              <header class="c-agent-head"><span class="c-avatar" aria-hidden="true">A</span><div><strong>小鱼</strong><span>主 Agent · 09:42 · 已受理</span></div></header>
+              <p class="c-prose">我会保持来源只读，先核对开放时间，再让 verifier 复核冲突，最后才请求写入摘要。所有指令只从这条主会话发出。</p>
+              <ul class="c-ledger">
+                <li><div><span class="c-worker-tag">researcher</span> <strong>正在核对开放时间</strong><span class="c-sub">已归档 3 份来源；体育馆下午时段仍未知</span></div><div class="c-ledger-side"><span class="status-pill" data-status="running">进行中</span><button class="c-stop" type="button" data-action="stop" data-run-label="开放时间核对">停止</button></div></li>
+                <li><div><span class="c-worker-tag">verifier</span> <strong>等待确认</strong><span class="c-sub">等待研究者补齐时段，不猜测开放安排</span></div><div class="c-ledger-side"><span class="status-pill" data-status="queued">等待确认</span></div></li>
+                <li><div><span class="c-worker-tag">writer</span> <strong>等待一次性审批</strong><span class="c-sub">目标 资料汇编.md；外部影响未知</span></div><div class="c-ledger-side"><span class="status-pill" data-status="approval">待审批</span></div></li>
+              </ul>
+              <section class="c-gate" data-approval-state="pending" aria-labelledby="c-gate-title">
+                <div class="c-gate-head"><div><span class="c-eyebrow">Permission gate · 一次有效</span><h3 id="c-gate-title">允许 writer 写入摘要？</h3></div><span class="status-pill" data-status="approval">待审批</span></div>
+                <div class="c-gate-body"><p>只覆盖本次 <span class="c-mono">资料汇编.md</span> 写入。批准不代表允许后续自动重试。</p>
+                  <dl class="c-facts"><div><dt>目标</dt><dd class="c-mono">资料汇编.md</dd></div><div><dt>来源</dt><dd>3 份 · 已归档只读</dd></div><div><dt>风险 / 费用 / 时长</dt><dd><span class="c-unknown">未提供</span> · API 无字段</dd></div><div><dt>外部影响</dt><dd><span class="c-unknown">未知</span></dd></div></dl>
+                  <div class="c-gate-actions"><button class="c-link" type="button" data-view-link="tools" data-file-target="summary">查看目标文件</button><span class="c-spacer"></span><button class="c-btn" type="button" data-action="deny">拒绝</button><button class="c-btn c-btn-primary" type="button" data-action="allow">批准一次</button></div>
+                </div>
+              </section>
+              <aside class="c-gap"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-alert"></use></svg><div><strong>证据缺口：体育馆下午开放时间</strong><p>通知只写了上午场次；旧导览的“全天开放”未获确认，因此不采用。verifier 正在等待确认，而不是自行补全。</p><button class="c-link" type="button" data-view-link="tools" data-file-target="notice">查看归档通知</button></div></aside>
+            </article>
+          </div>
+          <form class="c-composer" data-composer>
+            <label for="c-draft"><span>向主 Agent 下达指令</span><span>Worker 不直接接受指令</span></label>
+            <div class="c-composer-row"><textarea id="c-draft" rows="2" data-draft-input placeholder="补充导览范围，或要求先补齐开放时间…"></textarea><button class="c-send" type="submit">保存草稿</button></div>
+            <div class="c-composer-foot"><span data-composer-note aria-live="polite">本地演示 · 不发请求</span><span><span data-char-count>0</span> / 2000</span></div>
+          </form>
+        </section>
+
+        <section class="c-view" data-view="workers" aria-labelledby="c-workers-title" hidden>
+          <header class="c-page-head"><div><span class="c-eyebrow">Worker ledger</span><h2 id="c-workers-title">执行台账</h2><p>只读观察。新增指令请回到主会话；这里不直接编排。</p></div><span class="c-note">3 个 Worker</span></header>
+          <ol class="c-worker-list">
+            <li><span class="c-idx">01</span><div><strong>researcher</strong><p>正在核对开放时间 · 合成 open-day 任务</p></div><div class="c-worker-side"><span class="status-pill" data-status="running">进行中</span><button class="c-stop" type="button" data-action="stop" data-run-label="开放时间核对">停止</button></div></li>
+            <li><span class="c-idx">02</span><div><strong>verifier</strong><p>等待确认体育馆下午时段；未获得确认前不通过。</p></div><div class="c-worker-side"><span class="status-pill" data-status="queued">等待确认</span></div></li>
+            <li><span class="c-idx">03</span><div><strong>writer</strong><p>等待一次性审批写 资料汇编.md。</p></div><div class="c-worker-side"><span class="status-pill" data-status="approval">待审批</span><button class="c-link" type="button" data-view-link="approvals">打开审批</button></div></li>
+          </ol>
+          <div class="c-empty c-empty-inline"><svg class="icon" aria-hidden="true"><use href="#i-workers"></use></svg><strong>没有已结束的 Worker</strong><span>当前样例没有失败、取消或未知终态。</span></div>
+        </section>
+
+        <section class="c-view" data-view="tasks" aria-labelledby="c-tasks-title" hidden>
+          <header class="c-page-head"><div><span class="c-eyebrow">Work ledger</span><h2 id="c-tasks-title">任务与未知</h2><p>依赖边为合成示例；真实 API 未提供依赖、风险、费用或时长。</p></div><span class="c-note">1 个缺口</span></header>
+          <ol class="c-task-list">
+            <li><span class="status-pill" data-status="succeeded">已归档</span><div><strong>来源归档</strong><p>通知、展位表、旧导览共 3 份，只读。</p></div></li>
+            <li><span class="status-pill" data-status="running">进行中</span><div><strong>researcher · 核对开放时间</strong><p>体育馆下午场次未知，不补写“通常开放”。</p></div></li>
+            <li><span class="status-pill" data-status="queued">等待确认</span><div><strong>verifier · 复核冲突</strong><p>等待研究者确认时段，再判断旧导览是否可用。</p></div></li>
+            <li><span class="status-pill" data-status="approval">待审批</span><div><strong>writer · 一次性写入</strong><p>目标 资料汇编.md；外部影响未知。</p></div></li>
+          </ol>
+          <div class="c-synth"><span class="c-synth-tag">合成依赖</span><p>researcher → verifier → writer。仅用于演示版式，不是 API 返回的依赖边。</p></div>
+        </section>
+
+        <section class="c-view" data-view="approvals" aria-labelledby="c-approvals-title" hidden>
+          <header class="c-page-head"><div><span class="c-eyebrow">Decision gate</span><h2 id="c-approvals-title">审批</h2><p data-approval-detail>writer 等待一次性写入审批。风险与外部影响未知。</p></div><span class="status-pill" data-approval-count="0 项待决定">1 项待决定</span></header>
+          <section class="c-gate c-gate-full" data-approval-state="pending" aria-labelledby="c-approval-title">
+            <div class="c-gate-head"><div><span class="c-eyebrow">Request / write</span><h3 id="c-approval-title">写入 资料汇编.md</h3></div><span class="status-pill" data-status="approval">待审批</span></div>
+            <div class="c-gate-body"><p>请求来自主会话中的 writer。批准只覆盖本次单次写入，不代表允许后续自动重试。</p>
+              <dl class="c-facts"><div><dt>目标</dt><dd class="c-mono">资料汇编.md</dd></div><div><dt>作用域</dt><dd>本次 writer 工作区</dd></div><div><dt>风险 / 费用 / 时长</dt><dd><span class="c-unknown">API 未提供</span></dd></div><div><dt>外部影响</dt><dd><span class="c-unknown">未知</span></dd></div></dl>
+              <div class="c-gate-actions"><button class="c-link" type="button" data-view-link="tools" data-file-target="summary">查看目标文件</button><span class="c-spacer"></span><button class="c-btn" type="button" data-action="deny">拒绝</button><button class="c-btn c-btn-primary" type="button" data-action="allow">批准一次</button></div>
+            </div>
+          </section>
+          <p class="c-note c-note-rule">历次决定仅保留在本地页面；真实回执需服务端返回。</p>
+        </section>
+
+        <section class="c-view" data-view="tools" aria-labelledby="c-tools-title" hidden>
+          <header class="c-page-head"><div><span class="c-eyebrow">Evidence desk</span><h2 id="c-tools-title">工具与文件</h2><p>来源已归档，只读。写入只能由主会话发起一次性审批。</p></div><span class="c-note">3 份来源</span></header>
+          <div class="c-file-tabs" role="tablist" aria-label="证据文件">
+            <button class="c-file-tab is-active" id="c-tab-notice" type="button" role="tab" aria-selected="true" aria-controls="c-panel-notice" data-file-target="notice">开放日通知</button>
+            <button class="c-file-tab" id="c-tab-booths" type="button" role="tab" aria-selected="false" aria-controls="c-panel-booths" data-file-target="booths">院系展位</button>
+            <button class="c-file-tab" id="c-tab-summary" type="button" role="tab" aria-selected="false" aria-controls="c-panel-summary" data-file-target="summary">摘要目标</button>
+          </div>
+          <section class="c-file-panel is-active" id="c-panel-notice" role="tabpanel" aria-labelledby="c-tab-notice" data-file-panel="notice">
+            <article class="c-paper"><span class="c-stamp">sources / 已归档 · 只读</span><h3>校园开放日安排（节选）</h3><p>时间：本周六 09:00–16:00。集合点：南门广场，家长凭预约凭证入场。</p><p>院系展位分布在文学院、理学院与工程学院。部分实验室仅开放一层参观通道。</p><p class="c-mark">体育馆：上午场次明确；下午开放时间未给出。</p><footer class="c-file-foot">开放日通知.pdf · 合成样例 · 归档于 09:40</footer></article>
+          </section>
+          <section class="c-file-panel" id="c-panel-booths" role="tabpanel" aria-labelledby="c-tab-booths" data-file-panel="booths" hidden>
+            <div class="c-table-wrap"><table class="c-table"><caption>院系展位.csv · 12 行节选</caption><thead><tr><th scope="col">院系</th><th scope="col">展位</th><th scope="col">开放时段</th><th scope="col">备注</th></tr></thead><tbody><tr><td>文学院</td><td>A-03</td><td>09:00–16:00</td><td>二层短讲</td></tr><tr><td>理学院</td><td>B-11</td><td>09:00–16:00</td><td>实验区只读</td></tr><tr><td>工程学院</td><td>C-02</td><td>10:00–16:00</td><td>一层通道</td></tr><tr><td>商学院</td><td>C-05</td><td>09:00–15:30</td><td>—</td></tr></tbody></table></div>
+            <footer class="c-file-foot">sources/院系展位.csv · 已归档只读 · 合成数据</footer>
+          </section>
+          <section class="c-file-panel" id="c-panel-summary" role="tabpanel" aria-labelledby="c-tab-summary" data-file-panel="summary" hidden>
+            <div class="c-empty"><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><h3>摘要尚未生成</h3><p>writer 等待一次性审批。本页不写文件，也不调用通用文件接口。</p><details class="c-empty-help"><summary>如何解除写入阻塞</summary><p>先回到主会话或审批区，决定是否允许本次写入；批准后仍需服务端回执，不能绕过主会话直接改文件。</p></details><button class="c-btn" type="button" data-view-link="approvals">前往审批</button></div>
+          </section>
+          <p class="c-note c-note-rule">预览来自归档样例，只读。没有真实工具调用，也没有任意路径文件接口。</p>
+        </section>
+      </div>
+    </div>
+
+    <aside class="c-dock" aria-label="证据工作区">
+      <details class="c-context" open>
+        <summary><span>证据与上下文</span><span class="c-dock-state">已停靠</span></summary>
+        <div class="c-context-body">
+          <section class="c-context-section"><h3>来源</h3><p class="c-source-fact">3 份来源已归档 <span>只读 · 合成</span></p><button class="c-link" type="button" data-view-link="tools" data-file-target="notice">查看归档通知</button></section>
+          <section class="c-context-section"><h3>运行台账</h3><ul class="c-context-list">
+            <li><div><strong>researcher</strong><span>核对开放时间</span></div><span class="status-pill" data-status="running">进行中</span></li>
+            <li><div><strong>verifier</strong><span>等待确认下午时段</span></div><span class="status-pill" data-status="queued">等待确认</span></li>
+            <li><div><strong>writer</strong><span>一次性审批写入摘要</span></div><span class="status-pill" data-status="approval">待审批</span></li>
+          </ul></section>
+          <section class="c-context-section"><h3>边界与未知</h3><dl class="c-context-dl">
+            <div><dt>依赖边</dt><dd>无 API 数据；页面依赖为合成示例</dd></div>
+            <div><dt>风险 / 费用 / 时长</dt><dd>API 未提供</dd></div>
+            <div><dt>外部影响</dt><dd>未知</dd></div>
+            <div><dt>写入</dt><dd>仅限 资料汇编.md 一次性审批</dd></div>
+          </dl></section>
+          <p class="c-context-foot">主会话是唯一指令入口。此处只停靠证据，不新增指令。</p>
+        </div>
+      </details>
+    </aside>
+  </main>
+</section>
+
+
+  </div>
+
+  <dialog class="modal-dialog settings-dialog" id="preview-settings" aria-labelledby="settings-title">
+    <header class="modal-header">
+      <div><h2 class="modal-title" id="settings-title">全局设置</h2><p class="modal-description">更改当前预览的显示偏好。</p></div>
+      <button class="icon-button" type="button" data-close-dialog aria-label="关闭设置"><svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg></button>
+    </header>
+    <label class="settings-search-row">
+      <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
+      <span class="sr-only">搜索设置</span>
+      <input class="settings-search" id="settings-search" type="search" placeholder="搜索主题、模型、工作空间">
+    </label>
+    <div class="settings-content">
+      <section class="settings-group">
+        <h3>外观</h3>
+        <div class="setting-row">
+          <div><strong>颜色主题</strong><p>适用于当前设计方向</p></div>
+          <div class="segmented" role="group" aria-label="颜色主题">
+            <button type="button" data-set-theme="light" aria-pressed="false">浅色</button>
+            <button type="button" data-set-theme="dark" aria-pressed="false">深色</button>
+          </div>
+        </div>
+      </section>
+      <section class="settings-group">
+        <h3>主 Agent</h3>
+        <div class="setting-row"><div><strong>模型与执行模式</strong><p>正式工作台由实例提供可用的模型和执行模式。</p></div></div>
+      </section>
+      <section class="settings-group">
+        <h3>工作空间</h3>
+        <div class="setting-row"><div><strong>OmniOperator</strong><p>当前使用本地合成资料。</p></div></div>
+      </section>
+      <p class="settings-empty" data-settings-empty hidden>没有匹配的设置。</p>
+    </div>
+    <footer class="modal-footer"><button class="button" type="button" data-close-dialog>返回工作区</button></footer>
+  </dialog>
+
+  <dialog class="modal-dialog" id="preview-confirm" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+    <header class="modal-header"><h2 class="modal-title" id="confirm-title">取消演示运行</h2></header>
+    <div class="confirm-body"><p class="confirm-warning" id="confirm-description" data-confirm-description></p></div>
+    <footer class="modal-footer">
+      <button class="button" type="button" data-close-dialog>保留运行</button>
+      <button class="button button-danger" type="button" data-apply-confirmation>确认取消</button>
+    </footer>
+  </dialog>
+
+</body>
+</html>

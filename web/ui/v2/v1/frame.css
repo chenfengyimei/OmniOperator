@@ -91,10 +91,7 @@ body[data-ui-page]:not([data-ui-page="workbench-v2"]):not([data-ui-page="project
   z-index: 0;
   pointer-events: none;
   opacity: 0.32;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--seed-fg) 3.5%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--seed-fg) 3.5%, transparent) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-image: none;
   mask-image: linear-gradient(to bottom, #000, transparent 65%);
 }
 body[data-ui-page]:not([data-ui-page="workbench-v2"]):not([data-ui-page="project"]) > :not(header):not(.ui-global-nav) {
@@ -488,7 +485,7 @@ body[data-ui-page].ui-leaving {
   transform-origin: left;
   opacity: 0;
   background: linear-gradient(90deg, var(--seed-accent), var(--seed-accent2));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--seed-accent) 70%, transparent);
+  box-shadow: 0 0 0 1px var(--line-accent);
 }
 .ui-route-progress.active {
   opacity: 1;
@@ -733,7 +730,7 @@ nav[aria-label="工作台"]::-webkit-scrollbar {
   height: 15px;
   border-radius: 0 99px 99px 0;
   background: var(--grad);
-  box-shadow: 0 0 9px color-mix(in srgb, var(--seed-accent) 80%, transparent);
+  box-shadow: 0 0 0 1px var(--line-accent);
 }
 .rail-sep {
   width: 20px;

@@ -1,7 +1,7 @@
 import { mountSkills } from './skills.js?v=20261121v173';
 import { mountCredentials } from './credentials.js?v=20261121v173';
-import { mountAuditHistory, mountOperations } from './operations.js?v=20261121v173';
-import { mountCapabilities } from './capabilities.js?v=20261121v173';
+import { mountAuditHistory, mountOperations } from './operations.js?v=20261128merge1';
+import { mountCapabilities } from './capabilities.js?v=20261128merge1';
 import { mountTokens } from './tokens.js?v=20261121v173';
 import { mountDocuments } from './documents.js?v=20261121v173';
 import { mountReflections } from './reflections.js?v=20261122p175';
@@ -27,6 +27,17 @@ import { mountModelOutput } from './model-output.js?v=20261121v173';
 import { mountRouting } from './routing.js?v=20261125kernel2';
 import { mountChatImages } from './chat-images.js?v=20261121v173';
 import { mountInspector } from './inspector.js?v=20261121v173';
+import { mountOmniweave } from './omniweave.js?v=20261128merge1';
+import { mountApprovals } from './approvals.js?v=20261128merge1';
+import { mountQueue } from './queue.js?v=20261128merge1';
+import { mountTimeline } from './timeline.js?v=20261128merge1';
+import {
+  derivePhase,
+  stopAvailability,
+  retryAvailability,
+  resumeNote,
+  CAPABILITIES,
+} from './lifecycle.js?v=20261128merge1';
 import { mountSettingsRail } from './settings-rail.js?v=20261121v173';
 import { mountEventStream } from './event-stream.js?v=20261121v173';
 // 直接复用 V1 的 rail 提示浮层模块（data-tip → #tip-layer），不自创实现
@@ -77,6 +88,43 @@ const inspectorPanel = mountInspector({
   getSession: () => session,
   getGeneration: () => generation,
   getRun: () => run,
+});
+// Worker/Ticket 可见性：主会话状态条 + 右栏「任务」页签；只读既有 API，取消走真实 run cancel 端点
+const omniweavePanel = mountOmniweave({
+  api,
+  wrap,
+  getAgent: () => agent,
+  getSession: () => session,
+  getGeneration: () => generation,
+  getOwaMainSession: () => owaMainSession,
+  getPage: () => page,
+});
+// 审批：单一对象 + 单一提交路径；对话内联 / 浮层 / 右栏待办共享同一 controller。
+const approvalsPanel = mountApprovals({
+  api,
+  getAgent: () => agent,
+  getGeneration: () => generation,
+  onResolved: () => poll(),
+});
+// 执行时间线：只读服务端事实，缺字段显示未知。
+const timelinePanel = mountTimeline({ api, getAgent: () => agent, getGeneration: () => generation });
+// 本地输入队列：运行中可准备后续输入；只有显式「发送下一条」才创建真实 Turn。
+let lastRunInput = '';
+const runInputs = new Map();
+let timelineRun = null;
+const timelineLoaded = new Map();
+let lastBusy = null;
+let lastFinishedRun = null;
+const queuePanel = mountQueue({
+  getAgent: () => agent,
+  getSession: () => session,
+  onSend: (item) => submitTurn({ text: item.text, mode: item.mode }),
+  onEdit: (text) => {
+    $('message').value = text;
+    $('message').focus();
+    $('message').dispatchEvent(new Event('input'));
+  },
+  isBusy: () => Boolean(run),
 });
 const settingsRail = mountSettingsRail({ getPage: () => page });
 const eventStream = mountEventStream({
@@ -198,6 +246,7 @@ const auditPanel = mountAuditHistory({
   refreshId: 'refresh-audit',
   moreId: 'more-audit',
   empty: '暂无审计记录',
+  renderNode: (rows) => renderAudit(rows),
 });
 let objectCursor = null,
   objectRows = [],
@@ -310,6 +359,11 @@ function syncPageChrome(next) {
   const back = $('back-to-chat');
   if (back) back.hidden = next === 'chat';
   settingsRail.sync(next);
+  // 每页唯一 H1：内容区 section 标题与页头同名时视为重复，视觉隐藏
+  for (const pageNode of document.querySelectorAll('.page')) {
+    const sectionTitle = pageNode.querySelector(':scope > .page-section-title');
+    if (sectionTitle) sectionTitle.classList.toggle('is-duplicate-title', sectionTitle.textContent.trim() === meta[0]);
+  }
   const aside = document.querySelector('aside');
   if (aside && next === 'chat') aside.scrollTop = 0;
   // 稳定性：切分类时内容区回顶——共享滚动容器会保留上一页位置，
@@ -317,6 +371,37 @@ function syncPageChrome(next) {
   const scroller = document.querySelector('.settings-content');
   if (scroller && next !== 'chat') scroller.scrollTop = 0;
 }
+// Phase 3：导航可展开（桌面显示标签；390 仍为顶部横条）。状态本机持久化。
+function railLabel(expanded) {
+  const toggle = $('rail-toggle');
+  if (!toggle) return;
+  toggle.setAttribute('aria-expanded', String(expanded));
+  toggle.setAttribute('aria-label', expanded ? '收起导航' : '展开导航');
+  toggle.title = expanded ? '收起导航' : '展开导航';
+  const icon = toggle.querySelector('.material-icons');
+  if (icon) icon.textContent = expanded ? 'chevron_left' : 'chevron_right';
+}
+function setRail(expanded, { persist = true } = {}) {
+  document.body.dataset.rail = expanded ? 'expanded' : 'compact';
+  railLabel(expanded);
+  if (persist) {
+    try {
+      localStorage.setItem('omni_rail', expanded ? 'expanded' : 'compact');
+    } catch {
+      // 存储不可用时仅本页生效
+    }
+  }
+}
+let railExpanded = false;
+try {
+  railExpanded = localStorage.getItem('omni_rail') === 'expanded';
+} catch {
+  railExpanded = false;
+}
+setRail(railExpanded, { persist: false });
+$('rail-toggle')?.addEventListener('click', () => {
+  setRail(document.body.dataset.rail !== 'expanded');
+});
 function themeLabel() {
   // 三圆点直接切换（对齐 prototype-workbench-redesign）：选中项加 .active + aria-checked
   const pref = window.OmniTheme?.pref?.() || 'auto';
@@ -1006,8 +1091,11 @@ function renderMessages(items) {
       empty.append(grid);
     }
     $('messages').replaceChildren(empty);
+    approvalsPanel.anchor();
     return;
   }
+  for (const m of items)
+    if (m.role === 'user' && m.run_id && m.content) runInputs.set(String(m.run_id), String(m.content));
   $('messages').replaceChildren(
     ...items.map((m) => {
       const node = document.createElement('div');
@@ -1201,6 +1289,7 @@ function renderMessages(items) {
     }),
   );
   $('messages').scrollTop = $('messages').scrollHeight;
+  approvalsPanel.anchor();
   setThinking(false);
   // 运行过程只属于助手这一轮回复；用户消息不重复挂载同一份信息
   for (const node of $('messages').querySelectorAll('.msg.assistant[data-run-id]'))
@@ -1315,8 +1404,13 @@ async function openConversation(sessionId) {
   const [{ items: history }] = await Promise.all([api(scope(`/sessions/${sessionId}/messages`)), refreshOwaGoals()]);
   if (current !== generation || session !== sessionId) return;
   renderMessages(history);
+  omniweavePanel.load();
+  queuePanel.load();
+  approvalsPanel.anchor();
   for (const row of $('sessions').children) row.classList.toggle('active', row.dataset.id === sessionId);
   const lastRun = [...history].reverse().find((message) => message.run_id)?.run_id || null;
+  lastRunInput = lastRun ? runInputs.get(String(lastRun)) || '' : '';
+  if (lastRun) timelinePanel.load(lastRun);
   await showRunDetails(lastRun, sessionId);
 }
 async function refreshSessions() {
@@ -1325,6 +1419,8 @@ async function refreshSessions() {
   if (generation !== current) return;
   owaMainSession = main;
   renderOwaMainSession();
+  omniweavePanel.load();
+  queuePanel.load();
   $('sessions').replaceChildren(
     ...data.items.map((item) => {
       const row = document.createElement('li');
@@ -1362,106 +1458,34 @@ async function refreshSessions() {
 }
 // 审批剩余时间：expires_at 是服务端 UTC ISO，直接切出钟点会在非 UTC 时区显示错时间
 // （所有者截图里的「07:19」就是 UTC），改成按秒递减的剩余时长。
-let countdowns = [],
-  countdownTimer = null;
-function paintCountdown(node, expiresAt) {
-  const deadline = Date.parse(String(expiresAt || ''));
-  const seconds = Number.isFinite(deadline) ? Math.ceil((deadline - Date.now()) / 1000) : null;
-  if (seconds === null) {
-    node.textContent = '过期时间待同步，请尽快决定';
-    return;
+// 审批渲染统一交给 approvals.js（单一对象 + 单一提交路径 + 差异重建，见 Phase 2 实施记录）。
+
+// 运行结束后 run 变量会被清空；终态控制（重新执行 / 时间线 / 校验说明）仍需可恢复。
+function refreshTerminalControls(runId, result, inputText) {
+  const phase = derivePhase(result || { state: 'unknown' });
+  const retry = retryAvailability(phase, inputText || runInputs.get(String(runId)) || lastRunInput);
+  const retryBtn = $('retry-run');
+  retryBtn.hidden = !retry.enabled;
+  retryBtn.disabled = !retry.enabled;
+  retryBtn.title = retry.reason || CAPABILITIES.retry.note;
+  const resumeNode = $('resume-note');
+  const note = resumeNote(phase);
+  resumeNode.hidden = !note;
+  resumeNode.textContent = note;
+  const statusNode = $('run-status');
+  statusNode.dataset.state = String(phase.state);
+  const completion = { verified: '已验证', partial: '部分验证', needs_review: '待核查', not_required: '无需验证' }[
+    String(result?.completion?.state || '')
+  ];
+  statusNode.textContent = String(phase.label) + (completion && phase.state !== 'succeeded' ? ` · ${completion}` : '');
+  if (result?.error_code) statusNode.textContent = `${phase.label}：${result.error_code}`;
+  if (timelineRun !== runId || !timelineLoaded.has(runId)) {
+    timelineRun = runId;
+    timelineLoaded.set(runId, true);
+    timelinePanel.load(runId);
   }
-  node.classList.toggle('is-urgent', seconds > 0 && seconds <= 60);
-  node.classList.toggle('is-expired', seconds <= 0);
-  if (seconds <= 0) {
-    node.textContent = '已过期，需重新发起';
-    return;
-  }
-  const pad = (value) => String(value).padStart(2, '0');
-  node.textContent = `剩余 ${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}，过期后需重新发起`;
 }
-function stopCountdowns() {
-  countdowns = [];
-  if (countdownTimer) clearInterval(countdownTimer);
-  countdownTimer = null;
-}
-// 一张审批卡，两个落点：对话顶部浮层（当场决定）与右栏「待办」页签（审批界面，可回看）。
-// 两处是各自独立的 DOM，按钮走同一个 resolve 端点，批准后下一轮 poll 一起收起。
-function approvalCard(approval) {
-  const card = document.createElement('article');
-  card.className = 'approval-card';
-  const head = document.createElement('div');
-  head.className = 'approval-head';
-  const icon = document.createElement('span');
-  icon.className = 'material-icons';
-  icon.setAttribute('aria-hidden', 'true');
-  icon.textContent = 'shield';
-  const title = document.createElement('b');
-  title.textContent = `需要确认：${approval.tool}`;
-  const wait = document.createElement('span');
-  wait.className = 'approval-wait';
-  wait.textContent = 'Agent 正在等待';
-  head.append(icon, title, wait);
-  const args = document.createElement('pre');
-  args.className = 'approval-args';
-  args.textContent = JSON.stringify(approval.arguments ?? {}, null, 2);
-  const meta = document.createElement('div');
-  meta.className = 'approval-meta';
-  const clock = document.createElement('span');
-  clock.className = 'material-icons';
-  clock.setAttribute('aria-hidden', 'true');
-  clock.textContent = 'schedule';
-  const expire = document.createElement('span');
-  expire.className = 'approval-countdown';
-  // 秒级跳动不进实时播报区，否则读屏会被每秒打断
-  expire.setAttribute('aria-live', 'off');
-  meta.append(clock, expire);
-  countdowns.push([expire, approval.expires_at]);
-  paintCountdown(expire, approval.expires_at);
-  const actions = document.createElement('div');
-  actions.className = 'approval-actions';
-  for (const [label, allowed, cls] of [
-    ['允许本次', true, 'primary'],
-    ['拒绝', false, 'ghost'],
-  ]) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `approval-btn ${cls}`;
-    button.textContent = label;
-    button.addEventListener(
-      'click',
-      wrap(async () => {
-        button.disabled = true;
-        button.classList.add('is-busy');
-        try {
-          await api(scope(`/approvals/${approval.id}`), {
-            method: 'POST',
-            body: { allowed, policy_revision: approval.policy_revision },
-          });
-        } finally {
-          if (button.isConnected) {
-            button.disabled = false;
-            button.classList.remove('is-busy');
-          }
-        }
-        await poll();
-      }),
-    );
-    actions.append(button);
-  }
-  card.append(head, args, meta, actions);
-  return card;
-}
-function renderApprovals(approvals) {
-  stopCountdowns();
-  $('approvals').replaceChildren(...approvals.map(approvalCard));
-  $('inspector-todo-list').replaceChildren(...approvals.map(approvalCard));
-  $('inspector-todo-empty').hidden = approvals.length > 0;
-  if (!approvals.length) return;
-  countdownTimer = setInterval(() => {
-    for (const [node, expiresAt] of countdowns) paintCountdown(node, expiresAt);
-  }, 1000);
-}
+
 let polling = null;
 function poll() {
   if (polling?.generation === generation) return polling.promise;
@@ -1487,7 +1511,7 @@ async function pollBody() {
   renderServices(version);
   const approvals = (await api(scope('/approvals'))).items;
   if (current !== generation) return;
-  renderApprovals(approvals);
+  approvalsPanel.set(approvals);
   $('inspector-todo-count').textContent = approvals.length ? `${approvals.length} 项待审批` : '暂无待办';
   if (current !== generation) return;
   if (run || !inspectorSkillsLoaded) {
@@ -1535,6 +1559,33 @@ async function pollBody() {
     }
     if (result.continuation?.decision === 'review' && result.state === 'interrupted') {
       statusNode.textContent += ' · 继续前请核对已记录的回执和审批';
+    }
+    // 生命周期控制：停止/重新执行/续跑说明都由单一状态模型派生（lifecycle.js）
+    const phase = derivePhase(result);
+    const stop = stopAvailability(phase);
+    const cancelBtn = $('cancel');
+    cancelBtn.textContent = phase.state === 'cancelling' ? '等待服务端确认…' : '取消运行';
+    cancelBtn.disabled = !stop.enabled;
+    cancelBtn.title = stop.reason || '';
+    const inputText = runInputs.get(String(checkedRun)) || lastRunInput;
+    const retry = retryAvailability(phase, inputText);
+    const retryBtn = $('retry-run');
+    retryBtn.hidden = !retry.enabled;
+    retryBtn.disabled = !retry.enabled;
+    retryBtn.title = retry.reason || CAPABILITIES.retry.note;
+    const resumeNode = $('resume-note');
+    const note = resumeNote(phase);
+    resumeNode.hidden = !note;
+    resumeNode.textContent = note;
+    const busy = Boolean(run);
+    if (busy !== lastBusy) {
+      lastBusy = busy;
+      queuePanel.refresh();
+    }
+    if (timelineRun !== checkedRun || (phase.terminal && !timelineLoaded.has(checkedRun))) {
+      timelineRun = checkedRun;
+      if (phase.terminal) timelineLoaded.set(checkedRun, true);
+      timelinePanel.load(checkedRun);
     }
     setThinking(
       page === 'chat' &&
@@ -1589,8 +1640,12 @@ async function pollBody() {
         : null;
       $('show-summary').hidden = !summaryTarget;
       $('summary-body').textContent = '';
+      lastFinishedRun = checkedRun;
       run = null;
+      lastBusy = false;
+      queuePanel.refresh();
       $('cancel').disabled = true;
+      refreshTerminalControls(checkedRun, result, inputText);
       setThinking(false);
       if (session === result.session_id) {
         renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
@@ -1598,9 +1653,19 @@ async function pollBody() {
       }
     }
   }
+  if (!run && lastFinishedRun) {
+    const finished = lastFinishedRun;
+    const result = await api(scope(`/runs/${finished}`)).catch(() => null);
+    if (current !== generation) return;
+    if (result) refreshTerminalControls(finished, result, runInputs.get(String(finished)) || lastRunInput);
+  }
+  // 队列按钮依赖运行态；每次 poll 轻量刷新（仅当队列有条目，避免常驻空转）
+  if (queuePanel.count()) queuePanel.refresh();
   if (page === 'logs' && $('live-logs').checked && !logLoading) await loadLogs(false);
   if (page === 'documents') await documentsPanel.poll();
   if (page === 'qq') await qqPanel.poll();
+  // Worker/Ticket 状态条只在对话页有意义：模块内部按 3s 节流，切 Agent/会话后自动作废
+  if (page === 'chat') await omniweavePanel.poll();
 }
 function stop() {
   eventStream.stop();
@@ -1614,6 +1679,14 @@ function stop() {
   terminalsPanel.deactivate();
   desktopPanel.deactivate();
   androidPanel.deactivate();
+  omniweavePanel.reset();
+  approvalsPanel.reset();
+  timelinePanel.reset();
+  queuePanel.load();
+  timelineRun = null;
+  timelineLoaded.clear();
+  runInputs.clear();
+  lastFinishedRun = null;
 }
 function clearContext() {
   renderContext(null);
@@ -2036,76 +2109,131 @@ $('owa-main-session').addEventListener(
     }
   }),
 );
+// 提交一个 Turn（直接发送与本地队列共用）：不在这里做「运行中」判断，由调用方决定。
+async function submitTurn({ text, imageIds = [], mode = null, skillIds = [], goal = null }) {
+  const boundAgent = agent,
+    boundSession = session,
+    stamp = generation;
+  if (!text && !imageIds.length) throw new Error('请输入消息或附加图片');
+  const draftKey = `${agent}/${session || 'new'}`;
+  const signature = JSON.stringify([boundAgent, boundSession, text, imageIds, mode, skillIds, goal]);
+  if (pendingKey?.signature !== signature) pendingKey = { signature, value: crypto.randomUUID() };
+  let receipt;
+  try {
+    receipt = await api(scope('/turns'), {
+      method: 'POST',
+      body: {
+        key: pendingKey.value,
+        session_id: session,
+        message: text,
+        image_ids: imageIds,
+        mode,
+        skill_ids: skillIds,
+        ...(goal ? { goal_update: goal } : {}),
+      },
+    });
+  } catch (error) {
+    if (
+      goal &&
+      ['revision_conflict', 'owa_ticket_cancelled', 'not_found'].includes(error.code) &&
+      stamp === generation &&
+      session === boundSession
+    ) {
+      await refreshOwaGoals();
+    }
+    throw error;
+  }
+  chatImages.sent(draftKey, imageIds);
+  if (stamp !== generation || agent !== boundAgent || session !== boundSession) return receipt;
+  pendingKey = null;
+  session = receipt.session_id;
+  run = receipt.run_id;
+  lastRunInput = text;
+  if (run && text) runInputs.set(String(run), text);
+  $('run-details-empty').hidden = true;
+  // Turn 已创建，后续面板刷新失败不能推翻发送结果（否则队列会误判为发送失败）
+  await routingPanel.report(run, session).catch(() => {});
+  await skillsPanel.report(run, session).catch(() => {});
+  if ($('message').value === text) $('message').value = '';
+  chatImages.change();
+  // 窄屏发完消息切到运行面板：收起会话栏腾出高度，同时让本轮结果与保留操作可见。
+  // 宽屏两个属性都不参与布局，左右两栏仍常驻。
+  setDrawer(false);
+  setInspectorDrawer(true);
+  renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
+  await refreshSessions();
+  await poll();
+  return receipt;
+}
 $('send').addEventListener(
   'submit',
   wrap(async () => {
-    if (run) throw new Error('请等待当前运行完成');
-    const imageIds = chatImages.snapshot(),
-      text = $('message').value,
-      boundAgent = agent,
-      boundSession = session,
-      stamp = generation;
-    if (!text && !imageIds.length) throw new Error('请输入消息或附加图片');
-    const draftKey = `${agent}/${session || 'new'}`;
-    const mode = $('chat-mode').value || null,
-      skillIds = skillsPanel.snapshot();
+    const text = $('message').value;
+    const imageIds = chatImages.snapshot();
+    const mode = $('chat-mode').value || null;
+    const skillIds = skillsPanel.snapshot();
     const selected = $('owa-goal').selectedOptions[0];
     const goal =
       !$('owa-goal-picker').hidden && selected?.value
         ? { ticket_id: selected.value, expected_goal_version: Number(selected.dataset.version) }
         : null;
-    const signature = JSON.stringify([boundAgent, boundSession, text, imageIds, mode, skillIds, goal]);
-    if (pendingKey?.signature !== signature) pendingKey = { signature, value: crypto.randomUUID() };
-    let receipt;
-    try {
-      receipt = await api(scope('/turns'), {
-        method: 'POST',
-        body: {
-          key: pendingKey.value,
-          session_id: session,
-          message: text,
-          image_ids: imageIds,
-          mode,
-          skill_ids: skillIds,
-          ...(goal ? { goal_update: goal } : {}),
-        },
-      });
-    } catch (error) {
-      if (
-        goal &&
-        ['revision_conflict', 'owa_ticket_cancelled', 'not_found'].includes(error.code) &&
-        stamp === generation &&
-        session === boundSession
-      ) {
-        await refreshOwaGoals();
-      }
-      throw error;
+    // 运行中：把后续输入放进本地队列（不创建 Turn、不丢草稿），等用户显式发送下一条。
+    if (run) {
+      if (imageIds.length || skillIds.length || goal)
+        throw new Error('运行中只能排队纯文本；图片、技能与 OmniWeave 目标请等本轮结束后发送');
+      if (!text.trim()) throw new Error('请输入要排队的消息');
+      if (!queuePanel.enqueue({ text, mode })) throw new Error('本地队列已满（最多 20 条）');
+      if ($('message').value === text) $('message').value = '';
+      return;
     }
-    chatImages.sent(draftKey, imageIds);
-    if (stamp !== generation || agent !== boundAgent || session !== boundSession) return;
-    pendingKey = null;
-    session = receipt.session_id;
-    run = receipt.run_id;
-    // 已经有运行了，右栏不能继续显示「还没有运行记录」的空态
-    $('run-details-empty').hidden = true;
-    await routingPanel.report(run, session);
-    await skillsPanel.report(run, session);
-    if ($('message').value === text) $('message').value = '';
-    chatImages.change();
-    // 窄屏发完消息切到运行面板：收起会话栏腾出高度，同时让本轮结果与保留操作可见。
-    // 宽屏两个属性都不参与布局，左右两栏仍常驻。
-    setDrawer(false);
-    setInspectorDrawer(true);
-    $('cancel').disabled = false;
-    renderMessages((await api(scope(`/sessions/${session}/messages`))).items);
-    await refreshSessions();
-    await poll();
+    await submitTurn({ text, imageIds, mode, skillIds, goal });
   }),
 );
 $('cancel').addEventListener(
   'click',
   wrap(async () => {
-    if (run) await api(scope(`/runs/${run}/cancel`), { method: 'POST' });
+    if (!run) return;
+    const target = run;
+    $('cancel').disabled = true;
+    $('cancel').textContent = '正在提交取消…';
+    try {
+      // 真实取消：服务端先标记该根 Ticket 下 OWA 执行，再取消 run 与子运行。
+      await api(scope(`/runs/${target}/cancel`), { method: 'POST' });
+      $('cancel').textContent = '等待服务端确认…';
+      await poll();
+    } catch (error) {
+      $('cancel').textContent = '取消运行';
+      if (run === target) {
+        const stop = stopAvailability(derivePhase({ state: 'running' }));
+        $('cancel').disabled = !stop.enabled;
+      }
+      throw error;
+    }
+  }),
+);
+$('retry-run').addEventListener(
+  'click',
+  wrap(async () => {
+    if (!run && !lastRunInput) return;
+    const text = lastRunInput;
+    if (!text) throw new Error('无法恢复本次运行的原始输入，不能重新执行');
+    const accepted = await ask({
+      title: '重新执行本次输入',
+      message:
+        `将以新的 Turn 重新执行同一输入（不是续跑，也不是同一个 run）：${text.slice(0, 160)}${text.length > 160 ? '…' : ''}\n\n` +
+        '已完成的消息与产物会保留；如果上一轮执行过写入/外部动作，重新执行可能产生重复副作用。请先核对上一轮的执行证据与审批回执。',
+      confirmLabel: '重新执行',
+      danger: true,
+    });
+    if (!accepted) return;
+    const savedRun = run;
+    run = null;
+    try {
+      await submitTurn({ text, mode: $('chat-mode').value || null, skillIds: [] });
+    } catch (error) {
+      run = savedRun;
+      throw error;
+    }
   }),
 );
 async function loadMemory() {
@@ -2175,47 +2303,6 @@ function renderLogChips() {
       return chip;
     }),
   );
-}
-function renderLogRows() {
-  const box = $('log-rows');
-  if (!logRows.length) {
-    const empty = document.createElement('p');
-    empty.className = 'muted log-empty';
-    empty.textContent = '当前条件没有匹配记录。放宽等级或时间窗后重新查询；新运行产生的日志会进入后续批次。';
-    box.replaceChildren(empty);
-    return;
-  }
-  box.replaceChildren(
-    ...logRows.map((r) => {
-      const row = document.createElement('details');
-      row.className = 'log-row';
-      row.dataset.level = r.level || '';
-      const head = document.createElement('summary');
-      head.title = String(r.timestamp || '');
-      const badge = document.createElement('span');
-      badge.className = 'log-badge';
-      badge.textContent = r.level || '—';
-      const time = document.createElement('span');
-      time.className = 'log-time';
-      time.textContent = String(r.timestamp || '').slice(11, 19);
-      const comp = document.createElement('span');
-      comp.className = 'log-comp';
-      comp.textContent = String(r.component || '').replace(/^omni\./, '');
-      const msg = document.createElement('span');
-      msg.className = 'log-msg';
-      msg.textContent = r.message || r.event || '';
-      head.append(badge, time, comp, msg);
-      const body = document.createElement('pre');
-      body.className = 'log-json';
-      body.textContent = JSON.stringify(r, null, 2);
-      row.append(head, body);
-      return row;
-    }),
-  );
-}
-function renderLogView() {
-  renderLogChips();
-  renderLogRows();
 }
 async function loadLogs(reset = true) {
   const version = ++logGeneration,
@@ -2362,6 +2449,7 @@ for (const button of document.querySelectorAll('[data-page]'))
       for (const node of document.querySelectorAll('.page')) node.hidden = node.id !== selectedPage;
       if (selectedPage === 'memory')
         await Promise.all([loadMemory(), memoryOrganizationPanel.load(), memorySemanticPanel.load()]);
+      if (selectedPage === 'chat') omniweavePanel.load();
       if (selectedPage === 'context') await loadContextPage();
       if (selectedPage === 'skills') await skillsPanel.load();
       if (selectedPage === 'extensions') await extensionsPanel.load();
@@ -2455,6 +2543,7 @@ for (const tab of inspectorTabs)
     if (selected === 'skills') inspectorPanel.loadSkills();
     if (selected === 'objects') inspectorPanel.loadObjects();
     if (selected === 'desktop') inspectorPanel.loadDesktop();
+    if (selected === 'worker') omniweavePanel.load();
   });
 for (const tab of inspectorTabs)
   tab.addEventListener('keydown', (event) => {
@@ -2537,3 +2626,392 @@ document.addEventListener('visibilitychange', () => {
     schedule();
   }
 });
+
+/* ==========================================================================
+   Phase 3D：T2 日志表格 / T4 审计时间线+详情
+   --------------------------------------------------------------------------
+   只读既有 API 数据；缺失字段显示未知；不伪造记录。
+   ========================================================================== */
+let auditRowsCache = [];
+let auditSelectedId = '';
+
+function copyText(value) {
+  const text = String(value ?? '');
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text).catch(() => {});
+  const area = document.createElement('textarea');
+  area.value = text;
+  area.setAttribute('readonly', '');
+  document.body.append(area);
+  area.select();
+  try {
+    document.execCommand('copy');
+  } finally {
+    area.remove();
+  }
+  return Promise.resolve();
+}
+
+function auditResult(data) {
+  if (!data || typeof data !== 'object') return '未知';
+  const candidate = data.result ?? data.status ?? data.outcome ?? data.decision ?? data.allowed ?? data.effect;
+  if (candidate === undefined || candidate === null || candidate === '') return '未知';
+  if (typeof candidate === 'boolean') return candidate ? '成功' : '被拒绝';
+  const text = String(candidate);
+  const map = {
+    ok: '成功',
+    success: '成功',
+    error: '失败',
+    failed: '失败',
+    denied: '被拒绝',
+    cancelled: '已取消',
+    unknown: '未知',
+    applied: '已生效',
+    none: '无副作用',
+    allowed: '允许',
+    reject: '拒绝',
+  };
+  return map[text] || text;
+}
+
+function auditTime(value) {
+  const text = String(value || '');
+  const match = /T(\d{2}:\d{2}:\d{2})/.exec(text);
+  return match ? match[1] : text.slice(11, 19) || '未知';
+}
+
+function renderAudit(rows) {
+  auditRowsCache = Array.isArray(rows) ? rows : [];
+  const keyword = ($('audit-search')?.value || '').trim().toLowerCase();
+  const filter = $('audit-filter-result')?.value || '';
+  const filtered = auditRowsCache.filter((row) => {
+    const haystack = JSON.stringify(row).toLowerCase();
+    if (keyword && !haystack.includes(keyword)) return false;
+    if (filter) {
+      const result = auditResult(row.data);
+      const isSuccess = result === '成功' || result === '已生效' || result === '允许';
+      const isFail = result === '失败' || result === '被拒绝';
+      if (filter === 'ok' && !isSuccess) return false;
+      if (filter === 'error' && !isFail) return false;
+      if (filter === 'unknown' && result !== '未知') return false;
+    }
+    return true;
+  });
+  const host = $('audit-list');
+  if (!filtered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = auditRowsCache.length ? '当前搜索/筛选没有匹配记录。' : '暂无审计记录';
+    host.replaceChildren(empty);
+    return;
+  }
+  if (!filtered.some((row) => row.id === auditSelectedId)) auditSelectedId = filtered[0].id;
+  const selected = filtered.find((row) => row.id === auditSelectedId) || filtered[0];
+  const split = document.createElement('div');
+  split.className = 'audit-split-inner';
+  const timeline = document.createElement('div');
+  timeline.className = 'audit-timeline';
+  timeline.setAttribute('role', 'listbox');
+  timeline.setAttribute('aria-label', '审计事件时间线');
+  for (const row of filtered) {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'audit-event';
+    item.setAttribute('role', 'option');
+    item.setAttribute('aria-selected', String(row.id === auditSelectedId));
+    item.classList.toggle('active', row.id === auditSelectedId);
+    const time = document.createElement('span');
+    time.className = 'audit-time';
+    time.textContent = auditTime(row.created_at);
+    const source = document.createElement('span');
+    source.className = 'audit-source';
+    source.textContent = String(row.kind || '未知来源');
+    const target = document.createElement('span');
+    target.className = 'audit-target';
+    target.textContent = row.operation_id ? `对象 ${String(row.operation_id).slice(0, 8)}` : '对象未知';
+    const result = document.createElement('span');
+    result.className = 'audit-result';
+    const value = auditResult(row.data);
+    result.dataset.state =
+      value === '成功' || value === '已生效' ? 'ok' : value === '失败' || value === '被拒绝' ? 'error' : 'unknown';
+    result.textContent = value;
+    item.append(time, source, target, result);
+    item.addEventListener('click', () => {
+      auditSelectedId = row.id;
+      renderAudit(auditRowsCache);
+    });
+    timeline.append(item);
+  }
+  const detail = document.createElement('aside');
+  detail.className = 'audit-detail';
+  detail.setAttribute('aria-label', '审计事件详情');
+  const head = document.createElement('div');
+  head.className = 'audit-detail-head';
+  const title = document.createElement('h3');
+  title.textContent = String(selected.kind || '未知事件');
+  const badge = document.createElement('span');
+  badge.className = 'worker-badge';
+  const resultValue = auditResult(selected.data);
+  badge.dataset.state =
+    resultValue === '成功' || resultValue === '已生效'
+      ? 'succeeded'
+      : resultValue === '失败' || resultValue === '被拒绝'
+        ? 'failed'
+        : 'unknown';
+  badge.textContent = resultValue;
+  head.append(title, badge);
+  const facts = document.createElement('dl');
+  facts.className = 'audit-facts';
+  for (const [label, value] of [
+    ['事件时间', selected.created_at || '未知'],
+    ['来源', selected.kind || '未知'],
+    ['操作对象', selected.operation_id || '无'],
+    ['结果', resultValue],
+    ['记录 ID', selected.id || '未知'],
+  ]) {
+    const dt = document.createElement('dt');
+    dt.textContent = label;
+    const dd = document.createElement('dd');
+    dd.textContent = String(value);
+    facts.append(dt, dd);
+  }
+  const copy = document.createElement('button');
+  copy.type = 'button';
+  copy.className = 'btn small';
+  copy.textContent = '复制此事件 JSON';
+  copy.addEventListener('click', () => {
+    copyText(JSON.stringify(selected, null, 2));
+    copy.textContent = '已复制';
+    setTimeout(() => (copy.textContent = '复制此事件 JSON'), 1200);
+  });
+  const raw = document.createElement('details');
+  raw.className = 'audit-raw';
+  const summary = document.createElement('summary');
+  summary.textContent = '原始 JSON';
+  const pre = document.createElement('pre');
+  pre.textContent = JSON.stringify(selected, null, 2);
+  raw.append(summary, pre);
+  detail.append(head, facts, copy, raw);
+  split.append(timeline, detail);
+  host.replaceChildren(split);
+}
+
+for (const id of ['audit-search', 'audit-filter-result']) {
+  $(id)?.addEventListener('input', () => renderAudit(auditRowsCache));
+  $(id)?.addEventListener('change', () => renderAudit(auditRowsCache));
+}
+$('copy-audit')?.addEventListener('click', () => {
+  const selected = auditRowsCache.find((row) => row.id === auditSelectedId) || auditRowsCache[0];
+  if (selected) copyText(JSON.stringify(selected, null, 2));
+});
+
+/* 诊断日志：结构化表格（时间/级别/来源/消息/复制）；关键字为本地过滤。 */
+function renderLogRows() {
+  const box = $('log-rows');
+  if (!box) return;
+  const keyword = ($('log-keyword')?.value || '').trim().toLowerCase();
+  const rows = logRows.filter((row) => {
+    if (!keyword) return true;
+    const haystack =
+      `${row.timestamp || ''} ${row.level || ''} ${row.component || ''} ${row.message || row.event || ''}`.toLowerCase();
+    return haystack.includes(keyword);
+  });
+  if (!rows.length) {
+    const empty = document.createElement('p');
+    empty.className = 'muted log-empty';
+    empty.textContent = logRows.length
+      ? '当前关键字没有匹配记录。'
+      : '当前条件没有匹配记录。放宽等级或时间窗后重新查询。';
+    box.replaceChildren(empty);
+    return;
+  }
+  const wrap = document.createElement('div');
+  wrap.className = 'log-table-wrap';
+  const table = document.createElement('table');
+  table.className = 'log-table';
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  for (const label of ['时间', '级别', '来源', '消息', '操作']) {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.textContent = label;
+    headRow.append(th);
+  }
+  thead.append(headRow);
+  const tbody = document.createElement('tbody');
+  for (const row of rows) {
+    const tr = document.createElement('tr');
+    tr.dataset.level = row.level || '';
+    const time = document.createElement('td');
+    time.className = 'log-time';
+    time.textContent = String(row.timestamp || '').slice(11, 19) || '未知';
+    const level = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'log-badge';
+    badge.textContent = row.level || '—';
+    level.append(badge);
+    const source = document.createElement('td');
+    source.className = 'log-comp';
+    source.textContent = String(row.component || '').replace(/^omni\./, '') || '未知';
+    const message = document.createElement('td');
+    message.className = 'log-msg';
+    message.textContent = row.message || row.event || '';
+    const act = document.createElement('td');
+    act.className = 'log-act';
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.className = 'btn small';
+    copy.textContent = '复制';
+    copy.addEventListener('click', () => {
+      copyText(JSON.stringify(row, null, 2));
+      copy.textContent = '已复制';
+      setTimeout(() => (copy.textContent = '复制'), 1200);
+    });
+    act.append(copy);
+    tr.append(time, level, source, message, act);
+    tbody.append(tr);
+  }
+  table.append(thead, tbody);
+  wrap.append(table);
+  box.replaceChildren(wrap);
+}
+function renderLogView() {
+  renderLogChips();
+  renderLogRows();
+}
+$('log-keyword')?.addEventListener('input', () => renderLogView());
+$('copy-logs')?.addEventListener('click', () => {
+  copyText(JSON.stringify(logRows, null, 2));
+  const node = $('copy-logs');
+  if (node) {
+    node.textContent = '已复制';
+    setTimeout(() => (node.textContent = '复制当前结果'), 1200);
+  }
+});
+$('clear-logs')?.addEventListener('click', () => {
+  for (const id of ['log-keyword', 'log-component', 'log-run', 'log-since', 'log-until']) {
+    const node = $(id);
+    if (node) node.value = '';
+  }
+  const level = $('log-level');
+  if (level) level.value = '';
+  return loadLogs(true);
+});
+/* ==========================================================================
+   Phase 4：移动端抽屉导航 / 检查器全屏 / a11y 动态播报
+   ========================================================================== */
+const mobileViewport = window.matchMedia('(max-width: 760px)');
+let navReturnFocus = null;
+
+function setNavDrawer(open) {
+  const body = document.body;
+  const button = $('mobile-menu');
+  if (open) navReturnFocus = document.activeElement;
+  body.dataset.nav = open ? 'open' : 'closed';
+  button?.setAttribute('aria-expanded', String(open));
+  button?.setAttribute('aria-label', open ? '关闭导航' : '打开导航');
+  const first = document.querySelector('nav[aria-label="工作台"] .rail-btn');
+  if (open) first?.focus();
+  else if (navReturnFocus?.isConnected) navReturnFocus.focus();
+}
+$('mobile-menu')?.addEventListener('click', () => setNavDrawer(document.body.dataset.nav !== 'open'));
+for (const button of document.querySelectorAll('nav[aria-label="工作台"] .rail-btn')) {
+  button.addEventListener('click', () => {
+    if (mobileViewport.matches) setNavDrawer(false);
+  });
+}
+$('inspector-close')?.addEventListener('click', () => {
+  setInspectorDrawer(false);
+  $('toggle-inspector')?.focus();
+});
+$('sessions-close')?.addEventListener('click', () => {
+  setDrawer(false);
+  $('toggle-sessions')?.focus();
+});
+document.addEventListener(
+  'keydown',
+  (event) => {
+    if (event.key !== 'Escape') return;
+    if (document.getElementById('ui-dialog')?.open) return; // 模态对话框优先
+    if (document.body.dataset.nav === 'open') {
+      event.stopPropagation();
+      setNavDrawer(false);
+      return;
+    }
+    if (mobileViewport.matches && $('inspector-panel')?.dataset.open === 'true') {
+      event.stopPropagation();
+      setInspectorDrawer(false);
+      $('toggle-inspector')?.focus();
+      return;
+    }
+    if (mobileViewport.matches && $('sessions-panel')?.dataset.open === 'true') {
+      event.stopPropagation();
+      setDrawer(false);
+      $('toggle-sessions')?.focus();
+    }
+  },
+  true,
+);
+// 软键盘：记录可视视口高度，供 CSS 收缩消息区，避免输入框被遮住
+function syncViewportHeight() {
+  if (!window.visualViewport) return;
+  document.documentElement.style.setProperty('--vvh', `${Math.round(window.visualViewport.height)}px`);
+}
+window.visualViewport?.addEventListener('resize', syncViewportHeight);
+window.visualViewport?.addEventListener('scroll', syncViewportHeight);
+syncViewportHeight();
+
+// 简洁播报：只播报状态变化摘要，不播报流式正文；消息区不再整体 aria-live。
+let lastLive = '';
+function announce(text) {
+  const value = String(text || '').trim();
+  const node = $('live-status');
+  if (!node || !value || value === lastLive) return;
+  lastLive = value;
+  node.textContent = '';
+  queueMicrotask(() => {
+    node.textContent = value;
+  });
+}
+let announceTimer = null;
+function scheduleAnnounce() {
+  if (announceTimer) return;
+  announceTimer = setTimeout(() => {
+    announceTimer = null;
+    const approvals = document.querySelectorAll(
+      '#approvals .approval-card, #inspector-todo-list .approval-card',
+    ).length;
+    if (approvals) {
+      announce(`有 ${approvals} 项审批等待处理。`);
+      return;
+    }
+    const runState = $('run-status')?.dataset.state || '';
+    if (runState && ['succeeded', 'failed', 'cancelled', 'interrupted'].includes(runState)) {
+      const map = { succeeded: '运行已完成', failed: '运行失败', cancelled: '运行已取消', interrupted: '运行已中断' };
+      announce(map[runState]);
+      return;
+    }
+    const queue = document.querySelectorAll('#queue-strip .queue-item').length;
+    const failed = document.querySelector('#queue-strip .queue-item[data-state="failed"]');
+    if (failed) announce(`输入队列有 ${queue} 条，其中 1 条发送失败，队列已阻塞。`);
+  }, 450);
+}
+const liveObserver = new MutationObserver(scheduleAnnounce);
+for (const id of ['run-status', 'approvals', 'queue-strip', 'inspector-todo-list']) {
+  const node = $(id);
+  if (node) liveObserver.observe(node, { childList: true, subtree: true, characterData: true, attributes: true });
+}
+
+// Phase 4：无障碍兜底——图标按钮补可访问名称、无标签输入补 aria-label（不改视觉）
+for (const button of document.querySelectorAll('button')) {
+  if (button.hidden || button.getAttribute('aria-labelledby')) continue;
+  const name = (button.getAttribute('aria-label') || button.textContent || '').trim();
+  if (name) continue;
+  const icon = button.querySelector('.material-icons');
+  const label = button.title || icon?.textContent?.trim() || '操作';
+  button.setAttribute('aria-label', label);
+}
+for (const field of document.querySelectorAll('input:not([type="hidden"]), select, textarea')) {
+  if (field.getAttribute('aria-label') || field.getAttribute('aria-labelledby')) continue;
+  if (field.closest('label') || (field.id && document.querySelector(`label[for="${field.id}"]`))) continue;
+  field.setAttribute('aria-label', field.getAttribute('placeholder') || field.id || '输入');
+}

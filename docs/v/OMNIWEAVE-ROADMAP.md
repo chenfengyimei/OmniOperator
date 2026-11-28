@@ -21,7 +21,7 @@
 
 ## 2. 目标与优先级
 
-**Phase 3 是首个可用里程碑。** 用户在一个私有 Web 主会话提出“开发校园助手、研究竞品、检查代码并整理文档”。Router 受理后让出执行位。Research、Coding、Verification 的运行时间有重叠。Coding 向 Research 请求接口资料，向 Verification 发布待核验版本。用户从原会话追加要求或取消任务。测试实例重启后，未消费的协作输入和同一个 Ticket 可以续接。必需的证据齐备后，Router 在原会话统一交付。
+**Phase 3 是首个可用里程碑。** 离线验收使用明确的测试输入。用户在私有 Web 主会话提出“开发校园助手、研究竞品、检查代码并整理文档”，以覆盖 OmniWeave 的任务分配、协作、续接与交付。Router 受理后让出执行位。Research、Coding、Verification 的运行时间有重叠。Coding 向 Research 请求接口资料，向 Verification 发布待核验版本。用户从原会话追加要求或取消任务。测试实例重启后，未消费的协作输入和同一个 Ticket 可以续接。必需的证据齐备后，Router 在原会话统一交付。
 
 | 优先级 | 开发方向 | 可观察结果 |
 | --- | --- | --- |

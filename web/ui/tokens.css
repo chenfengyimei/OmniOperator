@@ -19,8 +19,6 @@
   --surface-3: color-mix(in oklab, var(--surface-2) 85%, var(--seed-fg) 15%);
   --surface-accent: color-mix(in oklab, var(--surface-2) 86%, var(--seed-accent) 14%);
   --surface-inset: color-mix(in oklab, var(--surface-0) 62%, transparent);
-  /* 终端/日志深底：组件层只准引用 token，不再写死近黑色。 */
-  --terminal-bg: #0b0e13;
 
   --text-1: color-mix(in srgb, var(--seed-fg) 96%, transparent);
   --text-2: color-mix(in srgb, var(--seed-fg) 71%, transparent);
@@ -226,34 +224,74 @@
   /* 强调底上的前景色：深青紫上要白字 */
   --on-accent: #ffffff;
 
-  /* ---- V2 工作台暗色主题（炭黑 + 青，558c7d6 起）：种子集中在此，组件层只准 var() ---- */
-  --v2-bg: #0b0d10;
-  --v2-surface-1: #101215;
-  --v2-surface-2: #16191d;
-  --v2-surface-3: #191c20;
-  --v2-surface-4: #1c2025;
-  --v2-line-strong: #23272c;
-  --v2-line-soft: #2b2f34;
-  --v2-teal-deep: #041c1c;
-  --v2-teal-mid: #06201f;
-  --v2-teal-ink: #04121a;
-  --v2-teal-panel: #0a2626;
-  --v2-accent: #34d399;
-  --v2-accent-2: #2dd4bf;
-  --v2-fg-warm: #ffe6cb;
-  --v2-fg: #f2efea;
-  --v2-fg-dim: #b9b6b1;
-  --v2-fg-muted: #8f8c87;
-  --v2-fg-faint: #7a776f;
-
-  /* ---- Hermes-Agent 深青主题（仅 V2 工作台，见 39e018f 与 UI_DESIGN_SYSTEM §3）---- */
-  --hermes-bg: #041c1c;
-  --hermes-panel: #0a2626;
-  --hermes-accent: #34d399;
-  --hermes-accent2: #2dd4bf;
-  --hermes-fg: #ffe6cb;
-  --hermes-fg-soft: #fff3e2;
-  --hermes-fg-bright: #fff6ea;
-
   color-scheme: light;
+}
+
+/* ==========================================================================
+   Phase 3：Design System V3（Instrument Panel）
+   --------------------------------------------------------------------------
+   新增语义层与布局层；旧变量全部保留（V1/子站仍引用），组件只准引用这些语义名。
+   功能文字下限 12px（--fs-small/--fs-caption 在 V2 作用域内提高，见 v2/workbench.css）。
+   ========================================================================== */
+:root {
+  /* 表面 */
+  --surface-hover: color-mix(in oklab, var(--surface-2) 82%, var(--seed-fg) 8%);
+  --surface-selected: color-mix(in oklab, var(--surface-2) 78%, var(--seed-accent) 16%);
+  /* 文本语义 */
+  --text-primary: var(--text-1);
+  --text-secondary: var(--text-2);
+  --text-muted: var(--text-3);
+  /* 边线 */
+  --line-divider: var(--line-2);
+  --line-focus: var(--line-accent);
+  /* 品牌/状态 */
+  --primary: var(--seed-accent);
+  --secondary: var(--seed-accent2);
+  --success: var(--ok);
+  --warning: var(--warn);
+  --danger-color: var(--danger);
+  --info: #5aa9ff;
+  --info-bg: color-mix(in srgb, var(--info) 14%, transparent);
+  --info-bd: color-mix(in srgb, var(--info) 36%, transparent);
+  --unknown: #a8a2ff;
+  --unknown-bg: color-mix(in srgb, var(--unknown) 14%, transparent);
+  --unknown-bd: color-mix(in srgb, var(--unknown) 38%, transparent);
+  --running: var(--seed-accent);
+  --running-bg: color-mix(in srgb, var(--running) 14%, transparent);
+  --running-bd: color-mix(in srgb, var(--running) 36%, transparent);
+  --queued: var(--text-3);
+  --queued-bg: color-mix(in srgb, var(--queued) 12%, transparent);
+  --paused: var(--warn);
+  --paused-bg: var(--warn-bg);
+  /* 字体刻度（功能文字下限 12px；meta 允许 11.5） */
+  --fs-display: 20px;
+  --fs-page-title: 18px;
+  --fs-section-title: 14px;
+  --fs-body-v3: 13px;
+  --fs-secondary-v3: 12px;
+  --fs-meta: 12px;
+  --lh-body-v3: 1.65;
+  --lh-tight: 1.45;
+  /* 布局 */
+  --content-max: 1180px;
+  --page-pad: 24px;
+  --rail-w-compact: 54px;
+  --rail-expanded-w: 216px;
+  --inspector-w: 320px;
+  --sessions-w: 260px;
+  --toolbar-h: 40px;
+  --row-h: 34px;
+  --space-section: 20px;
+  /* 层级 */
+  --z-sticky: 10;
+  --z-drawer: 40;
+  --z-dialog: 70;
+  --z-tooltip: 90;
+}
+:root[data-theme="light"] {
+  --info: #2563eb;
+  --unknown: #5b4bd6;
+  --running: #0e7490;
+  --surface-hover: color-mix(in oklab, var(--surface-2) 90%, var(--seed-fg) 5%);
+  --surface-selected: color-mix(in oklab, var(--surface-2) 86%, var(--seed-accent) 10%);
 }

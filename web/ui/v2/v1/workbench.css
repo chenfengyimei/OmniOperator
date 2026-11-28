@@ -678,9 +678,7 @@ dialog.modal::backdrop {
   letter-spacing: 0.3px;
 }
 .hub-header .title span {
-  background: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--text-1);
   color: transparent;
 }
 .hub-header .sub {
@@ -1921,11 +1919,11 @@ main > section,
   color: var(--text-4);
 }
 .s-meta .material-icons {
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 #sessions .s-id {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   letter-spacing: 0.02em;
   flex-shrink: 0;
   color: var(--text-4);
@@ -1969,7 +1967,6 @@ main > section,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: arc 9s linear infinite;
   opacity: 0.6;
 }
 #status {
@@ -2066,7 +2063,7 @@ main > section,
   margin-top: 4px;
 }
 .turn-foot .ts {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   font-family: var(--font-mono);
 }
@@ -2257,7 +2254,7 @@ main > section,
   cursor: pointer;
   user-select: none;
   color: var(--text-4);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   font-weight: 600;
   transition:
     color 0.12s,
@@ -2352,7 +2349,7 @@ main > section,
 }
 .scaf-label b {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   font-weight: 640;
   color: color-mix(in srgb, var(--seed-accent) 58%, var(--text-2));
 }
@@ -2367,7 +2364,7 @@ main > section,
   min-width: 0;
 }
 .scaf-time {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   font-family: var(--font-mono);
   flex-shrink: 0;
@@ -2783,13 +2780,11 @@ dialog.modal::backdrop {
   letter-spacing: -0.015em;
 }
 .hub-header .title span {
-  background: var(--grad);
-  -webkit-background-clip: text;
-  background-clip: text;
+  color: var(--text-1);
   color: transparent;
 }
 .hub-header .sub {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   margin-top: 1px;
 }
@@ -2846,7 +2841,7 @@ dialog.modal::backdrop {
   .hub-group {
     padding: 0 9px 7px;
     margin: 14px 0 0;
-    font-size: 10px;
+    font-size: var(--fs-caption);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -3185,7 +3180,7 @@ body[data-ui-page="workbench-v2"] .svc-strip-text {
 }
 body[data-ui-page="workbench-v2"] .svc-strip-more {
   flex-shrink: 0;
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
 }
 body[data-ui-page="workbench-v2"] .svc-dot {
@@ -3398,7 +3393,7 @@ body[data-ui-page="workbench-v2"] .ctx-legend .lg {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   white-space: nowrap;
 }
@@ -3417,7 +3412,7 @@ body[data-ui-page="workbench-v2"] .ctx-legend .lg b {
 body[data-ui-page="workbench-v2"] .ctx-note {
   margin-top: 7px;
   color: var(--text-4);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   line-height: 1.55;
 }
 body[data-ui-page="workbench-v2"] .ctx-status {
@@ -3553,7 +3548,6 @@ body[data-ui-page="workbench-v2"] .chat-empty {
   height: 5px;
   border-radius: 50%;
   background: var(--seed-accent);
-  animation: omni-loading-dot 1s ease-in-out infinite;
 }
 .chat-loading span:nth-child(2) {
   animation-delay: 0.12s;
@@ -3860,7 +3854,7 @@ body[data-ui-page="workbench-v2"] .hub-back .material-icons {
   padding: 12px;
 }
 #sec-skills .metric-card > span {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -3954,7 +3948,7 @@ body[data-ui-page="workbench-v2"] .hub-back .material-icons {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   white-space: nowrap;
 }

@@ -1,3 +1,7 @@
+:root {
+  --vvh: 100dvh;
+}
+
 /* ==========================================================================
    V2 桥接层 —— 只处理 V1 没有的部分，外观一律由 v1/*.css 决定
    --------------------------------------------------------------------------
@@ -493,7 +497,7 @@ body[data-ui-page="workbench-v2"][data-connected="true"] #connect label::before 
   height: 7px;
   border-radius: var(--r-full);
   background: var(--ok);
-  box-shadow: 0 0 7px -1px color-mix(in srgb, var(--ok) 70%, transparent);
+  box-shadow: 0 0 0 1px var(--ok-bd);
 }
 body[data-ui-page="workbench-v2"][data-connected="true"] #connect input {
   display: none;
@@ -586,7 +590,7 @@ body[data-ui-page="workbench-v2"] .agent-field select:focus-visible {
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--seed-accent) 35%, transparent);
 }
 body[data-ui-page="workbench-v2"] #sessions .s-meta .material-icons {
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 
 /* 右栏四个数据页签 */
@@ -600,12 +604,12 @@ body[data-ui-page="workbench-v2"] .inspector-panel {
   flex: 1 1 auto;
   min-height: 0;
 }
-/* 右栏页签由 4 增到 5（新增「运行」），副本写死 3 列会折行；改为按实际数量均分。
+/* 右栏页签由 4 增到 6（新增「运行」「任务」），按实际数量均分。
    必须 flex:0 0 auto：窄屏抽屉里它被压到 23px（内容需 44px），
    页签实际位置超出容器，点击会落到下方内容层上。 */
 body[data-ui-page="workbench-v2"] .inspector-panel > .tabs {
   flex: 0 0 auto;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 2px;
   padding: 6px;
   overflow: visible;
@@ -666,7 +670,7 @@ body[data-ui-page="workbench-v2"] .empty-state > .material-icons {
   background: var(--grad);
   color: var(--on-accent);
   font-size: 22px;
-  box-shadow: 0 0 18px -6px color-mix(in srgb, var(--seed-accent) 62%, transparent);
+  box-shadow: none;
 }
 body[data-ui-page="workbench-v2"] .empty-state strong {
   color: var(--text-1);
@@ -996,14 +1000,14 @@ body[data-ui-page="workbench-v2"] .route-call-mode {
   border: 1px solid var(--line-accent);
   border-radius: var(--r-full);
   color: var(--accent);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   font-weight: 600;
 }
 body[data-ui-page="workbench-v2"] .route-call-state {
   margin-left: auto;
   color: var(--text-4);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
 }
 body[data-ui-page="workbench-v2"] .route-call-state[data-state="settled"] {
   color: var(--ok);
@@ -1034,7 +1038,7 @@ body[data-ui-page="workbench-v2"] .route-call-tools {
   border-top: 1px solid var(--line-3);
   color: var(--text-3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -1138,10 +1142,8 @@ body[data-ui-page="workbench-v2"] .scaf.fail .scaf-glyph {
    颜色一律取已登记 token，不引入第二套强调色。 */
 body[data-ui-page="workbench-v2"] .scaf.legend .scaf-label,
 body[data-ui-page="workbench-v2"] .scaf.legend .scaf-label b {
-  font-weight: 720;
-  background-image: linear-gradient(100deg, var(--warn) 0%, var(--seed-accent) 52%, var(--seed-accent2) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
+  font-weight: 600;
+  color: var(--text-1);
   color: transparent;
 }
 body[data-ui-page="workbench-v2"] .scaf.legend .scaf-glyph {
@@ -1152,7 +1154,7 @@ body[data-ui-page="workbench-v2"] .scaf.legend .scaf-glyph {
 }
 /* 链开关行与参考原型一致的紧凑排版（字号不低于 10px 下限） */
 body[data-ui-page="workbench-v2"] .scaf-toggle {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   letter-spacing: 0.01em;
 }
 /* 调用过程汇总行：本轮档位 + 输入/输出 token（所有者要求更详细）。
@@ -1195,7 +1197,6 @@ body[data-ui-page="workbench-v2"] .thinking-dots i {
   height: 5px;
   border-radius: var(--r-full);
   background: var(--accent);
-  animation: v2-pulse 1.2s ease-out infinite;
 }
 body[data-ui-page="workbench-v2"] .thinking-dots i:nth-child(2) {
   animation-delay: 0.18s;
@@ -1431,7 +1432,7 @@ body[data-ui-page="workbench-v2"] .settings-rail-link[aria-current="true"]::befo
   height: 16px;
   border-radius: 0 99px 99px 0;
   background: var(--grad);
-  box-shadow: 0 0 9px color-mix(in srgb, var(--seed-accent) 76%, transparent);
+  box-shadow: 0 0 0 1px var(--line-accent);
 }
 
 /* 窄屏 */
@@ -2411,7 +2412,7 @@ body[data-ui-page="workbench-v2"] #models .mo-hero-status[data-state="ok"] {
 }
 body[data-ui-page="workbench-v2"] #models .mo-hero-status[data-state="ok"] .mo-hero-dot {
   background: var(--ok);
-  box-shadow: 0 0 8px -1px var(--ok);
+  box-shadow: 0 0 0 1px var(--ok-bd);
 }
 body[data-ui-page="workbench-v2"] #models .mo-hero-status[data-state="warn"] {
   border-color: var(--warn-bd);
@@ -3650,8 +3651,7 @@ body[data-ui-page="workbench-v2"].chat-mode #chat {
   position: relative;
 }
 body[data-ui-page="workbench-v2"].chat-mode #messages > .msg,
-body[data-ui-page="workbench-v2"].chat-mode #messages > .empty-state,
-body[data-ui-page="workbench-v2"].chat-mode #messages > .chat-loading {
+body[data-ui-page="workbench-v2"].chat-mode #messages > .empty-state {
   width: 100%;
   max-width: 760px;
   margin-inline: auto;
@@ -4149,15 +4149,9 @@ body[data-ui-page="workbench-v2"]::before {
   z-index: -1;
   pointer-events: none;
   background-image:
-    linear-gradient(color-mix(in srgb, var(--seed-fg) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--seed-fg) 6%, transparent) 1px, transparent 1px),
     radial-gradient(980px 620px at 8% -8%, color-mix(in srgb, var(--seed-accent) 9%, transparent), transparent 58%),
     radial-gradient(900px 620px at 102% -2%, color-mix(in srgb, var(--seed-accent2) 8%, transparent), transparent 58%);
-  background-size:
-    40px 40px,
-    40px 40px,
-    auto,
-    auto;
+  background-size: auto, auto;
   mask-image: linear-gradient(to bottom, #000, transparent 72%);
 }
 
@@ -4483,4 +4477,1433 @@ body[data-ui-page="workbench-v2"] #inspector-todo-list .approval-head b {
 }
 body[data-ui-page="workbench-v2"] #inspector-todo-list .approval-args {
   max-height: 120px;
+}
+
+/* ==========================================================================
+   OmniWeave Worker/Ticket 状态（Phase 1）
+   --------------------------------------------------------------------------
+   主会话只显示一条紧凑状态条；明细在右栏「任务」页签。
+   信息密度优先：状态用文字 + 徽章表达，不用进度条、不做装饰动画。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .owa-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto var(--sp-2);
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+body[data-ui-page="workbench-v2"] .owa-strip[hidden] {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .owa-strip-icon {
+  font-size: 16px;
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .owa-strip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+body[data-ui-page="workbench-v2"] .owa-strip-text strong {
+  font-size: var(--fs-secondary);
+  font-weight: 600;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .owa-strip-phase {
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .owa-strip-phase[data-state="running"] {
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .owa-strip-phase[data-state="cancelling"] {
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] .owa-strip-phase[data-state="done"] {
+  color: var(--ok);
+}
+body[data-ui-page="workbench-v2"] .owa-strip[data-state="cancelling"] {
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+}
+
+body[data-ui-page="workbench-v2"] .worker-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-small);
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .worker-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+body[data-ui-page="workbench-v2"] .worker-head strong {
+  font-size: var(--fs-secondary);
+  font-weight: 600;
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .worker-phase {
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .worker-phase[data-state="running"] {
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .worker-phase[data-state="cancelling"] {
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] .worker-phase[data-state="done"] {
+  color: var(--ok);
+}
+body[data-ui-page="workbench-v2"] .worker-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+}
+body[data-ui-page="workbench-v2"] .worker-facts-line {
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .worker-section-title {
+  margin: var(--sp-2) 0 2px;
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .worker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+body[data-ui-page="workbench-v2"] .worker-task {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+  background: color-mix(in oklab, var(--surface-2) 58%, transparent);
+}
+body[data-ui-page="workbench-v2"] .worker-task strong {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .worker-task-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--sp-2);
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .worker-badge {
+  align-self: flex-start;
+  padding: 0 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-full);
+  font-size: var(--fs-caption);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="running"] {
+  color: var(--text-1);
+  border-color: var(--line-1);
+}
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="succeeded"] {
+  color: var(--ok);
+  border-color: var(--ok-bd);
+  background: var(--ok-bg);
+}
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="failed"] {
+  color: var(--danger);
+  border-color: var(--danger-bd);
+  background: var(--danger-bg);
+}
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="waiting_approval"],
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="cancelling"] {
+  color: var(--warn);
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+}
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="cancelled"],
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="interrupted"],
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="queued"] {
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="unknown"],
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="waiting_peer"],
+body[data-ui-page="workbench-v2"] .worker-badge[data-state="blocked"] {
+  color: var(--warn);
+  border-style: dashed;
+}
+body[data-ui-page="workbench-v2"] .worker-subrow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+  border: 1px solid var(--line-3);
+  border-radius: var(--r-sm);
+}
+body[data-ui-page="workbench-v2"] .worker-subrow-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-1);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .worker-subrow-head .material-icons {
+  font-size: 16px;
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .worker-subrow-head strong {
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+body[data-ui-page="workbench-v2"] .worker-subrow-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 3px;
+  border-top: 1px dashed var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .worker-task-summary {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .worker-step {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+  align-items: baseline;
+  padding: 1px 0;
+  font-size: var(--fs-caption);
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .worker-step-time,
+body[data-ui-page="workbench-v2"] .worker-step-state {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .worker-step-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .worker-elapsed,
+body[data-ui-page="workbench-v2"] .worker-gap {
+  margin: 0;
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .worker-gap {
+  padding-top: var(--sp-1);
+  border-top: 1px dashed var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .worker-notice {
+  margin: 0;
+  color: var(--warn);
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .worker-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-4) var(--sp-2);
+  color: var(--text-3);
+  font-size: var(--fs-small);
+  text-align: center;
+}
+body[data-ui-page="workbench-v2"] .worker-empty .material-icons {
+  font-size: 22px;
+}
+body[data-ui-page="workbench-v2"] .worker-empty strong {
+  color: var(--text-2);
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  body[data-ui-page="workbench-v2"] .owa-strip {
+    max-width: 100%;
+    margin-bottom: var(--sp-1);
+  }
+}
+body[data-ui-page="workbench-v2"] .worker-meta-line {
+  color: var(--text-3);
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   Phase 2：审批 / 生命周期控制 / 本地队列 / 执行时间线
+   --------------------------------------------------------------------------
+   信息密度优先；状态与字段用文字 + 令牌色表达，不用装饰动画。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] .run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  max-width: 760px;
+  margin: 0 auto var(--sp-1);
+}
+body[data-ui-page="workbench-v2"] .run-note {
+  color: var(--warn);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .approval-facts {
+  display: grid;
+  grid-template-columns: minmax(64px, auto) minmax(0, 1fr);
+  gap: 2px var(--sp-2);
+  margin: 6px 0;
+  font-size: var(--fs-caption);
+}
+body[data-ui-page="workbench-v2"] .approval-fact {
+  display: contents;
+}
+body[data-ui-page="workbench-v2"] .approval-fact-label {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .approval-fact-value {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .approval-detail {
+  margin: 4px 0;
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .approval-detail summary {
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .approval-detail .approval-args {
+  margin: 4px 0 0;
+  max-height: 160px;
+  overflow: auto;
+}
+body[data-ui-page="workbench-v2"] .approval-evidence {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-3);
+  font: inherit;
+  font-size: var(--fs-caption);
+  text-decoration: underline;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .approval-error {
+  margin: 4px 0 0;
+  color: var(--danger);
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .approval-inline {
+  max-width: 760px;
+  margin: 6px auto;
+}
+body[data-ui-page="workbench-v2"] .approval-inline .approval-card {
+  margin: 0;
+}
+body[data-ui-page="workbench-v2"] .queue-strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  max-width: 760px;
+  margin: 0 auto var(--sp-1);
+  padding: 6px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  font-size: var(--fs-caption);
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .queue-strip[hidden] {
+  display: none;
+}
+body[data-ui-page="workbench-v2"] .queue-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .queue-head strong {
+  flex: 1 1 200px;
+  color: var(--text-1);
+  font-weight: 600;
+}
+body[data-ui-page="workbench-v2"] .queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+body[data-ui-page="workbench-v2"] .queue-item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  gap: var(--sp-1) var(--sp-2);
+  align-items: baseline;
+  padding: 3px 0;
+  border-top: 1px dashed var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .queue-item:first-child {
+  border-top: 0;
+}
+body[data-ui-page="workbench-v2"] .queue-item[data-state="failed"] .queue-text {
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .queue-order {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+body[data-ui-page="workbench-v2"] .queue-text {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .queue-state {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .queue-item[data-state="failed"] .queue-state {
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .queue-acts {
+  display: flex;
+  gap: 2px;
+}
+body[data-ui-page="workbench-v2"] .queue-error {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--danger);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .queue-note {
+  margin: 0;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .run-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-caption);
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .timeline-head strong {
+  color: var(--text-1);
+  font-size: var(--fs-secondary);
+}
+body[data-ui-page="workbench-v2"] .timeline-state[data-state="running"],
+body[data-ui-page="workbench-v2"] .timeline-state[data-state="waiting_approval"],
+body[data-ui-page="workbench-v2"] .timeline-state[data-state="cancelling"] {
+  color: var(--warn);
+}
+body[data-ui-page="workbench-v2"] .timeline-state[data-state="succeeded"] {
+  color: var(--ok);
+}
+body[data-ui-page="workbench-v2"] .timeline-state[data-state="failed"] {
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .timeline-facts {
+  display: grid;
+  grid-template-columns: minmax(64px, auto) minmax(0, 1fr);
+  gap: 1px var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .timeline-fact {
+  display: contents;
+}
+body[data-ui-page="workbench-v2"] .timeline-fact-label {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .timeline-fact-value {
+  color: var(--text-2);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .timeline-events {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-top: var(--sp-1);
+  border-top: 1px solid var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .timeline-event {
+  display: grid;
+  grid-template-columns: 58px minmax(84px, auto) minmax(0, 1fr);
+  gap: var(--sp-2);
+  align-items: baseline;
+  padding: 1px 0;
+}
+body[data-ui-page="workbench-v2"] .timeline-event-time {
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+body[data-ui-page="workbench-v2"] .timeline-event-name {
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .timeline-event[data-kind="action.completed"] .timeline-event-name {
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"] .timeline-event-detail {
+  color: var(--text-3);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .timeline-workers {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--sp-1);
+  border-top: 1px solid var(--line-3);
+}
+body[data-ui-page="workbench-v2"] .timeline-worker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-2);
+  align-items: baseline;
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"] .timeline-worker-summary {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .timeline-note,
+body[data-ui-page="workbench-v2"] .timeline-empty {
+  margin: 0;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+body[data-ui-page="workbench-v2"] .timeline-details .timeline-details pre,
+body[data-ui-page="workbench-v2"] .timeline-details pre {
+  max-height: 220px;
+  overflow: auto;
+  font-size: var(--fs-caption);
+  color: var(--text-3);
+}
+body[data-ui-page="workbench-v2"] .timeline-details summary {
+  cursor: pointer;
+  color: var(--text-3);
+}
+
+/* ==========================================================================
+   Phase 3A/3B：Instrument Panel 壳层与 Design System V3
+   --------------------------------------------------------------------------
+   - 单一导航源（左侧 rail 可展开显示标签），不再有第二套设置侧栏。
+   - 页面统一 H1（#page-title）+ 可选的 section 标题；内容区统一最大宽度。
+   - 去掉网格底纹；保留极光作为唯一环境光。功能文字下限 12px（V2 作用域）。
+   ========================================================================== */
+body[data-ui-page="workbench-v2"] {
+  --rail-w: var(--rail-w-compact);
+  --fs-small: 12px;
+  --fs-caption: var(--fs-meta);
+  --page-shell-max: var(--content-max);
+}
+body[data-ui-page="workbench-v2"][data-rail="expanded"] {
+  --rail-w: var(--rail-expanded-w);
+}
+/* 环境光：去掉 40px 网格底纹，仅保留两处极光 */
+body[data-ui-page="workbench-v2"]::before {
+  background-image:
+    radial-gradient(980px 620px at 8% -8%, color-mix(in srgb, var(--seed-accent) 9%, transparent), transparent 58%),
+    radial-gradient(900px 620px at 102% -2%, color-mix(in srgb, var(--seed-accent2) 8%, transparent), transparent 58%);
+  background-size: auto, auto;
+  mask-image: linear-gradient(to bottom, #000, transparent 86%);
+}
+/* ---- 导航：可展开标签（唯一导航源） ---- */
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: var(--rail-w);
+  padding: 8px 6px 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-right: 1px solid var(--line-2);
+  background: color-mix(in srgb, var(--surface-1) 72%, transparent);
+  backdrop-filter: blur(var(--glass-strong-blur)) saturate(var(--glass-strong-sat));
+  transition: width 160ms var(--ease-out);
+}
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 8px;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font-size: var(--fs-secondary-v3);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn .material-icons {
+  flex: 0 0 auto;
+}
+/* 标签由 aria-label 渲染，无需改 26 个按钮的 markup */
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn::after {
+  content: attr(aria-label);
+  display: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-2);
+}
+body[data-ui-page="workbench-v2"][data-rail="expanded"] > nav[aria-label="工作台"] .rail-btn {
+  justify-content: flex-start;
+}
+body[data-ui-page="workbench-v2"][data-rail="expanded"] > nav[aria-label="工作台"] .rail-btn::after {
+  display: inline;
+}
+body[data-ui-page="workbench-v2"][data-rail="expanded"] > nav[aria-label="工作台"] .rail-btn:hover::after,
+body[data-ui-page="workbench-v2"][data-rail="expanded"] > nav[aria-label="工作台"] .rail-btn.active::after {
+  color: var(--text-1);
+}
+body[data-ui-page="workbench-v2"][data-rail="expanded"] > nav[aria-label="工作台"] .nav-group {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  overflow: visible;
+  margin: 10px 0 2px;
+  padding: 0 8px;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.02em;
+}
+body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-brand {
+  flex: 0 0 auto;
+}
+body[data-ui-page="workbench-v2"] .rail-toggle {
+  flex: 0 0 auto;
+  margin-top: auto;
+  width: 100%;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-top: 1px solid var(--line-3);
+  border-radius: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"][data-rail="expanded"] .rail-toggle {
+  justify-content: flex-start;
+  padding-left: 10px;
+}
+body[data-ui-page="workbench-v2"] .rail-toggle:hover {
+  color: var(--text-1);
+}
+/* ---- 设置侧栏退场：唯一导航在左 rail；非对话页内容统一宽度 ---- */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) #settings-rail {
+  display: none !important;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-layout {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .settings-content {
+  max-width: var(--page-shell-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+body[data-ui-page="workbench-v2"] .page-head {
+  max-width: var(--page-shell-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 14px var(--page-pad) 10px;
+}
+body[data-ui-page="workbench-v2"] #page-title {
+  font-size: var(--fs-page-title);
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+body[data-ui-page="workbench-v2"] #page-subtitle {
+  font-size: var(--fs-secondary-v3);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+body[data-ui-page="workbench-v2"] .settings-content > #error {
+  max-width: var(--page-shell-max);
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .page {
+  max-width: var(--page-shell-max);
+  margin: 0 auto;
+  padding: 8px var(--page-pad) 40px;
+}
+/* 每页唯一 H1：原 20 个内容区 h1 已降级为 section 标题 */
+body[data-ui-page="workbench-v2"] .page-section-title {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-section-title);
+  font-weight: 650;
+  line-height: var(--lh-tight);
+  letter-spacing: 0;
+  color: var(--text-primary);
+}
+body[data-ui-page="workbench-v2"] .page-section-title.is-duplicate-title {
+  display: none;
+}
+/* 内容层级：正文 13/1.65，辅助 12，meta 11.5 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .page p,
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .page label,
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .page li {
+  font-size: var(--fs-body-v3);
+  line-height: var(--lh-body-v3);
+}
+body[data-ui-page="workbench-v2"] .btn {
+  min-height: 28px;
+  font-size: var(--fs-secondary-v3);
+}
+/* ---- 对话三栏：会话 260 / 阅读列弹性 / Inspector 320 ---- */
+@media (min-width: 901px) {
+  body[data-ui-page="workbench-v2"].chat-mode > main {
+    grid-template-columns: var(--sessions-w) minmax(0, 1fr) var(--inspector-w);
+    gap: 12px;
+    padding: 12px;
+  }
+}
+/* ---- 窄屏：展开状态不影响布局，标签隐藏；导航仍为顶部横条 ---- */
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"],
+  body[data-ui-page="workbench-v2"][data-rail="expanded"] {
+    --rail-w: var(--rail-w-compact);
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: 4px 6px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-2);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn {
+    width: 34px;
+    min-height: 32px;
+    flex: 0 0 auto;
+    padding: 0;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn::after,
+  body[data-ui-page="workbench-v2"] .rail-toggle {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"] .nav-group {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"] .page-head {
+    padding-inline: var(--page-pad);
+  }
+}
+body[data-ui-page="workbench-v2"] .run-detail-group h3 {
+  margin: 0 0 var(--sp-1);
+  font-size: var(--fs-caption);
+  font-weight: 650;
+  color: var(--text-2);
+}
+
+/* ==========================================================================
+   Phase 3D：T2 日志表格 / 能力分类列表 / T4 审计时间线 / 设置页顶部对齐
+   ========================================================================== */
+/* 设置页顶部连接条与内容左对齐：非对话页连接面板与内容同宽同边距 */
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .workbench-side > .instance-panel {
+  max-width: var(--content-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: 8px var(--page-pad);
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--line-3);
+  background: color-mix(in srgb, var(--surface-1) 55%, transparent);
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .workbench-side > .instance-panel .panel-title {
+  margin: 0;
+}
+body[data-ui-page="workbench-v2"]:not(.chat-mode) .workbench-side > .instance-panel .instance-acts {
+  padding: 0;
+  border: 0;
+}
+/* T2 日志表格 */
+body[data-ui-page="workbench-v2"] .log-table-wrap {
+  border: 1px solid var(--line-divider);
+  border-radius: var(--r-md);
+  overflow: auto;
+  max-height: 520px;
+}
+body[data-ui-page="workbench-v2"] .log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-meta);
+  line-height: var(--lh-tight);
+}
+body[data-ui-page="workbench-v2"] .log-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--line-divider);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .log-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line-3);
+  vertical-align: top;
+  color: var(--text-secondary);
+}
+body[data-ui-page="workbench-v2"] .log-table tbody tr:hover td {
+  background: var(--surface-hover);
+}
+body[data-ui-page="workbench-v2"] .log-table .log-time,
+body[data-ui-page="workbench-v2"] .log-table .log-comp {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .log-table .log-msg {
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .log-table .log-act {
+  width: 72px;
+  text-align: right;
+}
+/* T2 能力：分类列表 + 详情 */
+body[data-ui-page="workbench-v2"] .cap-split {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: start;
+}
+body[data-ui-page="workbench-v2"] .cap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--line-divider);
+  border-radius: var(--r-md);
+  padding: 6px;
+  background: color-mix(in srgb, var(--surface-1) 60%, transparent);
+}
+body[data-ui-page="workbench-v2"] .cap-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--fs-secondary-v3);
+  text-align: left;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .cap-item:hover {
+  background: var(--surface-hover);
+}
+body[data-ui-page="workbench-v2"] .cap-item.active {
+  background: var(--surface-selected);
+  color: var(--text-primary);
+}
+body[data-ui-page="workbench-v2"] .cap-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border: 1px solid var(--line-divider);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  min-height: 180px;
+}
+body[data-ui-page="workbench-v2"] .cap-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .cap-detail-head h3 {
+  margin: 0;
+  font-size: var(--fs-section-title);
+  color: var(--text-primary);
+}
+body[data-ui-page="workbench-v2"] .cap-detail-limits {
+  margin: 0;
+  font-size: var(--fs-secondary-v3);
+  color: var(--text-muted);
+}
+body[data-ui-page="workbench-v2"] .cap-facts,
+body[data-ui-page="workbench-v2"] .audit-facts {
+  display: grid;
+  grid-template-columns: minmax(90px, auto) minmax(0, 1fr);
+  gap: 2px var(--sp-3);
+  margin: 0;
+  font-size: var(--fs-meta);
+}
+body[data-ui-page="workbench-v2"] .cap-facts dt,
+body[data-ui-page="workbench-v2"] .audit-facts dt {
+  color: var(--text-muted);
+}
+body[data-ui-page="workbench-v2"] .cap-facts dd,
+body[data-ui-page="workbench-v2"] .audit-facts dd {
+  margin: 0;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+body[data-ui-page="workbench-v2"] .cap-detail-id {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+/* T4 审计：工具栏 + 左侧时间线 + 右侧详情 */
+body[data-ui-page="workbench-v2"] .audit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--sp-2) var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .audit-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+}
+body[data-ui-page="workbench-v2"] .audit-split-inner {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: start;
+}
+body[data-ui-page="workbench-v2"] .audit-timeline {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-divider);
+  border-radius: var(--r-md);
+  max-height: 560px;
+  overflow: auto;
+}
+body[data-ui-page="workbench-v2"] .audit-event {
+  display: grid;
+  grid-template-columns: 64px minmax(90px, auto) minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+  align-items: baseline;
+  padding: 6px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--line-3);
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--fs-meta);
+  text-align: left;
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .audit-event:hover {
+  background: var(--surface-hover);
+}
+body[data-ui-page="workbench-v2"] .audit-event.active {
+  background: var(--surface-selected);
+}
+body[data-ui-page="workbench-v2"] .audit-time {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+body[data-ui-page="workbench-v2"] .audit-source {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .audit-target {
+  color: var(--text-muted);
+}
+body[data-ui-page="workbench-v2"] .audit-result {
+  font-size: var(--fs-meta);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+body[data-ui-page="workbench-v2"] .audit-result[data-state="ok"] {
+  color: var(--ok);
+}
+body[data-ui-page="workbench-v2"] .audit-result[data-state="error"] {
+  color: var(--danger);
+}
+body[data-ui-page="workbench-v2"] .audit-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border: 1px solid var(--line-divider);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+}
+body[data-ui-page="workbench-v2"] .audit-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+body[data-ui-page="workbench-v2"] .audit-detail-head h3 {
+  margin: 0;
+  font-size: var(--fs-section-title);
+  color: var(--text-primary);
+}
+body[data-ui-page="workbench-v2"] .audit-raw pre {
+  max-height: 260px;
+  overflow: auto;
+  font-size: var(--fs-meta);
+}
+body[data-ui-page="workbench-v2"] .audit-raw summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+@media (max-width: 900px) {
+  body[data-ui-page="workbench-v2"] .cap-split,
+  body[data-ui-page="workbench-v2"] .audit-split-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body[data-ui-page="workbench-v2"]:not(.chat-mode) .workbench-side > .instance-panel {
+    padding-inline: var(--page-pad);
+  }
+}
+
+/* ==========================================================================
+   Phase 4：移动端重排、触控、键盘焦点、动态播报与数据表适配
+   ========================================================================== */
+/* 跳到主内容 + 读屏专用文本 */
+body[data-ui-page="workbench-v2"] .skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  z-index: calc(var(--z-tooltip) + 1);
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--line-focus);
+  font-size: var(--fs-secondary-v3);
+  text-decoration: none;
+}
+body[data-ui-page="workbench-v2"] .skip-link:focus {
+  top: 12px;
+}
+body[data-ui-page="workbench-v2"] .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* 焦点环：全站统一，键盘可见 */
+body[data-ui-page="workbench-v2"] :focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}
+/* 顶部导航按钮：仅移动端出现 */
+body[data-ui-page="workbench-v2"] .mobile-menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+body[data-ui-page="workbench-v2"] .mobile-menu .material-icons {
+  font-size: 22px;
+}
+body[data-ui-page="workbench-v2"] .drawer-close {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 16px;
+  cursor: pointer;
+}
+/* ---------------- 平板：761–1180 保留两栏 + Inspector 全屏面板 ---------------- */
+@media (min-width: 761px) and (max-width: 1180px) {
+  body[data-ui-page="workbench-v2"].chat-mode > main {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode .inspector {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: min(380px, 42vw);
+    z-index: var(--z-drawer);
+    transform: translateX(calc(100% + 24px));
+    transition: transform 180ms var(--ease-out);
+  }
+  body[data-ui-page="workbench-v2"].chat-mode .inspector[data-open="true"] {
+    transform: none;
+  }
+  body[data-ui-page="workbench-v2"] .drawer-close {
+    display: block;
+  }
+}
+/* ---------------- 手机：单栏主会话 + 全屏抽屉 ---------------- */
+@media (max-width: 760px) {
+  body[data-ui-page="workbench-v2"] {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    height: var(--vvh, 100dvh);
+    overflow: hidden;
+  }
+  body[data-ui-page="workbench-v2"] > header {
+    flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: var(--z-drawer);
+    padding-top: env(safe-area-inset-top);
+  }
+  body[data-ui-page="workbench-v2"] .mobile-menu {
+    display: inline-flex;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: calc(var(--z-drawer) + 10);
+    width: 280px;
+    max-width: 84vw;
+    padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-y: auto;
+    transform: translateX(-104%);
+    transition: transform 180ms var(--ease-out);
+    border-right: 1px solid var(--line-divider);
+    box-shadow: var(--sh-3);
+  }
+  body[data-ui-page="workbench-v2"][data-nav="open"] > nav[aria-label="工作台"] {
+    transform: none;
+  }
+  /* 抽屉内恢复标签与分组，触控条目 44px */
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: flex-start;
+    padding: 0 10px;
+    gap: 12px;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn::after {
+    content: attr(aria-label);
+    display: inline;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .nav-group {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    overflow: visible;
+    display: block;
+    margin: 10px 0 2px;
+    padding: 0 10px;
+    color: var(--text-muted);
+    font-size: var(--fs-meta);
+  }
+  body[data-ui-page="workbench-v2"] .rail-toggle {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"] > main {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  body[data-ui-page="workbench-v2"].chat-mode > main {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0;
+    gap: 0;
+  }
+  /* 会话列表与 Inspector：全屏抽屉，而不是纵向堆叠 */
+  body[data-ui-page="workbench-v2"] .workbench-side,
+  body[data-ui-page="workbench-v2"] .inspector {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-drawer) + 5);
+    width: 100%;
+    max-width: none;
+    padding: calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    background: var(--surface-0);
+    transform: translateY(102%);
+    transition: transform 200ms var(--ease-out);
+    border: 0;
+    border-radius: 0;
+  }
+  body[data-ui-page="workbench-v2"] .workbench-side[data-open="true"],
+  body[data-ui-page="workbench-v2"] .inspector[data-open="true"] {
+    transform: none;
+  }
+  body[data-ui-page="workbench-v2"] .drawer-close {
+    display: block;
+  }
+  body[data-ui-page="workbench-v2"] .page-head {
+    padding: 8px 14px 6px;
+  }
+  body[data-ui-page="workbench-v2"] .page-head-text h1 {
+    font-size: var(--fs-page-title);
+  }
+  body[data-ui-page="workbench-v2"] .settings-content .page {
+    padding: 6px 14px calc(24px + env(safe-area-inset-bottom));
+  }
+  body[data-ui-page="workbench-v2"] #chat {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  body[data-ui-page="workbench-v2"] #messages {
+    padding-bottom: 6px;
+  }
+  body[data-ui-page="workbench-v2"] #composer {
+    margin-top: auto;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+  body[data-ui-page="workbench-v2"] #message {
+    min-height: 56px;
+  }
+  /* 弹窗适配小屏 */
+  body[data-ui-page="workbench-v2"] .ui-dialog,
+  body[data-ui-page="workbench-v2"] .services-dialog {
+    max-width: calc(100vw - 24px);
+    max-height: 85dvh;
+  }
+  .ui-dialog {
+    max-width: calc(100vw - 24px);
+    max-height: 85dvh;
+  }
+  /* 表格/时间线/审计：局部滚动、隐藏低优先列、堆叠分栏 */
+  body[data-ui-page="workbench-v2"] .log-table th:nth-child(3),
+  body[data-ui-page="workbench-v2"] .log-table td:nth-child(3) {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"] .log-table-wrap {
+    max-height: 60dvh;
+  }
+  body[data-ui-page="workbench-v2"] .audit-split-inner,
+  body[data-ui-page="workbench-v2"] .cap-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body[data-ui-page="workbench-v2"] .audit-timeline {
+    max-height: 45dvh;
+  }
+  body[data-ui-page="workbench-v2"] .audit-raw pre,
+  body[data-ui-page="workbench-v2"] pre,
+  body[data-ui-page="workbench-v2"] .log-table .log-msg {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+  body[data-ui-page="workbench-v2"] .actions {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+/* ---------------- 触控尺寸与危险操作间距（仅触控/窄屏，不改桌面） ---------------- */
+@media (max-width: 760px), (pointer: coarse) {
+  body[data-ui-page="workbench-v2"] button,
+  body[data-ui-page="workbench-v2"] [role="tab"],
+  body[data-ui-page="workbench-v2"] select,
+  body[data-ui-page="workbench-v2"] input:not([type="checkbox"]):not([type="radio"]),
+  body[data-ui-page="workbench-v2"] .rail-btn,
+  body[data-ui-page="workbench-v2"] .approval-btn,
+  body[data-ui-page="workbench-v2"] .cap-item,
+  body[data-ui-page="workbench-v2"] .audit-event {
+    min-height: 44px;
+  }
+  body[data-ui-page="workbench-v2"] .approval-actions,
+  body[data-ui-page="workbench-v2"] .queue-acts,
+  body[data-ui-page="workbench-v2"] .drawer-close + * {
+    gap: 12px;
+  }
+  body[data-ui-page="workbench-v2"] .approval-actions .approval-btn {
+    flex: 1 1 120px;
+  }
+  /* Hover 专属操作在触控上常显 */
+  body[data-ui-page="workbench-v2"] .msg-actions,
+  body[data-ui-page="workbench-v2"] .msg .turn-actions {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+/* ---------------- 减少动效 ---------------- */
+@media (prefers-reduced-motion: reduce) {
+  body[data-ui-page="workbench-v2"] *,
+  body[data-ui-page="workbench-v2"] *::before,
+  body[data-ui-page="workbench-v2"] *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* Phase 4：移动端保留会话/Inspector 抽屉入口（44px） */
+@media (max-width: 760px) {
+  body[data-ui-page="workbench-v2"] .page-head .drawer-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 10px;
+  }
+}
+/* Phase 4：移动端抽屉显示覆盖（旧窄屏规则会 display:none，这里以抽屉方式接管） */
+@media (max-width: 760px) {
+  body[data-ui-page="workbench-v2"] .workbench-side,
+  body[data-ui-page="workbench-v2"] .inspector {
+    display: flex !important;
+    flex-direction: column;
+    visibility: visible !important;
+  }
+}
+@media (max-width: 760px), (pointer: coarse) {
+  body[data-ui-page="workbench-v2"] button,
+  body[data-ui-page="workbench-v2"] select,
+  body[data-ui-page="workbench-v2"] input:not([type="checkbox"]):not([type="radio"]),
+  body[data-ui-page="workbench-v2"] .rail-btn,
+  body[data-ui-page="workbench-v2"] #send-btn {
+    min-height: 44px !important;
+  }
+}
+/* Phase 4 修正：手机默认保留顶部可滚动导航条（26 页可达性守卫兼容），
+   点「导航」按钮时才展开为全屏标签抽屉。 */
+@media (max-width: 760px) {
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: none;
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    transform: none !important;
+    transition: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-2);
+    box-shadow: none;
+    scrollbar-width: none;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-btn::after,
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .nav-group,
+  body[data-ui-page="workbench-v2"] > nav[aria-label="工作台"] .rail-toggle {
+    display: none;
+  }
+  body[data-ui-page="workbench-v2"][data-nav="open"] > nav[aria-label="工作台"] {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 280px !important;
+    max-width: 84vw;
+    height: auto !important;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 2px;
+    padding: calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: none !important;
+    border-right: 1px solid var(--line-divider);
+    border-bottom: 0;
+    box-shadow: var(--sh-3);
+  }
+  body[data-ui-page="workbench-v2"][data-nav="open"] > nav[aria-label="工作台"] .rail-btn {
+    width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 10px;
+  }
+  body[data-ui-page="workbench-v2"][data-nav="open"] > nav[aria-label="工作台"] .rail-btn::after {
+    content: attr(aria-label);
+    display: inline;
+  }
+  body[data-ui-page="workbench-v2"][data-nav="open"] > nav[aria-label="工作台"] .nav-group {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    overflow: visible;
+    display: block;
+    margin: 10px 0 2px;
+    padding: 0 10px;
+    color: var(--text-muted);
+    font-size: var(--fs-meta);
+  }
 }

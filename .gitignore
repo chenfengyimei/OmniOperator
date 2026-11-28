@@ -17,6 +17,9 @@ data/
 # 学习用参考项目（不进主仓库）
 xuexi/
 
+# 设计 / UI-UX 参考仓库（不进主仓库；见 sheji/README.md）
+/sheji/
+
 # 一键安装器下载的本地组件（NapCat / platform-tools），见 scripts/install.ps1
 /tools/
 
@@ -57,3 +60,7 @@ agent/.tmp/
 # Native helper compiler caches; source and lock files remain tracked.
 /agent/src/omni/adapters/workers/macos/**/.build/
 /agent/src/omni/adapters/workers/macos/**/.swiftpm/
+
+# UI/UX 技能运行产物（Playwright 截图、impeccable 评审缓存，只留本机不入库）
+/output/
+/.impeccable/

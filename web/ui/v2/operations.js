@@ -15,6 +15,7 @@ export function mountAuditHistory({
   parameters = () => ({}),
   describe = () => '',
   render = (rows) => JSON.stringify(rows, null, 2),
+  renderNode = null,
 }) {
   const $ = (id) => document.getElementById(id);
   let read = 0,
@@ -52,7 +53,10 @@ export function mountAuditHistory({
       cursor = data.next_cursor || '';
       hasMore = Boolean(data.has_more && cursor);
       rows = [...rows, ...data.items].slice(-200);
-      $(listId).textContent = rows.length ? render(rows, data) : empty;
+      const target = $(listId);
+      if (!rows.length) target.textContent = empty;
+      else if (typeof renderNode === 'function') renderNode(rows, data);
+      else target.textContent = render(rows, data);
       $(statusId).textContent =
         `当前显示 ${rows.length} 条，最多保留最近读取的 200 条。${hasMore ? '还有记录可继续加载。' : '已读到当前末尾。'}` +
         (data.history_trimmed ? ` 部分${recordLabel}历史已清理，仅显示保留记录。` : '') +

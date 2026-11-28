@@ -1,0 +1,178 @@
+/* Work rail and session browser: A's 64px rail geometry and tight session list. */
+#sessions-pane.sessions-pane {
+  gap: 0; padding: 0; overflow: hidden;
+}
+#sessions-pane > .session-sidebar {
+  display: grid;
+  grid-template-columns: var(--rail-width) minmax(0, 1fr);
+  flex: 1 1 auto; min-width: 0; min-height: 0; height: 100%;
+}
+
+.work-rail {
+  display: flex; flex-direction: column; align-items: stretch; gap: 3px;
+  min-width: 0; padding: 18px 8px 14px; overflow-y: auto; overscroll-behavior: contain;
+  border-right: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-muted) 65%, transparent);
+  scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
+}
+.work-rail-heading {
+  margin: 0; padding: 0 6px 9px; color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace);
+  font-size: 10px; font-weight: 500; letter-spacing: .1em;
+  line-height: 1.3; text-align: center; text-transform: uppercase;
+}
+.work-rail button {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; width: 100%; min-height: 53px; padding: 7px 3px;
+  border-radius: 5px; background: transparent; color: var(--muted);
+  font-size: 10px; line-height: 1.15; text-align: center;
+  white-space: normal; overflow-wrap: anywhere;
+  transition: background .15s var(--ease), color .15s var(--ease);
+}
+.work-rail button:hover {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--ink);
+}
+.work-rail button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.work-rail button[aria-current="page"] {
+  background: var(--surface); color: var(--moss);
+  box-shadow: inset 2px 0 0 var(--moss), 0 1px 3px rgba(30, 36, 29, .05);
+}
+.work-rail button[aria-current="page"] .rail-icon { stroke-width: 1.95; }
+.rail-icon {
+  display: block; width: 17px; height: 17px; flex: 0 0 auto; color: currentColor;
+}
+.work-rail button > .rail-icon + span {
+  display: block; max-width: 100%; min-width: 0; overflow-wrap: anywhere;
+}
+.rail-count {
+  position: absolute; top: 6px; right: 8px; display: inline-grid; place-items: center;
+  min-width: 14px; height: 14px; padding: 0 3px; border-radius: 7px;
+  background: var(--warning-soft, var(--surface-muted));
+  color: var(--warning, var(--moss-ink));
+  font-family: var(--font-mono, ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace);
+  font-size: 10px; font-weight: 700; line-height: 1;
+}
+.rail-count[hidden], .rail-count:empty { display: none; }
+
+.session-browser {
+  display: flex; flex-direction: column; gap: 0;
+  min-width: 0; min-height: 0; padding: 0; overflow: hidden;
+}
+.session-browser .pane-head {
+  flex: 0 0 auto; align-items: flex-start; padding: 20px 16px 10px;
+}
+.session-browser .pane-head h2 {
+  margin-top: 3px; font-size: 18px; font-weight: 640;
+  letter-spacing: -.015em; line-height: 1.4;
+}
+
+.session-browser .search-field {
+  display: flex; flex: 0 0 auto; align-items: center; gap: 7px;
+  min-width: 0;
+  min-height: 35px; margin: 0 12px; padding: 0 9px;
+  border: 1px solid var(--line); border-radius: 5px;
+  background: var(--paper); color: var(--muted);
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+.session-browser .search-field:focus-within {
+  border-color: var(--moss); background: var(--surface);
+  outline: 2px solid var(--focus); outline-offset: 1px;
+}
+.session-browser .search-field .pane-icon {
+  position: static; width: 15px; height: 15px; flex: 0 0 auto;
+  color: var(--muted); pointer-events: none; transform: none;
+  transition: color .15s var(--ease);
+}
+.session-browser .search-field:focus-within .pane-icon { color: var(--moss); }
+.session-browser #session-search {
+  flex: 1 1 auto; width: auto; min-width: 0; min-height: 0;
+  margin: 0; padding: 8px 0; border: 0; border-radius: 0;
+  background: transparent; color: var(--ink); font-size: 12px; line-height: 1.45;
+}
+.session-browser #session-search::placeholder { color: var(--muted); }
+.session-browser #session-search:focus-visible { outline: 0; }
+
+.session-browser .session-list {
+  display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px;
+  min-height: 0; margin: 0; padding: 12px 8px;
+  overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent;
+}
+.session-browser .session-list:empty { flex: 0 0 auto; padding-block: 2px; }
+.session-list > li > button {
+  display: flex; flex-direction: column; gap: 4px;
+  width: 100%; min-height: 0; padding: 10px 9px 9px;
+  border: 1px solid transparent; border-radius: 5px;
+  color: var(--muted); text-align: left; line-height: 1.45;
+  overflow-wrap: anywhere;
+  transition: background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease);
+}
+.session-list > li > button:hover {
+  background: var(--surface-muted);
+}
+.session-list > li > button[aria-current="true"] {
+  border-color: var(--line); background: var(--moss-soft); color: var(--ink);
+}
+
+.session-top {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; width: 100%;
+}
+.session-name {
+  display: block; min-width: 0; overflow: hidden;
+  font-size: 12px; font-weight: 620; line-height: 1.45;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.session-time {
+  flex: 0 0 auto; color: var(--muted);
+  font-family: var(--font-mono, ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace);
+  font-size: 10px; line-height: 1.45;
+}
+.session-browser .session-note {
+  display: block; width: 100%; margin-top: 0; overflow: hidden;
+  color: var(--muted); font-size: 11px; line-height: 1.45;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.session-meta {
+  display: flex; align-items: center; gap: 8px; margin-top: 2px;
+  color: var(--muted); font-size: 10px; line-height: 1.4;
+}
+.session-meta::before {
+  content: ""; display: block; width: 5px; height: 5px;
+  flex: 0 0 auto; border-radius: 50%; background: currentColor;
+}
+.session-footer {
+  display: flex; flex: 0 0 auto; align-items: center; gap: 6px;
+  margin-top: auto; padding: 12px 16px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 10px; line-height: 1.4;
+}
+.session-footer:empty { display: none; }
+.session-browser .empty-note {
+  flex: 0 0 auto; padding: 28px 14px; color: var(--muted);
+  font-size: 11px; line-height: 1.5; text-align: center;
+}
+
+@media (max-width: 900px) {
+  #sessions-pane.sessions-pane { left: 0; border-right: 1px solid var(--line-strong); }
+  #sessions-pane > .session-sidebar { grid-template-columns: var(--rail-width) minmax(0, 1fr); }
+  .session-browser :is(button, a, input, select) { min-height: 40px; }
+  .session-browser #session-search { min-height: 0; }
+  .session-browser .search-field { min-height: 40px; }
+  .session-list > li > button { min-height: 50px; }
+  .work-rail button { min-height: 54px; }
+}
+@media (max-width: 760px) {
+  .work-rail { padding-inline: 5px; }
+  .session-browser .pane-head { padding-inline: 14px; }
+  .session-browser .search-field { margin-inline: 10px; }
+  .session-browser .session-list { padding-inline: 7px; }
+  .session-footer { padding-inline: 14px; }
+}
+@media (max-width: 520px) {
+  .work-rail { padding: 14px 4px 12px; }
+  .session-browser .pane-head { padding: 16px 12px 8px; }
+  .session-browser .search-field { margin-inline: 9px; }
+  .session-browser .session-list { padding: 10px 6px; }
+  .session-footer { padding: 10px 12px; }
+}

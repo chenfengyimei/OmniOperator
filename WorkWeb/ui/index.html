@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="OmniOperator 是常驻本地、具有自主能动性的数字具身智能体。">
+  <title>OmniOperator · 数字具身智能工作台</title>
+  <script src="theme.js?v=2"></script>
+  <link rel="stylesheet" href="tokens.css?v=8">
+  <link rel="stylesheet" href="workspace.css?v=14">
+  <link rel="stylesheet" href="workspace-nav.css?v=4">
+  <script type="module" src="app.js?v=15"></script>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" hidden aria-hidden="true">
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M5 5.5h14v10H9l-4 3.2v-3.2H5Zm3.5 3.5h7m-7 3h4.5"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M4 12h3.5l3-6 3.5 12 2.5-6H20"/></symbol>
+    <symbol id="i-workers" viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.4"/><circle cx="5.5" cy="17" r="2.4"/><circle cx="18.5" cy="17" r="2.4"/><path d="M10.4 8.1 7 14.8m6.6-6.7 3.4 6.7M8 17h8"/></symbol>
+    <symbol id="i-tasks" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.4"/><path d="m8 12 2.4 2.4L16 8.8"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-approval" viewBox="0 0 24 24"><path d="M12 3.5 19 6v5.4c0 4.2-2.6 7.2-7 9.1-4.4-1.9-7-4.9-7-9.1V6Zm-3.2 8.3 2.1 2.1 4.4-4.5"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M3.8 7.5h6l1.7 2h8.7v8.8H3.8Zm0 0V5.2h5.7l1.5 1.8"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.7" cy="10.7" r="6.1"/><path d="m15.3 15.3 4.2 4.2"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5m-5.5 5.5L12 5l5.5 5.5"/></symbol>
+    <symbol id="i-tools" viewBox="0 0 24 24"><path d="M14.7 5.3a4 4 0 0 0-5.2 5.2L4.2 15.8l4 4 5.3-5.3a4 4 0 0 0 5.2-5.2l-2.7 2.7-2.5-2.5Z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h8m4 0h4M4 17h4m4 0h8"/><circle cx="14" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  </svg>
+  <a class="skip-link" href="#workspace">跳到会话内容</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg class="pane-icon" viewBox="0 0 64 44" focusable="false">
+          <path fill="currentColor" stroke="none" d="M14 22C20 8 40 5 53 15 56 17.5 57.5 20 58 22 57.5 24 56 26.5 53 29 40 39 20 36 14 22Z"/>
+          <path fill="currentColor" stroke="none" d="M13 22 2 10C5.5 15.5 5.5 28.5 2 34Z"/>
+          <circle cx="46" cy="17.5" r="2.6" fill-opacity=".82" stroke="none"/>
+        </svg>
+      </span>
+      <div class="brand-copy">
+        <span class="brand-name">OmniOperator</span>
+        <span class="brand-description">常驻本地、具有自主能动性的数字具身智能体</span>
+      </div>
+    </div>
+    <span id="connection-status" class="connection" data-state="demo" aria-live="polite">本地演示</span>
+    <div class="top-actions">
+      <button id="open-sessions" class="top-button mobile-switch" type="button" aria-controls="sessions-pane" aria-expanded="false" aria-label="会话与工作">
+        <svg class="pane-icon" aria-hidden="true"><use href="#i-chat"/></svg><span>会话与工作</span>
+      </button>
+      <button id="open-tools" class="top-button" type="button">
+        <svg class="pane-icon" aria-hidden="true"><use href="#i-tools"/></svg><span>工具</span>
+      </button>
+      <div class="themes" role="radiogroup" aria-label="主题">
+        <button type="button" class="theme-option" data-theme-choice="dark" role="radio" aria-checked="false" tabindex="-1" title="深色" aria-label="深色主题">
+          <span class="theme-swatch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="theme-option" data-theme-choice="auto" role="radio" aria-checked="false" tabindex="-1" title="跟随系统" aria-label="跟随系统主题">
+          <span class="theme-swatch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="theme-option" data-theme-choice="light" role="radio" aria-checked="false" tabindex="-1" title="浅色" aria-label="浅色主题">
+          <span class="theme-swatch" aria-hidden="true"></span>
+        </button>
+      </div>
+      <button id="open-settings" class="top-button" type="button" aria-label="设置">
+        <svg class="pane-icon" aria-hidden="true"><use href="#i-settings"/></svg><span>设置中心</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace-shell">
+    <aside id="sessions-pane" class="pane sessions-pane" aria-label="工作区与会话">
+      <div class="session-sidebar">
+        <nav class="work-rail" aria-label="工作区">
+          <span class="work-rail-heading">工作区</span>
+          <button type="button" data-page="conversation" aria-current="page">
+            <svg class="rail-icon" aria-hidden="true"><use href="#i-chat"/></svg><span>主会话</span>
+          </button>
+          <button type="button" data-page="activity" aria-label="工作进展">
+            <svg class="rail-icon" aria-hidden="true"><use href="#i-activity"/></svg><span>进展</span>
+          </button>
+          <button type="button" data-page="workers" aria-label="Worker 协作">
+            <svg class="rail-icon" aria-hidden="true"><use href="#i-workers"/></svg><span>Worker</span>
+          </button>
+          <button type="button" data-page="tasks">
+            <svg class="rail-icon" aria-hidden="true"><use href="#i-tasks"/></svg><span>任务</span>
+          </button>
+          <button type="button" data-page="approvals">
+            <svg class="rail-icon" aria-hidden="true"><use href="#i-approval"/></svg><span>审批</span>
+            <span id="approval-count" class="rail-count" aria-hidden="true" hidden></span>
+          </button>
+          <button type="button" data-page="files" aria-label="工具与文件">
+            <svg class="rail-icon" aria-hidden="true"><use href="#i-files"/></svg><span>工具文件</span>
+          </button>
+        </nav>
+        <section class="session-browser" aria-labelledby="sessions-title">
+          <header class="pane-head">
+            <h2 id="sessions-title">会话</h2>
+            <button id="close-sessions" class="close-button" type="button" aria-label="关闭会话">关闭</button>
+          </header>
+          <label class="search-field" for="session-search">
+            <span class="sr-only">查找会话</span>
+            <svg class="pane-icon" aria-hidden="true"><use href="#i-search"/></svg>
+            <input id="session-search" type="search" placeholder="查找会话" autocomplete="off">
+          </label>
+          <ul id="session-list" class="session-list" aria-label="会话列表"></ul>
+          <p id="session-empty" class="empty-note" hidden>没有找到相符的会话，换一个词试试。</p>
+          <p id="session-footer" class="session-footer">草稿仅保留在当前页面</p>
+        </section>
+      </div>
+    </aside>
+
+    <div class="workspace-area">
+      <div class="workspace-location">
+        <span>工作区</span>
+        <svg class="pane-icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+        <span id="workspace-persona"></span>
+        <svg class="pane-icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+        <span id="view-location">主会话</span>
+        <button id="open-artifacts" class="text-button" type="button" aria-controls="artifacts-pane" aria-expanded="true">
+          <svg class="pane-icon" aria-hidden="true"><use href="#i-files"/></svg><span>产物</span>
+        </button>
+      </div>
+      <main id="workspace" class="workspace" tabindex="-1">
+        <header class="session-head">
+          <div class="reading-column">
+            <div class="session-kicker">
+              <span id="session-state" class="state-pill"></span>
+              <span id="session-ticket"></span>
+              <button id="session-approval-link" class="state-pill" type="button" data-open-page="approvals" hidden></button>
+            </div>
+            <h1 id="session-title">主会话</h1>
+            <div class="session-byline">
+              <p id="session-context"></p>
+              <div id="session-work-meta" class="session-work-meta" hidden>
+                <button id="worker-total" type="button" data-open-page="workers" hidden></button>
+                <button id="task-total" type="button" data-open-page="tasks" hidden></button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section id="conversation-view" class="view conversation-view" aria-labelledby="session-title">
+          <div id="messages" class="messages" tabindex="-1">
+            <div class="reading-column thread">
+              <div id="thread-log" role="log" aria-label="会话消息">
+                <p id="messages-empty">让人物在数字具身中真实地生活。</p>
+              </div>
+              <section id="session-activity" class="session-activity" aria-labelledby="activity-summary-title" hidden>
+                <header class="activity-summary-head">
+                  <h2 id="activity-summary-title">执行记录 <span id="activity-total"></span></h2>
+                  <button id="show-activity" class="text-button" type="button">
+                    <span>查看进展</span><svg class="pane-icon" aria-hidden="true"><use href="#i-chevron"/></svg>
+                  </button>
+                </header>
+                <ul id="activity-summary-list" class="activity-summary-list"></ul>
+              </section>
+              <section id="session-approval" class="session-approval" aria-labelledby="session-approval-title" hidden>
+                <div>
+                  <h2 id="session-approval-title">需要你的决定</h2>
+                  <p id="session-approval-description"></p>
+                </div>
+                <button type="button" class="quiet-button" data-open-page="approvals">查看审批</button>
+              </section>
+            </div>
+          </div>
+          <form id="composer" class="composer">
+            <div class="reading-column composer-card">
+              <div class="composer-head">
+                <label for="draft">继续交谈</label>
+                <p id="composer-status" role="status"></p>
+                <button id="jump-latest" type="button" aria-controls="messages" hidden>回到最新</button>
+              </div>
+              <div class="composer-row">
+                <textarea id="draft" rows="2" placeholder="说说接下来想做什么…" aria-describedby="composer-status"></textarea>
+                <button id="send" type="submit">
+                  <span id="send-label">发送</span>
+                  <svg class="pane-icon" aria-hidden="true"><use href="#i-send"/></svg>
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section id="work-view" class="view activity-view" aria-labelledby="work-title" hidden>
+          <h2 id="work-title" tabindex="-1">工作进展</h2>
+          <p id="work-description" class="work-detail"></p>
+          <p id="work-status" class="work-detail" role="status"></p>
+          <ul id="work-list" class="activity-list"></ul>
+          <p id="work-empty" class="empty-state" hidden></p>
+          <div id="work-more" class="work-more"></div>
+          <section id="worker-detail" class="worker-detail" aria-labelledby="worker-detail-name" hidden>
+            <div class="worker-detail-head">
+              <h3 id="worker-detail-name" tabindex="-1"></h3>
+              <span id="worker-detail-state" class="state-pill"></span>
+              <button id="worker-detail-back" class="work-action" type="button">返回 Worker 列表</button>
+            </div>
+            <p id="worker-detail-meta" class="work-detail"></p>
+            <div id="worker-detail-tabs" class="worker-detail-tabs" role="group" aria-label="Worker 详情视图"></div>
+            <div id="worker-detail-body" class="worker-detail-body"></div>
+          </section>
+        </section>
+      </main>
+
+      <aside id="artifacts-pane" class="pane artifacts-pane" aria-labelledby="artifacts-title">
+        <header class="pane-head pane-actions">
+          <h2 id="artifacts-title">产物</h2>
+          <button id="close-artifacts" class="close-button icon-button" type="button" aria-label="关闭产物">
+            <svg class="pane-icon" aria-hidden="true"><use href="#i-close"/></svg>
+          </button>
+        </header>
+        <p id="artifacts-status" class="artifacts-status" role="status">还没有可阅读的产物</p>
+        <ul id="artifact-list" class="artifact-list" aria-label="产物列表"></ul>
+        <article id="artifact-preview" class="artifact-preview" aria-labelledby="artifact-title" hidden>
+          <h3 id="artifact-title"></h3>
+          <p id="artifact-meta" class="artifact-meta"></p>
+          <div id="artifact-body" class="artifact-body"></div>
+          <button id="open-artifact" class="open-artifact" type="button">打开完整产物</button>
+        </article>
+        <div id="artifact-empty" class="empty-state">
+          <p>这段会话还没有产物。</p>
+          <span>完成的清单、文档或其他交付物会显示在这里。</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <form id="connection-form">
+      <header class="dialog-head">
+        <div>
+          <h2 id="settings-title">连接你的空间</h2>
+          <p>令牌只留在当前页面的内存里，关闭后不会保存。</p>
+        </div>
+        <button id="close-settings" class="close-button" type="button" aria-label="关闭设置">关闭</button>
+      </header>
+      <div class="dialog-body">
+        <label for="owner-token">所有者令牌</label>
+        <input id="owner-token" name="owner-token" type="password" autocomplete="off" spellcheck="false" placeholder="输入令牌以连接真实空间">
+        <p id="connection-error" class="form-message" role="status"></p>
+      </div>
+      <footer class="dialog-actions">
+        <button id="disconnect" class="quiet-button" type="button" hidden>断开连接</button>
+        <button type="submit" class="primary-button">连接</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="artifact-dialog" aria-labelledby="detail-artifact-title">
+    <header class="dialog-head">
+      <h2 id="detail-artifact-title"></h2>
+      <button id="close-artifact" class="close-button" type="button">关闭</button>
+    </header>
+    <div id="detail-artifact-body" class="detail-artifact-body"></div>
+  </dialog>
+</body>
+</html>

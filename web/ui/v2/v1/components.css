@@ -485,7 +485,7 @@ input:checked + .switch::after {
   line-height: 1.55;
 }
 .toolbar-note {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   font-weight: 500;
 }
@@ -533,7 +533,7 @@ input:checked + .switch::after {
   border: 1px dashed var(--line-1);
   border-radius: var(--r-card);
   color: var(--text-4);
-  font-size: 10px;
+  font-size: var(--fs-caption);
   background: color-mix(in srgb, var(--seed-fg) 1.5%, transparent);
   animation: omni-placeholder-pulse 1.4s ease-in-out infinite;
 }
@@ -571,7 +571,7 @@ input:checked + .switch::after {
   width: 100%;
 }
 .metric-card > div > span {
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -589,7 +589,7 @@ input:checked + .switch::after {
 .metric-card small {
   grid-column: 1/-1;
   margin-top: 2px;
-  font-size: 10px;
+  font-size: var(--fs-caption);
   color: var(--text-4);
   white-space: nowrap;
   overflow: hidden;

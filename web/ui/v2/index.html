@@ -2,21 +2,36 @@
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"
+    />
     <title>OmniOperator V2</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/ui/brand-mark.svg" />
     <script src="/assets/ui/theme.js?v=20261103v7"></script>
-    <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261120u2" />
+    <link rel="stylesheet" href="/assets/ui/tokens.css?v=20261128merge1" />
     <link rel="stylesheet" href="/assets/ui/base.css?v=20261103v7" />
     <link rel="stylesheet" href="/assets/ui/icons.css?v=20261115u1" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261121v173" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261121v173" />
-    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261121v173" />
-    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261127owa" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/components.css?v=20261128merge1" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/frame.css?v=20261128merge1" />
+    <link rel="stylesheet" href="/assets/ui/v2/v1/workbench.css?v=20261128merge1" />
+    <link rel="stylesheet" href="/assets/ui/v2/workbench.css?v=20261128merge1" />
     <link rel="stylesheet" href="/assets/vendor/xterm.min.css?v=20261121v173" />
   </head>
   <body class="chat-mode" data-ui-page="workbench-v2">
+    <a class="skip-link" href="#main-workspace">跳到主内容</a>
     <header class="app-header">
       <span class="brand-text"><strong>OmniOperator</strong><small>开发工作台</small></span>
+      <button
+        id="mobile-menu"
+        type="button"
+        class="mobile-menu"
+        aria-label="打开导航"
+        aria-expanded="false"
+        title="导航"
+      >
+        <span class="material-icons" aria-hidden="true">menu</span>
+      </button>
       <span class="header-spacer"></span>
       <span id="health" role="status" data-state="idle">尚未连接</span>
       <div class="themes" role="radiogroup" aria-label="主题">
@@ -257,9 +272,20 @@
       >
         <span class="material-icons">history</span>
       </button>
+      <button
+        id="rail-toggle"
+        type="button"
+        class="rail-toggle"
+        aria-expanded="false"
+        aria-label="展开导航"
+        title="展开导航"
+      >
+        <span class="material-icons" aria-hidden="true">chevron_right</span>
+      </button>
     </nav>
     <main>
       <aside class="workbench-side sessions-panel" id="sessions-panel">
+        <button id="sessions-close" type="button" class="drawer-close" aria-label="关闭会话列表">✕</button>
         <div class="panel instance-panel">
           <form id="connect" class="panel">
             <label>所有者令牌<input id="token" type="password" autocomplete="off" /></label>
@@ -302,7 +328,7 @@
           </div>
         </div>
       </aside>
-      <section aria-label="工作区">
+      <section id="main-workspace" aria-label="工作区" tabindex="-1">
         <header class="page-head">
           <div class="page-head-text">
             <h1 id="page-title">对话</h1>
@@ -333,9 +359,19 @@
           <div class="settings-content">
             <p id="error" role="alert" hidden></p>
             <section id="chat" class="page">
+              <!-- Worker/Ticket 状态条：仅 OmniWeave 主会话出现；明细在右栏「任务」页签 -->
+              <div id="owa-strip" class="owa-strip" hidden aria-live="polite">
+                <span class="material-icons owa-strip-icon" aria-hidden="true">account_tree</span>
+                <div class="owa-strip-text">
+                  <strong id="owa-strip-summary">本回合没有 Worker 任务</strong>
+                  <span id="owa-strip-phase" class="owa-strip-phase"></span>
+                </div>
+                <button id="owa-open-workers" type="button" class="btn small">查看 Worker</button>
+                <button id="owa-cancel" type="button" class="btn small danger" hidden>取消 Worker</button>
+              </div>
               <!-- 审批浮层：对齐 V1，悬浮在对话区顶部居中，不挤占消息流 -->
               <div id="approvals" aria-live="polite"></div>
-              <div id="messages" aria-live="polite">
+              <div id="messages">
                 <div class="empty-state">
                   <span class="material-icons">forum</span>
                   <strong>连接实例后开始对话</strong>
@@ -346,9 +382,14 @@
                 <span class="material-icons" aria-hidden="true">keyboard_arrow_down</span>
               </button>
               <p id="run-status" role="status"></p>
-              <section id="model-live" hidden aria-label="模型临时输出">
+              <div id="run-actions" class="run-actions">
+                <button id="retry-run" type="button" class="btn small" hidden>重新执行本次输入</button>
+                <span id="resume-note" class="run-note" hidden></span>
+              </div>
+              <section id="model-live" hidden aria-label="模型临时输出" aria-live="off">
                 <pre id="model-live-text"></pre>
               </section>
+              <div id="queue-strip" class="queue-strip" hidden></div>
               <div id="composer">
                 <form id="send" class="dock">
                   <textarea id="message" rows="2" placeholder="给小鱼发消息…（丢 B 站链接、说排程需求都行）"></textarea>
@@ -818,7 +859,7 @@
               <pre id="qq-connection-status" role="status"></pre>
             </section>
             <section id="deliveries" class="page" hidden>
-              <h1>持久投递</h1>
+              <h2 class="page-section-title">持久投递</h2>
               <p class="muted">
                 生成回复不代表已外发；服务方接收不代表对方已读。每次外发都需核对正文、发送账号和目标后批准。结果未知时先核查，系统不会自动重发。
               </p>
@@ -869,7 +910,7 @@
               <pre id="delivery-attempts"></pre>
             </section>
             <section id="action-reviews" class="page" hidden>
-              <h1>未知副作用动作核查</h1>
+              <h2 class="page-section-title">未知副作用动作核查</h2>
               <p class="muted">
                 这里只登记所有者对终态未知写动作的核查结论，原始 unknown 状态和副作用记录保持。
                 核查不会执行或重试旧动作，也不会解除模型费用、投递或凭据的核查要求。若启用计划只被本动作的未知结果阻塞，确认已生效或未生效后，未来到期调度可恢复；仍不确定则保持阻塞。
@@ -909,7 +950,7 @@
               <div id="action-review-history"></div>
             </section>
             <section id="desktop" class="page" hidden>
-              <h1>桌面能力</h1>
+              <h2 class="page-section-title">桌面能力</h2>
               <p class="muted">
                 检查桌面能力，显式列举窗口并核验身份。“读取界面内容”返回有限文字和控件信息；“截图保存至当前会话”会保存所选窗口的图片，可能包含私人内容。
                 窗口观察和预览在离开面板后清除，已保存的截图保留在会话中，需单独移除引用。截图不会自动发送给模型。
@@ -967,7 +1008,7 @@
               <div id="desktop-captures"></div>
             </section>
             <section id="terminals" class="page" hidden>
-              <h1>所有者终端</h1>
+              <h2 class="page-section-title">所有者终端</h2>
               <p class="muted">
                 Shell
                 使用当前用户权限，不是操作系统沙箱。本期只供所有者手动操作，不向模型开放原始输入。工作目录采用服务端
@@ -1062,7 +1103,7 @@
             <section id="context" class="page" hidden>
               <div class="ctx-heading">
                 <div>
-                  <h1>上下文系统</h1>
+                  <h2 class="page-section-title">上下文系统</h2>
                   <p class="muted" id="context-session-line">选择会话后读取窗口统计。</p>
                 </div>
                 <button id="context-refresh" type="button">刷新统计</button>
@@ -1116,7 +1157,7 @@
               </div>
             </section>
             <section id="memory" class="page" hidden>
-              <h1>记忆</h1>
+              <h2 class="page-section-title">记忆</h2>
               <p class="muted">
                 遗忘会清除关联派生记忆和摘要，并停用受影响会话已有的历史上下文、停止相关活跃运行。聊天原文仍在；删除原文请在对话页操作。
               </p>
@@ -1178,7 +1219,7 @@
               <div id="semantic-detail"></div>
             </section>
             <section id="skills" class="page" hidden>
-              <h1>技能</h1>
+              <h2 class="page-section-title">技能</h2>
               <p class="muted">
                 技能是流程说明，不授予工具权限。导入、编辑、回滚都会产生停用修订；审阅正文、参考文件与清单后明确启用。停用或改写会撤销已使用此技能的运行。不会执行包内文件。
               </p>
@@ -1220,7 +1261,7 @@
               </div>
             </section>
             <section id="extensions" class="page" hidden>
-              <h1>可信 Python 插件</h1>
+              <h2 class="page-section-title">可信 Python 插件</h2>
               <p class="muted">
                 登记只读取并保存本机插件包与固定工具目录，不执行代码。插件具有当前用户的本机权限；进程隔离用于故障隔离，不提供操作系统沙箱。
                 所有者须手动选择并授权工具，本期所有工具的实际写动作仍须逐次人工审批。
@@ -1283,7 +1324,7 @@
             <section id="models" class="page" hidden>
               <div class="mo-hero">
                 <div class="mo-hero-text">
-                  <h1>模型接入</h1>
+                  <h2 class="page-section-title">模型接入</h2>
                   <p class="mo-hero-sub">
                     选择供应商、填入 API Key，即可让当前 Agent
                     空间开始对话。密钥只写入本实例凭据库，页面与配置目录都不回显明文。
@@ -1444,7 +1485,7 @@
               </div>
             </section>
             <section id="settings" class="page" hidden>
-              <h1>运行设置</h1>
+              <h2 class="page-section-title">运行设置</h2>
               <h2>运行偏好</h2>
               <form id="settings-form">
                 <fieldset id="settings-fields" disabled>
@@ -1744,7 +1785,7 @@
               </details>
             </section>
             <section id="documents" class="page" hidden>
-              <h1>来源文档</h1>
+              <h2 class="page-section-title">来源文档</h2>
               <p class="muted">
                 原文保存在对象存储中，每次保存产生确定修订。全文和向量均为可重建索引；向量仅在本地组件可用时手动建立。未保存草稿只在当前网页内存保留。
               </p>
@@ -1796,7 +1837,7 @@
               <div id="document-results"></div>
             </section>
             <section id="reflections" class="page" hidden>
-              <h1>反思信笺</h1>
+              <h2 class="page-section-title">反思信笺</h2>
               <p class="muted">
                 模型只能提交待审摘录；批准、拒绝与撤回均由所有者在此决定。来源正文不在此重放，只展示已核验的区间与指纹。任一来源被删除后，整封信笺与正式条目立即失效，且不会自动恢复。
               </p>
@@ -1816,7 +1857,7 @@
               </div>
             </section>
             <section id="persona-growth" class="page" hidden>
-              <h1>人格成长</h1>
+              <h2 class="page-section-title">人格成长</h2>
               <p class="muted">
                 只读派生视图：由所有者已批准的反思条目生成，不读取来源正文，也不进入模型上下文。撤回、修订或来源擦除后本页会要求显式重建，并且绝不展示旧内容。
               </p>
@@ -1829,7 +1870,7 @@
               <p id="persona-growth-meta" class="muted"></p>
             </section>
             <section id="capabilities" class="page" hidden>
-              <h1>能力报告</h1>
+              <h2 class="page-section-title">能力报告</h2>
               <p class="muted">
                 只读投影当前实例的健康快照，仅展示有界计数与限制说明；不表示 V2 已验收、已切换正式入口或真实平台已通过。
               </p>
@@ -1842,7 +1883,7 @@
               <pre id="capabilities-notes"></pre>
             </section>
             <section id="tokens" class="page" hidden>
-              <h1>所有者令牌</h1>
+              <h2 class="page-section-title">所有者令牌</h2>
               <p class="muted">
                 列出本机 owner
                 会话并支持显式轮换。轮换后旧令牌立即失效，新令牌只显示一次；令牌不写入日志、诊断包或页面存储。
@@ -1858,7 +1899,7 @@
               <pre id="token-notes"></pre>
             </section>
             <section id="logs" class="page" hidden>
-              <h1>诊断日志</h1>
+              <h2 class="page-section-title">诊断日志</h2>
               <p class="muted">
                 结构化日志流在最前：等级芯片显示当前批次各级条数，点芯片即过滤；工具条吸顶，滚动时仍可改条件。指标、维护、保留候选与审计调试按层分组，可逐层收起。
               </p>
@@ -1879,7 +1920,10 @@
                   <label>运行编号<input id="log-run" maxlength="100" /></label>
                   <label>起始时间（本地）<input id="log-since" type="datetime-local" /></label>
                   <label>结束时间（本地）<input id="log-until" type="datetime-local" /></label>
+                  <label>关键字<input id="log-keyword" maxlength="120" placeholder="时间/级别/来源/消息" /></label>
                   <button id="refresh-logs" type="submit">重新查询</button>
+                  <button id="copy-logs" type="button">复制当前结果</button>
+                  <button id="clear-logs" type="button">清空条件</button>
                 </form>
                 <div class="actions">
                   <button id="more-logs" type="button" disabled>继续读取</button>
@@ -1979,7 +2023,7 @@
               </details>
             </section>
             <section id="objects" class="page" hidden>
-              <h1>文件</h1>
+              <h2 class="page-section-title">文件</h2>
               <p class="muted">文件保存在当前 Agent 空间，单个上限 16 MiB。作为模型附件发送尚未开放。</p>
               <form id="upload-object">
                 <label>选择文件<input id="object-file" type="file" required /></label>
@@ -1995,16 +2039,33 @@
               <div id="object-list"></div>
             </section>
             <section id="audit" class="page" hidden>
-              <h1>审计记录</h1>
-              <div class="actions">
-                <button id="refresh-audit" type="button">重新加载审计</button
-                ><button id="more-audit" type="button" disabled>加载更多审计</button>
+              <h2 class="page-section-title">审计记录</h2>
+              <p class="muted">
+                左侧为审计事件时间线（时间、来源、操作对象、结果），右侧为结构化详情；原始 JSON
+                收纳在可展开区域。搜索与筛选只作用于已加载记录。
+              </p>
+              <div class="audit-toolbar">
+                <label>搜索<input id="audit-search" maxlength="120" placeholder="动作/对象/来源/结果" /></label>
+                <label
+                  >结果
+                  <select id="audit-filter-result">
+                    <option value="">全部</option>
+                    <option value="ok">成功</option>
+                    <option value="error">失败/拒绝</option>
+                    <option value="unknown">未知</option>
+                  </select>
+                </label>
+                <div class="actions">
+                  <button id="refresh-audit" type="button">重新加载审计</button>
+                  <button id="more-audit" type="button" disabled>加载更多审计</button>
+                  <button id="copy-audit" type="button">复制选中事件</button>
+                </div>
               </div>
               <p id="audit-status" role="status"></p>
-              <pre id="audit-list"></pre>
+              <div id="audit-list" class="audit-split"></div>
             </section>
             <section id="schedules" class="page" hidden>
-              <h1>持久调度</h1>
+              <h2 class="page-section-title">持久调度</h2>
               <p class="muted">
                 启用后到期自动创建回合，使用本空间的模型预算与工具审批。每个计划同一时间只执行一轮；停机错过多个周期时只保留最近一次。夏令时缺失时刻跳过，重复时刻仅执行第一次。
               </p>
@@ -2103,7 +2164,7 @@
               <pre id="schedule-history"></pre>
             </section>
             <section id="people" class="page" hidden>
-              <h1>人物与档案</h1>
+              <h2 class="page-section-title">人物与档案</h2>
               <p class="muted">
                 所有者档案和常驻内容供本空间的新运行使用。清空后保存即遗忘：相关摘要失效、受影响会话的历史上下文重置，相关活跃运行停止。已发出的请求无法撤回。
               </p>
@@ -2174,9 +2235,11 @@
       </section>
       <aside class="inspector" id="inspector-panel" aria-label="会话面板" data-open="false">
         <div class="panel inspector-panel">
+          <button id="inspector-close" type="button" class="drawer-close" aria-label="关闭检查器">✕</button>
           <div class="tabs" role="tablist">
             <button type="button" data-inspector="run" role="tab" class="active" aria-selected="true">运行</button>
             <button type="button" data-inspector="todo" role="tab" class="" aria-selected="false">待办</button>
+            <button type="button" data-inspector="worker" role="tab" class="" aria-selected="false">任务</button>
             <button type="button" data-inspector="skills" role="tab" class="" aria-selected="false">技能</button>
             <button type="button" data-inspector="objects" role="tab" class="" aria-selected="false">产物</button>
             <button type="button" data-inspector="desktop" role="tab" class="" aria-selected="false">桌面</button>
@@ -2192,22 +2255,29 @@
                   <button id="show-summary" type="button" class="btn small" hidden>查看当前摘要</button>
                 </div>
                 <section class="run-detail-group">
-                  <h4>模型与档位</h4>
+                  <h3>模型与档位</h3>
                   <p class="run-detail-note">本轮实际使用的模型、能力档位与预留费用。</p>
                   <pre id="route-run-status" role="status"></pre>
                   <div id="route-call-list"></div>
                 </section>
                 <section class="run-detail-group">
-                  <h4>本轮技能</h4>
+                  <h3>本轮技能</h3>
                   <p class="run-detail-note">技能只是流程说明，不额外授予工具权限。</p>
                   <pre id="skill-run-status" role="status"></pre>
                 </section>
                 <section class="run-detail-group">
-                  <h4>保留与计量</h4>
+                  <h3>保留与计量</h3>
                   <p class="run-detail-note">上下文用量的实时视图在左栏；此处是本轮的计数口径与保留状态。</p>
                   <p id="run-retention-status" role="status"></p>
                   <p id="context-status" role="status"></p>
                   <pre id="summary-body"></pre>
+                </section>
+                <section class="run-detail-group">
+                  <h3>执行时间线</h3>
+                  <p class="run-detail-note">
+                    时间来自服务端事件时间；缺失字段显示未知。工具内部退出码与费用只在服务端上报时展示。
+                  </p>
+                  <div id="run-timeline" class="run-timeline"></div>
                 </section>
               </div>
             </section>
@@ -2217,6 +2287,15 @@
               <div class="inspector-empty-todo" id="inspector-todo-empty">
                 <span class="material-icons">task_alt</span>
                 <span>需要审批的动作会浮在对话上方，批准后才会执行。</span>
+              </div>
+            </section>
+            <section data-inspector-panel="worker" class="tab-body hidden">
+              <div id="inspector-worker" class="worker-panel">
+                <div class="worker-empty">
+                  <span class="material-icons">account_tree</span>
+                  <strong>暂无 Worker 任务</strong>
+                  <span>主会话发起需要 Worker 的任务后，这里显示任务与子运行状态。</span>
+                </div>
               </div>
             </section>
             <section data-inspector-panel="skills" class="tab-body hidden">
@@ -2232,6 +2311,7 @@
         </div>
       </aside>
     </main>
+    <div id="live-status" class="sr-only" role="status" aria-live="polite"></div>
     <div id="tip-layer"></div>
     <dialog id="services-dialog" class="services-dialog" aria-labelledby="services-dialog-title">
       <div class="services-dialog-head">
@@ -2243,6 +2323,6 @@
     <script src="/assets/vendor/xterm.js?v=20261121v173"></script>
     <script src="/assets/vendor/xterm-addon-fit.js?v=20261121v173"></script>
     <script src="/assets/ui/markdown.js?v=20261121v173"></script>
-    <script type="module" src="/assets/ui/v2/main.js?v=20261127owa-delivery"></script>
+    <script type="module" src="/assets/ui/v2/main.js?v=20261128merge2"></script>
   </body>
 </html>
