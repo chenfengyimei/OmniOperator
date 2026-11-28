@@ -1,0 +1,116 @@
+{
+  "date": "2026-11-28",
+  "branch": "v2",
+  "source_sha": "43a28074a513a6e6049b07eda22efdc86deb25cf",
+  "v2_base_sha": "7467bb443710142bba88bc0fbb55fe173fb4470a",
+  "platform": "Windows x64",
+  "python": "3.12.14",
+  "alembic_head": "v2_0064",
+  "command_prefix": "uv run --no-sync pytest -q -n 0",
+  "scoped_suites": [
+    {
+      "scope": "受管长作业公开合同（查询/取消/幂等/跨作用域）+ HTTP 与 OpenAPI 端点索引合同",
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_s": 117.92,
+      "modules": [
+        "agent/tests/v2/http/test_v2_omniweave_jobs.py",
+        "agent/tests/v2/http/test_v2_http.py::test_auth_chat_and_revision_contract"
+      ]
+    },
+    {
+      "scope": "OmniWeave HTTP 全套（交付归约/邮箱/对等消息/引用授权/能力）",
+      "passed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_s": 447.66,
+      "modules": ["agent/tests/v2/http/test_v2_omniweave_http.py"]
+    },
+    {
+      "scope": "Watchdog 监督：启动对账屏障、退避阶梯、跳过守卫、取消收敛、停滞告警去重、真实循环、模式回归",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "elapsed_s": 48.88,
+      "modules": ["agent/tests/v2/http/test_v2_omniweave_watchdog.py"]
+    }
+  ],
+  "baseline_check": {
+    "sha": "7467bb443710142bba88bc0fbb55fe173fb4470a",
+    "note": "干净 detached worktree（temp/worktrees/owa-jobs-baseline-7467bb44）上作业套件两轮全绿，证明交接文档记录的固定 41 秒失败为本机瞬时环境问题（当窗口另有会话活动），非代码缺陷",
+    "runs": [
+      {"passed": 6, "failed": 0, "elapsed_s": 61.05},
+      {"passed": 6, "failed": 0, "elapsed_s": 62.75}
+    ]
+  },
+  "static_checks": {
+    "ruff": "全部改动源文件与测试文件 check + format 通过",
+    "pyright": "改动源文件 0 错误 0 警告；composition/instance.py:420/475 的 InstancePaths 双路径解析为基线 7467bb44 既有问题（在基线 worktree 复验一致，与 43a28074 无关）"
+  },
+  "full_suite": false,
+  "full_suite_note": "按仓库纪律本批为专项驱动（-n 0 指定文件），全量 pytest 留待多模块集成收尾执行一次",
+  "github_ci_dispatched": false,
+  "commits": [
+    "ae1c5856 OWA：作业用例落绿——queued 取消补记 cancel_requested_at，公开合同用例消除领取竞态",
+    "43a28074 OWA：第二批 Watchdog——30 秒扫描监督协程、有界安全重排与启动对账屏障回归"
+  ],
+  "acceptance": {
+    "T06 恢复": {
+      "criteria": "未确认输入可恢复，已产生的结果有记录。重启沿用 Ticket 与 Worker Session。旧 Run 不能用过期 fence 结算新分配。",
+      "evidence": [
+        "test_job_crash_before_dispatch_requeues_and_completes_once——领取后未派发崩溃：重启沿用同一 Ticket/工作区恢复重派，files_write 恰好一条且 effect=applied，workspace 恰好一份，resumes=0，租约释放",
+        "test_job_crash_after_settle_replays_recorded_receipt_exactly_once[job-settle/job-finish]——回执已落盘的崩溃：沿用原回执精确一次，resumes=1，run.resume_queued 恰好一条",
+        "test_job_crash_mid_dispatch_keeps_unknown_until_review——派发后回执丢失：unknown 保留原账本，核查前 200 轮零重放、零第二动作",
+        "test_job_cancel_is_idempotent_and_rejects_stale_fence——过期 fence 的 settle 与 defer 双双被拒（owa_job_fence_stale）；晚到执行器只能读取已记录回执，不能改写新分配",
+        "test_defer_releases_claim_of_terminal_job——过期 fence 不能释放也不能改写终态作业的回执与指纹"
+      ],
+      "gaps": "邮箱回合与报告确认前后的中断沿用 Phase 3 已登记证据（owa-peer-mailbox、owa-router-delivery、owa-consumption-guards-2026-11-28）"
+    },
+    "T08 取消与未知副作用": {
+      "criteria": "重放、提前释放和错误完成次数均为 0。以 unknown 和原有核查入口恢复，重复取消回执一致。",
+      "evidence": [
+        "test_job_cancel_is_idempotent_and_rejects_stale_fence——重复取消返回同一终态，cancel_requested_at 落记录，回执 outcome=cancelled，ok 动作数为 0，held 租约为 0",
+        "test_job_public_status_and_cancel_by_job_id——公开身份重复取消返回逐字节一致回执；跨 Agent 与未知 job_id 一律 404，不泄漏内部 run_id",
+        "test_cancel_keeps_lease_and_claim_until_cleanup_completes——取消请求已收到但执行器仍在清理时：owa_jobs=cancelling、claim_token/lease_fence/claimed_by 由原执行者保有、held 租约=1；清理完成后才收敛并释放",
+        "test_job_crash_mid_dispatch_keeps_unknown_until_review——核查前零重放（200 轮），核查入口走既有 /actions/{id}/review",
+        "test_goal_revision_cancels_undispatched_job_without_leaks——目标修订在同一事务取消未派发作业：cancelled+owa_job_cancelled、cancel_requested_at 非空、work_items 收敛终态且 claim 字段为空、零动作、200 轮零重放"
+      ],
+      "gaps": []
+    },
+    "T09 权限、预算和审批": {
+      "criteria": "未授权调用、隐私数据泄露、超额派发均为 0。所有需审批的写调用读取原生批准证据。",
+      "evidence": [
+        "test_job_public_status_and_cancel_by_job_id——跨作用域：跨 Agent 读取/取消一律 404，未知身份 404",
+        "test_goal_revision_cancels_undispatched_job_without_leaks——目标版本被替换的作业在派发前被修订级联取消（manifest 的 owa_goal_superseded 复核对应该场景）",
+        "test_job_runs_detached_and_delivers_receipt_followup——files_write 必须先获 owner 审批（approvals 原生证据）才落盘",
+        "test_job_cancel_is_idempotent_and_rejects_stale_fence——未经审批的作业被取消时不产生 ok 动作（actions ok 计数 0）"
+      ],
+      "gaps": [
+        "作业派发前的撤权拦截（omniweave_job_manifest 的 evidence_authorized → owa_mandate_revoked → engine JOB_PREEMPTED defer）已有源码强制与 Phase 3 撤权证据（owa-worker-mandates、owa-evidence-references），作业派发专项未注入撤权用例——待补专项",
+        "超预算拦截沿用 owa-worker-capacity-2026-11-27 已登记证据，作业批未新增预算专项"
+      ]
+    },
+    "T12 Watchdog 与关闭": {
+      "criteria": "卡点可定位，安全重试符合限额。等待场景不会误判为卡死。清理完成前保留相应资源与不确定状态。",
+      "evidence": [
+        "test_watchdog_scan_alerts_stalled_running_jobs_only_once——running 作业 5 分钟无实质进展：run.watchdog_stalled 事件 + owa_job.watchdog_stalled 审计各恰好一条（卡点可定位），同一停滞期内去重",
+        "test_watchdog_scan_alerts_stalled_running_jobs_only_once——waiting_approval 的显式等待不被误判为卡死（水位线只对 running 分支生效）",
+        "test_watchdog_scan_requeues_proven_undispatched_failures_with_backoff——重排阶梯：5s/30s 退避逐次生效、单阶段最多 2 次、耗尽后收敛 interrupted+owa_job_watchdog_exhausted 且不再自动重排",
+        "test_watchdog_scan_skips_unresolved_side_effects——executing/unknown 动作的作业零自动动作（零重放守卫）",
+        "test_watchdog_scan_converges_cancel_requested_job_without_executor——执行者已死的 cancelling 作业按已记录取消请求收敛 cancelled，终态后不再监督",
+        "test_watchdog_loop_requeues_and_dispatcher_reclaims——真实 30 秒循环（注入 0.05s）重排后，解锁领取即重新派发（run.resume_queued 恰好一条）",
+        "test_startup_reconciles_owa_before_opening_claims——启动序屏障：gated omniweave_job_recover 期间 queued 作业不被领取（run=queued、work=pending、零租约），对账完成后才领取派发",
+        "test_watchdog_loop_only_runs_in_dispatch_mode——off/observe 不启动监督循环（探针零调用），dispatch 启动；observe/off 引导与关闭干净",
+        "test_cancel_keeps_lease_and_claim_until_cleanup_completes——关闭期/清理期资源归属：租约、claim 与执行位在清理完成前由原执行者保有"
+      ],
+      "gaps": [
+        "短时提供者故障、重连、超预算与关闭超时的故障注入未做专项（现有关闭序由 lifetime 四步与 engine.close 既有回归覆盖）——待补专项或并入集成收尾"
+      ]
+    }
+  },
+  "pending_real_machine": [
+    "Windows 真机服务路径下的作业崩溃恢复与 Watchdog 长时行为（72 小时采样口径）",
+    "Watchdog 阈值（30s 扫描、5 分钟告警、5s/30s 退避）按离线故障注入与健康采样校准（规范 §11 最终阈值口径）"
+  ]
+}
