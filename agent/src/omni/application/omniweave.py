@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from typing import cast
 
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
 from ..domain.objects import Blob
 from ..domain.omniweave import (
+    JOB_LIVE_STATES,
     OWA_JOB_START,
     OWA_PLAN,
     OWA_STATUS,
@@ -39,6 +40,7 @@ class OmniWeaveService:
     database: DatabasePort
     notify: Callable[[], None]
     objects: ObjectService
+    cancel_run: Callable[[str, str], Awaitable[None]]
     worker_tool_specs: tuple[ToolSpec, ...] = ()
 
     def _worker_catalog(self) -> dict[str, ToolSpec]:
@@ -247,6 +249,27 @@ class OmniWeaveService:
         return await self.database.read(
             lambda unit: unit.omniweave_ticket(agent_id, session_id, ticket_id, run_id=run_id)
         )
+
+    async def job_status(self, agent_id: str, job_id: str) -> Record:
+        """Owner job detail keyed by the public job identity alone."""
+        return await self.database.read(lambda unit: unit.omniweave_job_public(agent_id, job_id))
+
+    async def cancel_job(self, agent_id: str, job_id: str) -> Record:
+        """Cancel one managed job by its public identity through the same state machine as run cancellation.
+
+        The first view validates ownership and captures the internal Run; terminal jobs return the
+        recorded receipt unchanged, so repeated cancels answer with one consistent receipt.
+        """
+
+        def locate(unit: UnitOfWork) -> tuple[Record, str]:
+            view = unit.omniweave_job_public(agent_id, job_id)
+            return view, unit.omniweave_job_run(agent_id, job_id) if view["state"] in JOB_LIVE_STATES else ""
+
+        view, run_id = await self.database.read(locate)
+        if run_id:
+            await self.cancel_run(agent_id, run_id)
+            view = await self.database.read(lambda unit: unit.omniweave_job_public(agent_id, job_id))
+        return view
 
     async def ticket_options(self, agent_id: str, session_id: str) -> list[Record]:
         if self.mode != "dispatch":

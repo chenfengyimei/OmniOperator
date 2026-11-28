@@ -29,7 +29,7 @@ from ..domain.delegation import CHILD_CONCURRENCY, DELEGATE_TASK, SUMMARY_CHARS,
 from ..domain.images import model_tokens, references, zoom_part_id
 from ..domain.memory_decay import TOUCH_LIMIT
 from ..domain.model_recovery import ModelRejected
-from ..domain.omniweave import WORKER_CONCURRENCY, WORKER_INTERNAL_TOOL_NAMES, GoalUpdate
+from ..domain.omniweave import JOB_PREEMPTED_CODES, WORKER_CONCURRENCY, WORKER_INTERNAL_TOOL_NAMES, GoalUpdate
 from ..domain.repetition import is_degenerate_reply
 from ..domain.routing import DISCOVER_TOOLS, REQUEST_MODE, discover, select_tools, tool_window
 from ..domain.routing import notice as route_notice
@@ -509,6 +509,15 @@ class Application:
             raise
         except BusinessError as exc:
             code = exc.code
+            if code in JOB_PREEMPTED_CODES:
+                # The job was settled or preempted elsewhere (goal revision,
+                # revocation, another executor). A failed receipt cannot win; the
+                # executor only releases its own claim and lease.
+                try:
+                    await self._db.write(lambda u: u.omniweave_job_defer(agent_id, run_id, token, fence))
+                except BusinessError:
+                    pass
+                raise
             try:
                 await self._db.write(
                     lambda u: u.omniweave_job_settle(agent_id, run_id, token, fence, "failed", code, {})

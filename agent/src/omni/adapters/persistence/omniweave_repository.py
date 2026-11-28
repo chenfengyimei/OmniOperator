@@ -34,7 +34,7 @@ from . import schema as s
 from .omniweave_attempts import latest_run_id
 from .omniweave_authority import assert_mandate_action, evidence_authorized, mandate
 from .omniweave_delivery import OmniWeaveDeliveryRepositories
-from .omniweave_goals import current_goal, prior_goal_blocker
+from .omniweave_goals import current_goal, goal_job_runs, prior_goal_blocker
 from .omniweave_mailbox import waiting_for_peer
 
 
@@ -207,8 +207,16 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
         )
         if prior is not None and goal_update is not None:
             prior_run = str(prior["run_id"])
-            runs = [prior_run, *unit.delegation_children(agent_id, prior_run)]
+            children = unit.delegation_children(agent_id, prior_run)
+            # Managed jobs run on detached Runs outside the delegation tree; a
+            # revision must cancel them in the same transaction or a superseded
+            # job keeps executing against the old goal version.
+            job_runs = goal_job_runs(self, agent_id, str(goal_update.ticket_id), before_version=goal_version)
+            runs = [prior_run, *children, *job_runs]
             unit.cancel(agent_id, prior_run)
+            for identity in job_runs:
+                if identity != prior_run:
+                    unit.cancel(agent_id, identity)
             outbound = [delivery for identity in runs for delivery in unit.delivery_cancel_run(agent_id, identity)]
             cancellation = (outbound, runs)
             unit.event(

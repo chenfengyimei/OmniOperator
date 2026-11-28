@@ -3,7 +3,9 @@
 import os
 import subprocess
 import sys
+import threading
 import time
+import uuid
 from pathlib import Path
 
 import pytest
@@ -12,6 +14,7 @@ from omni_test_support.v2.v2_action_review_helpers import review_request
 from sqlalchemy import select
 
 from omni.adapters.persistence import schema as s
+from omni.adapters.persistence.lease_repository import LeaseRepositories
 from omni.adapters.persistence.repository import Repositories
 from omni.adapters.persistence.sqlite_access import sqlite_connection
 from omni.adapters.primitives import SystemClock, UUIDs
@@ -125,6 +128,10 @@ class JobFlowModel:
             return ModelReply("Managed job scenario", cost_micro=0)
         current = str(next(row["content"] for row in reversed(messages) if row["role"] == "user"))
         last = messages[-1]
+        if current == "Status check please":
+            # A plain main-conversation turn on another Agent must complete while a
+            # managed job holds its execution slot.
+            return ModelReply("All systems nominal", cost_micro=0)
         if current.startswith("OmniWeave Worker. Continue"):
             assert '"job.receipt"' in current, current[:200]
             self.receipts.append(current)
@@ -400,6 +407,272 @@ def test_job_crash_mid_dispatch_keeps_unknown_until_review(tmp_path):
         assert _rows(home, "SELECT count(*) FROM actions WHERE tool='files_write'") == [(1,)]
         assert _rows(home, "SELECT state FROM owa_jobs WHERE id=?", (job_id,)) == [("interrupted",)]
         assert model.receipts == []
+
+
+def test_job_public_status_and_cancel_by_job_id(tmp_path):
+    """The owner path works with only the public job identity from the ticket view."""
+    model = JobFlowModel()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        receipt = _submit(client, base, tmp_path)
+        view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
+        job_id = view["tasks"][0]["job"]["job_id"]
+        detail = client.get(base + f"/omniweave/jobs/{job_id}")
+        assert detail.status_code == 200, detail.text
+        body = detail.json()
+        assert body["job_id"] == job_id and body["state"] == "running"
+        assert body["phase"] == "executing" and body["cancel_requested"] is False
+        assert body["goal_superseded"] is False and body["current_goal_version"] == 1
+        assert "run_id" not in body  # the public identity must not leak the internal Run id
+
+        cancelled = client.post(base + f"/omniweave/jobs/{job_id}/cancel")
+        assert cancelled.status_code == 200, cancelled.text
+        assert cancelled.json()["cancel_requested"] is True
+        [(state, error)] = _wait_job(
+            tmp_path, "SELECT state, error_code FROM owa_jobs WHERE id=? AND state='cancelled'", (job_id,)
+        )
+        assert (state, error) == ("cancelled", "owa_job_cancelled")
+
+        repeat = client.post(base + f"/omniweave/jobs/{job_id}/cancel").json()
+        again = client.post(base + f"/omniweave/jobs/{job_id}/cancel").json()
+        assert repeat == again, "repeated cancellation must answer one consistent receipt"
+        assert repeat["state"] == "cancelled" and repeat["receipt"]["outcome"] == "cancelled"
+
+        final = client.get(base + f"/omniweave/jobs/{job_id}").json()
+        assert final["phase"] == "cancelled" and final["cancel_requested"] is True
+
+        other = client.post("/api/v1/agents", json={"name": "Second"}).json()
+        other_base = f"/api/v1/agents/{other['id']}"
+        assert client.get(other_base + f"/omniweave/jobs/{job_id}").status_code == 404
+        assert client.post(other_base + f"/omniweave/jobs/{job_id}/cancel").status_code == 404
+        assert client.get(base + f"/omniweave/jobs/{uuid.uuid4()}").status_code == 404
+        assert client.post(base + f"/omniweave/jobs/{uuid.uuid4()}/cancel").status_code == 404
+
+        [(run_id,)] = _rows(tmp_path, "SELECT run_id FROM owa_jobs WHERE id=?", (job_id,))
+        assert _rows(tmp_path, "SELECT state FROM runs WHERE id=?", (run_id,)) == [("cancelled",)]
+        assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(0,)]
+        assert _rows(tmp_path, "SELECT count(*) FROM actions WHERE run_id=? AND state='ok'", (run_id,)) == [(0,)]
+        with sqlite_connection(tmp_path / "data/omni.db") as connection:
+            [outcome] = connection.execute(
+                "SELECT json_extract(receipt,'$.outcome') FROM owa_jobs WHERE id=?", (job_id,)
+            ).fetchone()
+        assert outcome == "cancelled"
+
+
+def test_cancel_keeps_lease_and_claim_until_cleanup_completes(tmp_path):
+    """The cancel request never releases ownership; only the finished cleanup does."""
+    entered = threading.Event()
+    release = threading.Event()
+    target: list[str] = []
+    original_defer = Repositories.omniweave_job_defer
+
+    def gated_defer(self, agent_id, run_id, token, fence):
+        if target and run_id == target[0]:
+            entered.set()
+            assert release.wait(timeout=10), "cleanup gate leaked"
+        return original_defer(self, agent_id, run_id, token, fence)
+
+    Repositories.omniweave_job_defer = gated_defer
+    try:
+        model = JobFlowModel()
+        with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+            agent = _authorize(client, tmp_path)
+            base = _model_base(client, agent)
+            receipt = _submit(client, base, tmp_path)
+            view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
+            job_id = view["tasks"][0]["job"]["job_id"]
+            [(run_id, token, fence)] = _wait_job(
+                tmp_path,
+                "SELECT owa_jobs.run_id, work_items.claim_token, work_items.lease_fence "
+                "FROM owa_jobs JOIN work_items ON work_items.run_id=owa_jobs.run_id "
+                "WHERE owa_jobs.id=? AND owa_jobs.state='running'",
+                (job_id,),
+            )
+            target.append(run_id)
+            assert client.post(base + f"/omniweave/jobs/{job_id}/cancel").status_code == 200
+            assert entered.wait(timeout=10), "the executor never reached its cleanup"
+
+            # Inside the window the cancel receipt is on record but the executor
+            # still owns the lease, the claim and therefore the execution slot.
+            assert _rows(tmp_path, "SELECT state FROM owa_jobs WHERE id=?", (job_id,)) == [("cancelling",)]
+            assert _rows(
+                tmp_path,
+                "SELECT claim_token, lease_fence, claimed_by IS NOT NULL FROM work_items WHERE run_id=?",
+                (run_id,),
+            ) == [(token, fence, True)]
+            assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(1,)]
+            # Release the cleanup; the executor finishes its defer and everything converges.
+            release.set()
+            [(state, error)] = _wait_job(
+                tmp_path, "SELECT state, error_code FROM owa_jobs WHERE id=? AND state='cancelled'", (job_id,)
+            )
+            assert (state, error) == ("cancelled", "owa_job_cancelled")
+            assert _rows(
+                tmp_path,
+                "SELECT claim_token IS NULL, lease_fence IS NULL, state FROM work_items WHERE run_id=?",
+                (run_id,),
+            ) == [(True, True, "cancelled")]
+            assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(0,)]
+            assert _rows(tmp_path, "SELECT state FROM runs WHERE id=?", (run_id,)) == [("cancelled",)]
+    finally:
+        Repositories.omniweave_job_defer = original_defer
+        release.set()
+
+
+def test_goal_revision_cancels_undispatched_job_without_leaks(tmp_path, monkeypatch):
+    """A revision cancels a claimed-but-undispatched job in the same transaction; nothing replays."""
+    claim = LeaseRepositories.claim_runs
+
+    def blocked_job_claims(self, limit, *, include_owa_deliveries=False, include_owa_jobs=True):
+        # Hold managed-job Runs back from dispatch so the revision observes the
+        # claimed-but-undispatched window deterministically.
+        return claim(self, limit, include_owa_deliveries=include_owa_deliveries, include_owa_jobs=False)
+
+    monkeypatch.setattr(LeaseRepositories, "claim_runs", blocked_job_claims)
+    model = JobFlowModel()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        receipt = _submit(client, base, tmp_path)
+        view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
+        job_id = view["tasks"][0]["job"]["job_id"]
+        ticket_id = view["ticket_id"]
+        session_id = receipt["session_id"]
+        detail = client.get(base + f"/omniweave/jobs/{job_id}").json()
+        assert detail["phase"] == "waiting" and detail["state"] == "queued"
+        [(run_id,)] = _rows(tmp_path, "SELECT run_id FROM owa_jobs WHERE id=?", (job_id,))
+
+        revised = client.post(
+            base + "/turns",
+            json={
+                "key": "revise-1",
+                "session_id": session_id,
+                "message": "Add a feature",
+                "goal_update": {"ticket_id": ticket_id, "expected_goal_version": 1},
+            },
+        )
+        assert revised.status_code == 202, revised.text
+        [(state, error, cancelled_at)] = _wait_job(
+            tmp_path,
+            "SELECT state, error_code, cancel_requested_at IS NOT NULL FROM owa_jobs WHERE id=? AND state='cancelled'",
+            (job_id,),
+        )
+        assert (state, error, cancelled_at) == ("cancelled", "owa_job_cancelled", True)
+        assert _rows(tmp_path, "SELECT state FROM runs WHERE id=?", (run_id,)) == [("cancelled",)]
+        assert _rows(
+            tmp_path,
+            "SELECT state, claim_token IS NULL, lease_fence IS NULL FROM work_items WHERE run_id=?",
+            (run_id,),
+        ) == [("pending", True, True)]
+        assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(0,)]
+        assert _rows(tmp_path, "SELECT count(*) FROM actions WHERE run_id=?", (run_id,)) == [(0,)]
+
+        final = client.get(base + f"/omniweave/jobs/{job_id}").json()
+        assert final["phase"] == "cancelled" and final["goal_superseded"] is True
+        assert final["current_goal_version"] == 2 and final["receipt"]["outcome"] == "cancelled"
+
+        monkeypatch.setattr(LeaseRepositories, "claim_runs", claim)
+        deadline = 200
+        while deadline:
+            assert _rows(tmp_path, "SELECT count(*) FROM actions WHERE run_id=?", (run_id,)) == [(0,)]
+            time.sleep(0.025)
+            deadline -= 1
+        assert client.get(base + f"/omniweave/jobs/{job_id}").json()["state"] == "cancelled"
+
+
+def test_plain_turns_progress_while_job_holds_executor(tmp_path):
+    model = JobFlowModel()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        receipt = _submit(client, base, tmp_path)
+        view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
+        job_id = view["tasks"][0]["job"]["job_id"]
+        [(run_id,)] = _rows(tmp_path, "SELECT run_id FROM owa_jobs WHERE id=?", (job_id,))
+        assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(1,)]
+
+        other = client.post("/api/v1/agents", json={"name": "Second"}).json()
+        other_base = _model_base(client, other["id"])
+        plain = client.post(other_base + "/turns", json={"key": "plain-1", "message": "Status check please"}).json()
+        assert plain["run_id"]
+        deadline = 400
+        state = ""
+        while deadline:
+            row = client.get(other_base + f"/runs/{plain['run_id']}").json()
+            state = row["state"]
+            if state in ("succeeded", "failed", "cancelled", "interrupted"):
+                break
+            time.sleep(0.025)
+            deadline -= 1
+        assert state == "succeeded", state
+        messages = client.get(other_base + f"/sessions/{plain['session_id']}/messages").json()["items"]
+        assert [m["content"] for m in messages if m["role"] == "assistant"] == ["All systems nominal"]
+        # The job kept its execution slot and lease the whole time.
+        assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(1,)]
+        assert _rows(tmp_path, "SELECT state FROM owa_jobs WHERE id=?", (job_id,)) == [("running",)]
+
+
+def test_defer_releases_claim_of_terminal_job(tmp_path):
+    """A terminal receipt wins: the defer path releases a leftover claim without rewriting it."""
+    model = JobFlowModel()
+    with TestClient(http_app(tmp_path, model=model, omniweave_mode="dispatch")) as client:
+        agent = _authorize(client, tmp_path)
+        base = _model_base(client, agent)
+        receipt = _submit(client, base, tmp_path)
+        view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
+        job_id = view["tasks"][0]["job"]["job_id"]
+        [(run_id, token, fence)] = _wait_job(
+            tmp_path,
+            "SELECT owa_jobs.run_id, work_items.claim_token, work_items.lease_fence "
+            "FROM owa_jobs JOIN work_items ON work_items.run_id=owa_jobs.run_id "
+            "WHERE owa_jobs.id=? AND owa_jobs.state='running'",
+            (job_id,),
+        )
+        assert client.post(base + f"/omniweave/jobs/{job_id}/cancel").status_code == 200
+        _wait_job(tmp_path, "SELECT id FROM owa_jobs WHERE id=? AND state='cancelled'", (job_id,))
+    from omni.adapters.persistence.sqlalchemy_access import database_engine
+
+    engine = database_engine(tmp_path / "data/omni.db")
+    try:
+        with engine.connect() as connection:
+            connection.info["omni_write"] = True
+            unit = Repositories(connection, SystemClock(), UUIDs(), "late-executor-boot")
+            # Rebuild the leaked state the repair targets: a terminal job whose
+            # executor claim and session lease were never released.
+            connection.execute(
+                s.work_items.update()
+                .where(s.work_items.c.run_id == run_id)
+                .values(state="claimed", claimed_by="late-executor-boot", claim_token=token, lease_fence=fence)
+            )
+            connection.execute(
+                s.leases.update()
+                .where(s.leases.c.run_id == run_id)
+                .values(state="held", token=token, boot_id="late-executor-boot", fence=fence)
+            )
+            unit.omniweave_job_defer(agent, run_id, token, int(fence))
+            assert connection.execute(
+                select(s.work_items.c.state, s.work_items.c.claim_token).where(s.work_items.c.run_id == run_id)
+            ).first() == ("cancelled", None)
+            assert connection.execute(select(s.leases.c.state).where(s.leases.c.run_id == run_id)).first() == (
+                "released",
+            )
+            assert (
+                connection.execute(
+                    select(s.owa_jobs.c.state, s.owa_jobs.c.receipt_sha256).where(s.owa_jobs.c.id == job_id)
+                ).first()[0]
+                == "cancelled"
+            )
+            # A stale fence can neither release nor rewrite anything.
+            connection.execute(
+                s.work_items.update()
+                .where(s.work_items.c.run_id == run_id)
+                .values(state="claimed", claimed_by="late-executor-boot", claim_token=token, lease_fence=fence)
+            )
+            with pytest.raises(BusinessError, match="stale executor"):
+                unit.omniweave_job_defer(agent, run_id, token, int(fence) + 1)
+    finally:
+        engine.dispose()
 
 
 if __name__ == "__main__":

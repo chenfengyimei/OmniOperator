@@ -206,6 +206,11 @@ PEER_TOOL_NAMES = frozenset(tool.name for tool in PEER_TOOLS)
 JOB_LIVE_STATES = ("queued", "running", "cancelling")
 JOB_TERMINAL_STATES = ("succeeded", "failed", "cancelled", "interrupted")
 JOB_STATES = (*JOB_LIVE_STATES, *JOB_TERMINAL_STATES)
+# Dispatch-time failures that mean the job was settled or preempted elsewhere
+# (goal revision, authority revocation, another executor). Settling them again
+# would write a losing receipt against a terminal job, so the executor only
+# releases its own claim via the defer path.
+JOB_PREEMPTED_CODES = frozenset({"owa_job_settled", "owa_goal_superseded", "owa_mandate_revoked"})
 JOBS_PER_TASK = 1
 JOB_ARGUMENTS_CHARS = 16_000
 _JOB_ARGUMENTS: dict[str, JSON] = {

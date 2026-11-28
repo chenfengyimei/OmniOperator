@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import cast
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import BusinessError
@@ -106,6 +106,59 @@ class OmniWeaveJobRepositories(RepositoryBase):
             "ended_at": job["ended_at"],
         }
 
+    def _job_current_goal_version(self, agent_id: str, ticket_id: str) -> int:
+        root_id = self.connection.execute(
+            select(func.coalesce(s.owa_tickets.c.root_ticket_id, s.owa_tickets.c.id)).where(
+                s.owa_tickets.c.id == ticket_id, s.owa_tickets.c.agent_id == agent_id
+            )
+        ).scalar_one_or_none()
+        if root_id is None:
+            return 0
+        tickets = s.owa_tickets
+        return int(
+            self.connection.execute(
+                select(func.max(tickets.c.goal_version)).where(
+                    tickets.c.agent_id == agent_id,
+                    (tickets.c.id == root_id) | (tickets.c.root_ticket_id == root_id),
+                )
+            ).scalar_one()
+        )
+
+    def _job_phase(self, job: Record) -> Record:
+        """Public detail phase: distinguishes waiting, executing, cleanup, cancel and review."""
+        state = str(job["state"])
+        phase = {
+            "queued": "waiting",
+            "running": "executing",
+            "cancelling": "cleaning_up",
+            "cancelled": "cancelled",
+        }.get(state, state)
+        review: Record | None = None
+        if state not in ("cancelled", "queued") and job["action_id"] is not None:
+            action = self._one(s.actions, str(job["agent_id"]), str(job["action_id"]))
+            if str(action["state"]) == "unknown":
+                # The dispatched external write has no outcome yet; only the owner
+                # review flow may resolve it, and nothing may be replayed before.
+                phase = "needs_review"
+                review = {"action_id": str(job["action_id"]), "tool": str(action["tool"])}
+        return {"phase": phase, "review": review}
+
+    def omniweave_job_public(self, agent_id: str, job_id: str) -> Record:
+        """Owner-visible job detail keyed by the stable public identity only."""
+        job = self._one(_jobs, agent_id, job_id)
+        view = self._job_view(job)
+        view.update(self._job_phase(job))
+        current = self._job_current_goal_version(agent_id, str(job["ticket_id"]))
+        view["current_goal_version"] = current
+        view["goal_superseded"] = int(str(job["goal_version"])) != current
+        return view
+
+    def omniweave_job_run(self, agent_id: str, job_id: str) -> str:
+        job = self._one(_jobs, agent_id, job_id)
+        if job["run_id"] is None:
+            raise BusinessError("owa_job_missing", "This managed job has no executing Run", status=404)
+        return str(job["run_id"])
+
     def omniweave_job_start(self, agent_id: str, run_id: str, request: Record) -> Record:
         unit = cast(UnitOfWork, self)
         captured = mandate(self, agent_id, run_id)
@@ -198,6 +251,11 @@ class OmniWeaveJobRepositories(RepositoryBase):
             raise BusinessError("owa_job_missing", "This Run carries no managed job", status=404)
         if not evidence_authorized(self, agent_id, run_id):
             raise BusinessError("owa_mandate_revoked", "OmniWeave authority no longer matches the source")
+        if job["state"] in JOB_TERMINAL_STATES:
+            raise BusinessError("owa_job_settled", "This job was already settled by another executor")
+        current = self._job_current_goal_version(agent_id, str(job["ticket_id"]))
+        if int(str(job["goal_version"])) != current:
+            raise BusinessError("owa_goal_superseded", "A newer goal revision superseded this managed job", status=409)
         if job["deadline_at"] is not None and str(job["deadline_at"]) <= self.clock.now():
             raise BusinessError("owa_job_deadline", "The managed job deadline passed before dispatch")
         return self._job_view(job)
@@ -237,6 +295,22 @@ class OmniWeaveJobRepositories(RepositoryBase):
         if job is None:
             raise BusinessError("owa_job_missing", "This Run carries no managed job", status=404)
         if job["state"] in JOB_TERMINAL_STATES:
+            # The receipt is immutable. A late executor only keeps its view; an
+            # executor that still owns the claim releases it and converges the Run
+            # to the recorded terminal state, never rewriting the receipt.
+            try:
+                self._job_claim_held(agent_id, run_id, token, fence)
+            except BusinessError:
+                return self._job_view(job)
+            unit = cast(UnitOfWork, self)
+            work_state = {"cancelled": "cancelled", "failed": "failed"}.get(str(job["state"]), "done")
+            self._job_release(agent_id, run_id, token, fence, work_state)
+            run_state = str(unit.get_run(agent_id, run_id)["state"])
+            if str(job["state"]) == "succeeded":
+                if run_state != "succeeded":
+                    unit.finish(agent_id, run_id, f"Managed job {job['request_key']} · succeeded")
+            elif run_state not in ("succeeded", "failed", "cancelled", "interrupted"):
+                unit.transition(agent_id, run_id, str(job["state"]), str(job["error_code"]))
             return self._job_view(job)
         self._job_claim_held(agent_id, run_id, token, fence)
         unit = cast(UnitOfWork, self)
@@ -289,9 +363,21 @@ class OmniWeaveJobRepositories(RepositoryBase):
 
     def omniweave_job_defer(self, agent_id: str, run_id: str, token: str, fence: int) -> None:
         job = self._job_by_run(agent_id, run_id)
-        if job is None or job["state"] in JOB_TERMINAL_STATES:
+        if job is None:
             return
         self._job_claim_held(agent_id, run_id, token, fence)
+        if job["state"] in JOB_TERMINAL_STATES:
+            # The receipt was settled elsewhere (revision, cancel or another
+            # executor). This executor only releases its own claim; the lease and
+            # the execution slot must not outlive the terminal receipt.
+            self._job_release(
+                agent_id,
+                run_id,
+                token,
+                fence,
+                {"cancelled": "cancelled", "failed": "failed"}.get(str(job["state"]), "failed"),
+            )
+            return
         unit = cast(UnitOfWork, self)
         run = unit.get_run(agent_id, run_id)
         if run["state"] == "cancelling" or job["cancel_requested_at"] is not None:

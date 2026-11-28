@@ -13,6 +13,7 @@ async def install_omniweave(context: KernelFeatureContext) -> FeatureBinding:
         context.base.database,
         context.notify_run,
         context.base.objects,
+        context.cancel_run,
         context.worker_tool_specs,
     )
     return FeatureBinding(service, run_provider=RunCapabilityProvider("omniweave", service, lambda _: True))

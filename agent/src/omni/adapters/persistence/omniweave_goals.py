@@ -7,6 +7,7 @@ from sqlalchemy.sql.elements import ColumnElement
 from sqlalchemy.sql.selectable import CompoundSelect
 
 from ...domain.action_review import TERMINAL_RUNS
+from ...domain.omniweave import JOB_LIVE_STATES
 from . import schema as s
 from .action_predicates import unresolved_action
 from .repository_base import RepositoryBase
@@ -37,6 +38,31 @@ def goal_runs(agent_id: str, root_ticket_id: str, *, before_version: int | None 
         .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_task_attempts.c.task_id)
         .join(scoped, scoped.c.id == s.owa_tasks.c.ticket_id),
     )
+
+
+def goal_job_runs(
+    repo: RepositoryBase, agent_id: str, root_ticket_id: str, *, before_version: int | None = None
+) -> list[str]:
+    """Live managed-job runs inside the ticket family.
+
+    Goal revisions cancel worker runs through delegation children, but a managed
+    job executes on its own detached Run; without this projection the revision
+    would leave a superseded job executing against an old goal version.
+    """
+    tickets = s.owa_tickets
+    versions = select(tickets.c.id).where(
+        tickets.c.agent_id == agent_id, (tickets.c.id == root_ticket_id) | (tickets.c.root_ticket_id == root_ticket_id)
+    )
+    if before_version is not None:
+        versions = versions.where(tickets.c.goal_version < before_version)
+    scoped = versions.cte()
+    rows = repo.connection.execute(
+        select(s.owa_jobs.c.run_id)
+        .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_jobs.c.task_id)
+        .join(scoped, scoped.c.id == s.owa_tasks.c.ticket_id)
+        .where(s.owa_jobs.c.run_id.is_not(None), s.owa_jobs.c.state.in_(JOB_LIVE_STATES))
+    ).all()
+    return [str(row[0]) for row in rows]
 
 
 def prior_goal_blocker(

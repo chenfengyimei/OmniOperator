@@ -36,6 +36,14 @@ def omniweave_router(runtime: RuntimeLookup) -> APIRouter:
             str(agent_id), str(session_id), str(ticket_id) if ticket_id else "", str(run_id) if run_id else ""
         )
 
+    @router.get("/jobs/{job_id}")
+    async def job_detail(agent_id: UUID, job_id: UUID, request: Request):
+        return await runtime(request).omniweave.job_status(str(agent_id), str(job_id))
+
+    @router.post("/jobs/{job_id}/cancel")
+    async def cancel_job(agent_id: UUID, job_id: UUID, request: Request):
+        return await runtime(request).omniweave.cancel_job(str(agent_id), str(job_id))
+
     @router.get("/sessions/{session_id}/ticket-options")
     async def ticket_options(agent_id: UUID, session_id: UUID, request: Request):
         return {"items": await runtime(request).omniweave.ticket_options(str(agent_id), str(session_id))}
