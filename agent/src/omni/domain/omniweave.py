@@ -211,6 +211,13 @@ JOB_STATES = (*JOB_LIVE_STATES, *JOB_TERMINAL_STATES)
 # would write a losing receipt against a terminal job, so the executor only
 # releases its own claim via the defer path.
 JOB_PREEMPTED_CODES = frozenset({"owa_job_settled", "owa_goal_superseded", "owa_mandate_revoked"})
+# Deterministic supervision cadence (architecture spec §11): a 30-second scan,
+# a stall alert for running tasks without real progress for 5 minutes, and a
+# bounded requeue backoff (at most MAX_AUTO_RESUMES retries) that only applies
+# to failures proven undispatched or safely repeatable.
+WATCHDOG_SCAN_S = 30.0
+WATCHDOG_STALL_S = 300.0
+WATCHDOG_RETRY_DELAYS_S = (5.0, 30.0)
 JOBS_PER_TASK = 1
 JOB_ARGUMENTS_CHARS = 16_000
 _JOB_ARGUMENTS: dict[str, JSON] = {

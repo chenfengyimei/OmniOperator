@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ...application.capabilities import RunCapabilityProvider
 from ...application.omniweave import OmniWeaveService
+from ...application.watchdog import Watchdog
 from . import FeatureBinding, KernelFeatureContext
 
 
@@ -15,5 +16,10 @@ async def install_omniweave(context: KernelFeatureContext) -> FeatureBinding:
         context.base.objects,
         context.cancel_run,
         context.worker_tool_specs,
+        watchdog=Watchdog(context.base.database),
     )
-    return FeatureBinding(service, run_provider=RunCapabilityProvider("omniweave", service, lambda _: True))
+    return FeatureBinding(
+        service,
+        run_provider=RunCapabilityProvider("omniweave", service, lambda _: True),
+        start=service.start_watchdog,
+    )

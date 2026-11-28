@@ -577,6 +577,10 @@ async def open_instance(
             ),
             registered_services,
         )
+        omniweave_service = kernel_features.require("omniweave", OmniWeaveService)
+        # The supervision coroutine stops with admission (before any close) and
+        # its close is awaited after the runs, before the shared database.
+        lifetime.own("omniweave", 1, lambda budget: omniweave_service.close(budget), omniweave_service.stop_watchdog)
         schedules = kernel_features.require("schedules", SchedulingService)
         qq = kernel_features.require("qq", QQService)
         action_reviews = kernel_features.require("action-reviews", ActionReviewService)

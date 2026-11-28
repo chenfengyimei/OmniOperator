@@ -32,6 +32,7 @@ from ..domain.omniweave_artifacts import (
 )
 from .objects import ObjectService
 from .ports import DatabasePort, Record, TurnAdmissionObserver, TurnCancellation, UnitOfWork
+from .watchdog import Watchdog
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ class OmniWeaveService:
     objects: ObjectService
     cancel_run: Callable[[str, str], Awaitable[None]]
     worker_tool_specs: tuple[ToolSpec, ...] = ()
+    watchdog: Watchdog | None = None
 
     def _worker_catalog(self) -> dict[str, ToolSpec]:
         workspace = {
@@ -309,5 +311,15 @@ class OmniWeaveService:
         ):
             raise BusinessError("not_found", "Resource does not exist in this Agent space", status=404)
 
+    def start_watchdog(self) -> None:
+        if self.mode == "dispatch" and self.watchdog is not None:
+            self.watchdog.start()
+
+    def stop_watchdog(self) -> None:
+        if self.watchdog is not None:
+            self.watchdog.stop()
+
     async def close(self, timeout_s: float) -> bool:
+        if self.watchdog is not None:
+            await self.watchdog.close()
         return True

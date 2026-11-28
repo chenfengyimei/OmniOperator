@@ -8,8 +8,16 @@ from typing import cast
 from sqlalchemy import func, select, update
 
 from ...application.ports import Record, UnitOfWork
-from ...domain.contracts import BusinessError
-from ...domain.omniweave import JOB_LIVE_STATES, JOB_TERMINAL_STATES, checked_job, goal_fingerprint
+from ...domain.contracts import JSON, BusinessError
+from ...domain.omniweave import (
+    JOB_LIVE_STATES,
+    JOB_TERMINAL_STATES,
+    WATCHDOG_RETRY_DELAYS_S,
+    WATCHDOG_STALL_S,
+    checked_job,
+    goal_fingerprint,
+)
+from ...domain.run_recovery import MAX_AUTO_RESUMES
 from ...domain.scheduling import instant, timestamp
 from . import schema as s
 from .omniweave_attempts import latest_run_id
@@ -454,3 +462,161 @@ class OmniWeaveJobRepositories(RepositoryBase):
                     .where(_jobs.c.id == job["id"], _jobs.c.agent_id == job["agent_id"])
                     .values(state="queued", updated_at=self.clock.now())
                 )
+
+    def _job_supervision(self, job: Record) -> Record | None:
+        """Read-side supervision inputs for one live job: run, work item, action and watermark."""
+        run_id = str(job["run_id"] or "")
+        if not run_id:
+            return None
+        run = (
+            self.connection.execute(
+                select(s.runs.c.state, s.runs.c.ended_at, s.runs.c.created_at).where(s.runs.c.id == run_id)
+            )
+            .mappings()
+            .first()
+        )
+        work = (
+            self.connection.execute(
+                select(s.work_items.c.id).where(s.work_items.c.run_id == run_id, s.work_items.c.kind == "turn")
+            )
+            .mappings()
+            .first()
+        )
+        if run is None or work is None:
+            return None
+        action_state = ""
+        if job["action_id"]:
+            action_state = str(
+                self.connection.execute(
+                    select(s.actions.c.state).where(s.actions.c.id == job["action_id"])
+                ).scalar_one_or_none()
+                or ""
+            )
+        watermark = self.connection.execute(
+            select(func.max(s.run_events.c.created_at)).where(
+                s.run_events.c.run_id == run_id,
+                s.run_events.c.kind != "run.watchdog_stalled",
+            )
+        ).scalar_one_or_none() or str(run["created_at"] or "")
+        resume_at = self.connection.execute(
+            select(func.max(s.run_events.c.created_at)).where(
+                s.run_events.c.run_id == run_id, s.run_events.c.kind == "run.resume_queued"
+            )
+        ).scalar_one_or_none()
+        return {
+            "run_id": run_id,
+            "run_state": str(run["state"]),
+            "run_ended": str(run["ended_at"] or ""),
+            "work_id": str(work["id"]),
+            "action_state": action_state,
+            "watermark": watermark,
+            "resume_at": str(resume_at or ""),
+        }
+
+    def omniweave_watchdog_scan(self) -> Record:
+        """One deterministic supervision pass over live managed jobs (spec §11).
+
+        Alerts running jobs without progress and requeues terminal-run failures
+        that are proven undispatched or safely repeatable, with a bounded
+        backoff. Cleanup, explicit approval waits and unresolved side effects
+        are skipped; an exhausted requeue budget converges the job to a recorded
+        interrupted receipt for manual handling.
+        """
+        now = instant(self.clock.now())
+        alerts: list[JSON] = []
+        requeues: list[JSON] = []
+        exhausted: list[JSON] = []
+        unit = cast(UnitOfWork, self)
+        rows = (
+            self.connection.execute(select(_jobs).where(_jobs.c.state.in_(JOB_LIVE_STATES)).order_by(_jobs.c.id))
+            .mappings()
+            .all()
+        )
+        for row in rows:
+            job = cast(Record, dict(row))
+            agent_id = str(job["agent_id"])
+            job_id = str(job["id"])
+            context = self._job_supervision(job)
+            if context is None:
+                continue
+            if str(context["action_state"]) in ("unknown", "executing"):
+                # The external write may have happened; only the owner review
+                # flow resolves it and nothing may replay before that.
+                continue
+            run_state = str(context["run_state"])
+            if job["state"] == "cancelling":
+                if run_state in ("failed", "interrupted", "cancelled"):
+                    # The cancel was requested and the executor is gone; the
+                    # recorded cancel request is the terminal outcome.
+                    self._job_terminal(
+                        job,
+                        "cancelled",
+                        {"outcome": "cancelled", "error_code": "owa_job_cancelled"},
+                        "owa_job_cancelled",
+                    )
+                    self.audit(agent_id, "owa_job.settled", job_id, {"state": "cancelled", "by": "watchdog"})
+                continue
+            if run_state == "waiting_approval":
+                # Explicit wait; its deadline is judged by the executor, not by the stall timer.
+                continue
+            if run_state in ("failed", "interrupted"):
+                resumes = int(str(job["resumes"]))
+                if resumes >= MAX_AUTO_RESUMES:
+                    self._job_terminal(
+                        job,
+                        "interrupted",
+                        {"outcome": "interrupted", "error_code": "owa_job_watchdog_exhausted"},
+                        "owa_job_watchdog_exhausted",
+                    )
+                    self.audit(agent_id, "owa_job.settled", job_id, {"state": "interrupted", "by": "watchdog"})
+                    exhausted.append(job_id)
+                    continue
+                reference = str(context["resume_at"] or context["run_ended"])
+                delay = WATCHDOG_RETRY_DELAYS_S[min(resumes, len(WATCHDOG_RETRY_DELAYS_S) - 1)]
+                if not reference or (now - instant(reference)).total_seconds() < delay:
+                    continue
+                # Proven undispatched or safely repeatable: no executing or
+                # unknown action exists, so the run reclaims from pending.
+                self.connection.execute(
+                    update(s.runs).where(s.runs.c.id == context["run_id"]).values(state="queued", ended_at=None)
+                )
+                self.connection.execute(
+                    update(s.work_items)
+                    .where(s.work_items.c.id == context["work_id"])
+                    .values(state="pending", claim_token=None, lease_fence=None, claimed_by=None)
+                )
+                self.connection.execute(
+                    update(_jobs)
+                    .where(_jobs.c.agent_id == agent_id, _jobs.c.id == job_id)
+                    .values(resumes=resumes + 1, state="queued", updated_at=self.clock.now())
+                )
+                unit.event(agent_id, str(context["run_id"]), "run.resume_queued", {"job_id": job_id, "watchdog": True})
+                self.audit(agent_id, "owa_job.watchdog_requeued", job_id, {"resumes": resumes + 1})
+                requeues.append(job_id)
+            elif run_state == "running":
+                watermark = str(context["watermark"])
+                if not watermark:
+                    continue
+                idle = (now - instant(watermark)).total_seconds()
+                if idle < WATCHDOG_STALL_S:
+                    continue
+                alerted = self.connection.execute(
+                    select(s.run_events.c.sequence)
+                    .where(
+                        s.run_events.c.run_id == context["run_id"],
+                        s.run_events.c.kind == "run.watchdog_stalled",
+                        s.run_events.c.created_at > watermark,
+                    )
+                    .limit(1)
+                ).first()
+                if alerted is not None:
+                    continue
+                unit.event(
+                    agent_id,
+                    str(context["run_id"]),
+                    "run.watchdog_stalled",
+                    {"job_id": job_id, "idle_s": int(idle)},
+                )
+                self.audit(agent_id, "owa_job.watchdog_stalled", job_id, {"idle_s": int(idle)})
+                alerts.append(job_id)
+        return {"alerts": alerts, "requeues": requeues, "exhausted": exhausted}
