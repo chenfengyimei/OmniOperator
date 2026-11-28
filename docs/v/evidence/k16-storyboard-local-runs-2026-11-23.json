@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-23",
+  "scope": "K16 本机 MediaProcessor 240 样本分镜诊断",
+  "related_commit": "8512a8bc67ad7ca8addf55b66c82b0c4eeabfd16",
+  "related_evidence": "docs/evidence/v2-k16-real-acceptance.json（历史文档树）",
+  "material": {
+    "name": "Big Buck Bunny",
+    "license": "CC-BY 3.0",
+    "sha256": "46f62396c755e1ed0ab856a1521378d54196e125ef1a1643a199af087a15046b",
+    "duration_s": 596.48
+  },
+  "sample_count": 240,
+  "runs": [
+    {
+      "width": 640,
+      "seconds": 7.799,
+      "rss_peak_mb": 133.4,
+      "frame_count": 12,
+      "scene_cuts": [
+        3.708,
+        23.625,
+        33.542,
+        103.146,
+        113.083,
+        157.833,
+        200.042,
+        205.042,
+        272.125,
+        287.042,
+        453.542,
+        490.833
+      ],
+      "timestamps": [
+        13.667,
+        65.875,
+        103.125,
+        152.833,
+        182.667,
+        229.875,
+        247.292,
+        324.333,
+        446.083,
+        453.542,
+        490.833,
+        552.958
+      ],
+      "sheet_width": 1280,
+      "sheet_height": 2280,
+      "sheet_bytes": 3649691,
+      "sheet_sha256": "1e8c10f9b9fc79196b5ee0977dcd4f8bfe12d33a518cf16a26c463a53b2f6712"
+    },
+    {
+      "width": 320,
+      "seconds": 7.319,
+      "rss_peak_mb": 112.0,
+      "frame_count": 12,
+      "scene_cuts": [
+        3.708,
+        23.625,
+        33.542,
+        103.146,
+        113.083,
+        157.833,
+        200.042,
+        205.042,
+        272.125,
+        287.042,
+        453.542,
+        490.833
+      ],
+      "timestamps": [
+        13.667,
+        65.875,
+        103.125,
+        152.833,
+        182.667,
+        229.875,
+        247.292,
+        324.333,
+        446.083,
+        453.542,
+        490.833,
+        552.958
+      ],
+      "sheet_width": 640,
+      "sheet_height": 1200,
+      "sheet_bytes": 1209028,
+      "sheet_sha256": "f7893455a0ddf9774473541e30b4c7b8dd6b7d2eb157ad4310acc166d3113fd4"
+    }
+  ],
+  "notes": "从旧验收工作树的本机诊断记录收录。运行时的精确源码 SHA 未记录。正式结论见关联证据。"
+}

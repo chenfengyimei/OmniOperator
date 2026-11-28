@@ -2,7 +2,7 @@
 
 > 由 `uv run --no-sync python scripts/project_index.py` 生成。不要手改；分类改 system/catalog/schema.py，分层改 ARCHITECTURE.md。
 
-源码指纹：`f7be87dc5ab9d28efe3855448cfd37d1b369b5dfd86e4861dbc7df8b4f85ca02`。包含 65 个职责模块、941 个源码/界面文件。
+源码指纹：`4d973807e1992b493a349290d693f1398311b7930a6cf03e92b9a5bc0619bf1b`。包含 65 个职责模块、948 个源码/界面文件。
 
 ## V2 领域合同 · v2-domain
 
@@ -57,7 +57,7 @@
 | [agent/src/omni/domain/model_reply.py](../../../agent/src/omni/domain/model_reply.py) | V2 | 62 | One tool-reply contract for all model transports; validation never repairs or dispatches calls. |
 | [agent/src/omni/domain/model_stream.py](../../../agent/src/omni/domain/model_stream.py) | V2 | 205 | Bounded chat stream assembly. Partial text and tool arguments never become executable results. |
 | [agent/src/omni/domain/objects.py](../../../agent/src/omni/domain/objects.py) | V2 | 44 | Immutable object identities and metadata constraints, independent of storage. |
-| [agent/src/omni/domain/omniweave.py](../../../agent/src/omni/domain/omniweave.py) | V2 | 337 | OmniWeave rollout modes and the canonical owner Web trigger contract. |
+| [agent/src/omni/domain/omniweave.py](../../../agent/src/omni/domain/omniweave.py) | V2 | 406 | OmniWeave rollout modes and the canonical owner Web trigger contract. |
 | [agent/src/omni/domain/omniweave_artifacts.py](../../../agent/src/omni/domain/omniweave_artifacts.py) | V2 | 102 | Bounded OmniWeave artifact commands and immutable text-object envelopes. |
 | [agent/src/omni/domain/people.py](../../../agent/src/omni/domain/people.py) | V2 | 48 | Person, account and memory document rules; contains no I/O or ORM types. |
 | [agent/src/omni/domain/persona_growth.py](../../../agent/src/omni/domain/persona_growth.py) | V2 | 129 | Deterministic persona-growth rendering from approved reflection entries; no I/O. |
@@ -125,7 +125,7 @@
 | [agent/src/omni/application/desktop_portal.py](../../../agent/src/omni/application/desktop_portal.py) | V2 | 326 | Owner/view-scoped temporary share sessions with durable consent metadata; no image, native identity or input authorization. |
 | [agent/src/omni/application/desktop_services.py](../../../agent/src/omni/application/desktop_services.py) | V2 | 18 | Group the desktop services that share the same owner view. |
 | [agent/src/omni/application/documents.py](../../../agent/src/omni/application/documents.py) | V2 | 378 | Source documents, explicitly requested local indexes and registered retrieval dependencies. |
-| [agent/src/omni/application/engine.py](../../../agent/src/omni/application/engine.py) | V2 | 1514 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
+| [agent/src/omni/application/engine.py](../../../agent/src/omni/application/engine.py) | V2 | 1617 | One supervised runtime: admission, session FIFO, model/tool execution and shutdown. |
 | [agent/src/omni/application/exchange_recovery.py](../../../agent/src/omni/application/exchange_recovery.py) | V2 | 86 | Explicit offline exchange quarantine and new-directory rescue; no native changes or unknown-outcome erasure. |
 | [agent/src/omni/application/exchange_recovery_steps.py](../../../agent/src/omni/application/exchange_recovery_steps.py) | V2 | 47 | Reuse release snapshots and fences for explicit quarantine/rescue; never clear a child unknown or call a manager. |
 | [agent/src/omni/application/exchange_steps.py](../../../agent/src/omni/application/exchange_steps.py) | V2 | 139 | Compose existing release/registration/control use cases without holding instance locks across target startup. |
@@ -143,11 +143,11 @@
 | [agent/src/omni/application/model_calls.py](../../../agent/src/omni/application/model_calls.py) | V2 | 392 | One preflight, authorization and settlement path for model and compression calls. |
 | [agent/src/omni/application/model_output.py](../../../agent/src/omni/application/model_output.py) | V2 | 57 | Bounded previews owned by active model calls; durable messages remain the only completed output. |
 | [agent/src/omni/application/objects.py](../../../agent/src/omni/application/objects.py) | V2 | 175 | Object publication and access use cases; no filesystem paths or ORM objects. |
-| [agent/src/omni/application/omniweave.py](../../../agent/src/omni/application/omniweave.py) | V2 | 284 | Observe Web admissions and expose scoped planning controls to Router runs. |
+| [agent/src/omni/application/omniweave.py](../../../agent/src/omni/application/omniweave.py) | V2 | 290 | Observe Web admissions and expose scoped planning controls to Router runs. |
 | [agent/src/omni/application/operations.py](../../../agent/src/omni/application/operations.py) | V2 | 127 | Bounded operational queries and privacy-preserving diagnostic export; no model or device actions. |
 | [agent/src/omni/application/people.py](../../../agent/src/omni/application/people.py) | V2 | 78 | Owner-facing people and personal-document use cases; no ORM or filesystem access. |
 | [agent/src/omni/application/persona.py](../../../agent/src/omni/application/persona.py) | V2 | 80 | Owner-only persona growth projection over the approved reflection ledger. |
-| [agent/src/omni/application/ports.py](../../../agent/src/omni/application/ports.py) | V2 | 1174 | Application boundaries. Implementations belong to adapters. |
+| [agent/src/omni/application/ports.py](../../../agent/src/omni/application/ports.py) | V2 | 1184 | Application boundaries. Implementations belong to adapters. |
 | [agent/src/omni/application/qq.py](../../../agent/src/omni/application/qq.py) | V2 | 227 | Own bounded QQ listeners and owner conversation grants; turns use the shared V2 kernel. |
 | [agent/src/omni/application/reflections.py](../../../agent/src/omni/application/reflections.py) | V2 | 148 | Local reflection control and owner review use cases sharing one transactional ledger. |
 | [agent/src/omni/application/release_drain.py](../../../agent/src/omni/application/release_drain.py) | V2 | 30 | Bind release draining to the existing once-only boot control; reconciliation never sends another request. |
@@ -265,7 +265,7 @@
 | [agent/src/omni/adapters/persistence/history_repository.py](../../../agent/src/omni/adapters/persistence/history_repository.py) | V2 | 89 | Read history pages and retention revisions in one transaction; does not delete history. |
 | [agent/src/omni/adapters/persistence/history_sequence.py](../../../agent/src/omni/adapters/persistence/history_sequence.py) | V2 | 27 | Allocate global history positions in the caller's transaction; never opens connections. |
 | [agent/src/omni/adapters/persistence/image_repository.py](../../../agent/src/omni/adapters/persistence/image_repository.py) | V2 | 367 | Scoped image metadata, model-revision policies and per-call references; never reads files or encodes images. |
-| [agent/src/omni/adapters/persistence/lease_repository.py](../../../agent/src/omni/adapters/persistence/lease_repository.py) | V2 | 323 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
+| [agent/src/omni/adapters/persistence/lease_repository.py](../../../agent/src/omni/adapters/persistence/lease_repository.py) | V2 | 345 | Persistent FIFO claims and fenced resource leases, within the caller's transaction. |
 | [agent/src/omni/adapters/persistence/maintenance.py](../../../agent/src/omni/adapters/persistence/maintenance.py) | V2 | 1067 | Exclusive offline snapshots and restore. Live SQLite files are never copied directly. |
 | [agent/src/omni/adapters/persistence/maintenance_repository.py](../../../agent/src/omni/adapters/persistence/maintenance_repository.py) | V2 | 543 | Bounded document-maintenance admission, fenced attempts and business-result settlement; no execution or I/O. |
 | [agent/src/omni/adapters/persistence/mcp_repository.py](../../../agent/src/omni/adapters/persistence/mcp_repository.py) | V2 | 1016 | MCP runtime generations, catalog snapshots, per-tool grants, run captures and call records. |
@@ -340,17 +340,19 @@
 | [agent/src/omni/adapters/persistence/migrations/versions/v0061.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0061.py) | V2 | 67 | Bind owner goal updates to the original Ticket and fence Worker versions. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0062.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0062.py) | V2 | 56 | Record one Router delivery and its message per admitted goal version. |
 | [agent/src/omni/adapters/persistence/migrations/versions/v0063.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0063.py) | V2 | 50 | Reference prior accepted Worker evidence and authorized peer citations. |
+| [agent/src/omni/adapters/persistence/migrations/versions/v0064.py](../../../agent/src/omni/adapters/persistence/migrations/versions/v0064.py) | V2 | 59 | Managed long jobs with stable ids, fenced receipts and immutable cancellation. |
 | [agent/src/omni/adapters/persistence/object_gc.py](../../../agent/src/omni/adapters/persistence/object_gc.py) | V2 | 248 | Exclusive plan/apply collection; commit unreferenced metadata before unlinking files. |
 | [agent/src/omni/adapters/persistence/object_inventory.py](../../../agent/src/omni/adapters/persistence/object_inventory.py) | V2 | 129 | Offline object registry snapshots and bounded physical inventory validation. |
 | [agent/src/omni/adapters/persistence/object_repository.py](../../../agent/src/omni/adapters/persistence/object_repository.py) | V2 | 233 | Object metadata, pins and real foreign-key references; never touches files. |
 | [agent/src/omni/adapters/persistence/offline_plans.py](../../../agent/src/omni/adapters/persistence/offline_plans.py) | V2 | 190 | Exclusive reviewed maintenance plans; domain callbacks own eligibility and transactional progress. |
 | [agent/src/omni/adapters/persistence/omniweave_artifacts.py](../../../agent/src/omni/adapters/persistence/omniweave_artifacts.py) | V2 | 398 | Versioned objects and explicit reader grants scoped to a Worker plan. |
 | [agent/src/omni/adapters/persistence/omniweave_attempts.py](../../../agent/src/omni/adapters/persistence/omniweave_attempts.py) | V2 | 116 | Read Worker attempt identities and allocate later Runs in the original Session. |
-| [agent/src/omni/adapters/persistence/omniweave_authority.py](../../../agent/src/omni/adapters/persistence/omniweave_authority.py) | V2 | 114 | Check immutable OmniWeave authority against the live V2 execution fences. |
+| [agent/src/omni/adapters/persistence/omniweave_authority.py](../../../agent/src/omni/adapters/persistence/omniweave_authority.py) | V2 | 128 | Check immutable OmniWeave authority against the live V2 execution fences. |
 | [agent/src/omni/adapters/persistence/omniweave_delivery.py](../../../agent/src/omni/adapters/persistence/omniweave_delivery.py) | V2 | 555 | Reduce durable Worker results into the original private Web conversation. |
 | [agent/src/omni/adapters/persistence/omniweave_goals.py](../../../agent/src/omni/adapters/persistence/omniweave_goals.py) | V2 | 72 | Read the execution and reconciliation scope of a versioned Ticket. |
-| [agent/src/omni/adapters/persistence/omniweave_mailbox.py](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py) | V2 | 691 | Deliver scoped peer traffic through durable V2 Worker turns. |
-| [agent/src/omni/adapters/persistence/omniweave_repository.py](../../../agent/src/omni/adapters/persistence/omniweave_repository.py) | V2 | 719 | Persist scoped OmniWeave admissions, execution plans and Worker dependencies. |
+| [agent/src/omni/adapters/persistence/omniweave_jobs.py](../../../agent/src/omni/adapters/persistence/omniweave_jobs.py) | V2 | 363 | Managed long jobs bound to Worker tasks: stable ids, fenced receipts, immutable cancellation. |
+| [agent/src/omni/adapters/persistence/omniweave_mailbox.py](../../../agent/src/omni/adapters/persistence/omniweave_mailbox.py) | V2 | 765 | Deliver scoped peer traffic through durable V2 Worker turns. |
+| [agent/src/omni/adapters/persistence/omniweave_repository.py](../../../agent/src/omni/adapters/persistence/omniweave_repository.py) | V2 | 758 | Persist scoped OmniWeave admissions, execution plans and Worker dependencies. |
 | [agent/src/omni/adapters/persistence/operations_read.py](../../../agent/src/omni/adapters/persistence/operations_read.py) | V2 | 58 | Offline read-only operational snapshot; caller holds exclusive instance ownership. |
 | [agent/src/omni/adapters/persistence/operations_repository.py](../../../agent/src/omni/adapters/persistence/operations_repository.py) | V2 | 100 | Operational aggregates and owner credential audit; business bodies and secret values stay excluded. |
 | [agent/src/omni/adapters/persistence/people_repository.py](../../../agent/src/omni/adapters/persistence/people_repository.py) | V2 | 212 | People and manual account identities; personal documents reuse memory repositories. |
@@ -361,13 +363,13 @@
 | [agent/src/omni/adapters/persistence/reflection_media.py](../../../agent/src/omni/adapters/persistence/reflection_media.py) | V2 | 97 | Resolve media evidence from settled tool receipts and the tool-image dispatch ledger. |
 | [agent/src/omni/adapters/persistence/reflection_repository.py](../../../agent/src/omni/adapters/persistence/reflection_repository.py) | V2 | 496 | Scoped reflection review, exact excerpts and atomic owner decisions. |
 | [agent/src/omni/adapters/persistence/releases.py](../../../agent/src/omni/adapters/persistence/releases.py) | V2 | 215 | Consistent release snapshots and quarantined new-directory restores under caller-owned instance locks. |
-| [agent/src/omni/adapters/persistence/repository.py](../../../agent/src/omni/adapters/persistence/repository.py) | V2 | 1312 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
+| [agent/src/omni/adapters/persistence/repository.py](../../../agent/src/omni/adapters/persistence/repository.py) | V2 | 1316 | Transaction-scoped repositories. No connection creation, DDL or external calls. |
 | [agent/src/omni/adapters/persistence/repository_base.py](../../../agent/src/omni/adapters/persistence/repository_base.py) | V2 | 52 | Common transaction-scoped identity, ownership and audit primitives. |
 | [agent/src/omni/adapters/persistence/retention_repository.py](../../../agent/src/omni/adapters/persistence/retention_repository.py) | V2 | 150 | Context barriers invalidate derived views without deleting original conversations. |
 | [agent/src/omni/adapters/persistence/routing_repository.py](../../../agent/src/omni/adapters/persistence/routing_repository.py) | V2 | 379 | Scoped immutable tier policies, run choices, promotions and actual tool manifests; no model calls or I/O. |
-| [agent/src/omni/adapters/persistence/run_checkpoint_repository.py](../../../agent/src/omni/adapters/persistence/run_checkpoint_repository.py) | V2 | 207 | Use the turn queue's existing payload, instance lock and lease for safe restart. |
+| [agent/src/omni/adapters/persistence/run_checkpoint_repository.py](../../../agent/src/omni/adapters/persistence/run_checkpoint_repository.py) | V2 | 244 | Use the turn queue's existing payload, instance lock and lease for safe restart. |
 | [agent/src/omni/adapters/persistence/schedule_repository.py](../../../agent/src/omni/adapters/persistence/schedule_repository.py) | V2 | 638 | Immutable schedule definitions, durable due cursors and atomic occurrence admission. |
-| [agent/src/omni/adapters/persistence/schema.py](../../../agent/src/omni/adapters/persistence/schema.py) | V2 | 3866 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
+| [agent/src/omni/adapters/persistence/schema.py](../../../agent/src/omni/adapters/persistence/schema.py) | V2 | 3913 | V2 relational schema. Repositories never issue DDL; migrations use frozen SQL snapshots. |
 | [agent/src/omni/adapters/persistence/schema_upgrade.py](../../../agent/src/omni/adapters/persistence/schema_upgrade.py) | V2 | 161 | Reviewed migration catalog and transactional upgrades only in a locked, fenced release target. |
 | [agent/src/omni/adapters/persistence/search_schema.py](../../../agent/src/omni/adapters/persistence/search_schema.py) | V2 | 8 | Derived FTS definitions. Applied only by versioned migrations. |
 | [agent/src/omni/adapters/persistence/session_search_repository.py](../../../agent/src/omni/adapters/persistence/session_search_repository.py) | V2 | 265 | Bounded read-only history recall over the shared session/message store. |
@@ -623,8 +625,9 @@
 | [web/ui/v2/action-reviews.js](../../../web/ui/v2/action-reviews.js) | V2 | 424 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/android-unicode.js](../../../web/ui/v2/android-unicode.js) | V2 | 158 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/android.js](../../../web/ui/v2/android.js) | V2 | 403 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/approvals.js](../../../web/ui/v2/approvals.js) | V2 | 346 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/bilibili.js](../../../web/ui/v2/bilibili.js) | V2 | 295 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/capabilities.js](../../../web/ui/v2/capabilities.js) | V2 | 57 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/capabilities.js](../../../web/ui/v2/capabilities.js) | V2 | 146 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/chat-images.js](../../../web/ui/v2/chat-images.js) | V2 | 174 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/configuration.js](../../../web/ui/v2/configuration.js) | V2 | 566 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/credentials.js](../../../web/ui/v2/credentials.js) | V2 | 187 | 原生源码、平台脚本或界面资源 |
@@ -634,9 +637,10 @@
 | [web/ui/v2/documents.js](../../../web/ui/v2/documents.js) | V2 | 487 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/event-stream.js](../../../web/ui/v2/event-stream.js) | V2 | 168 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/extensions.js](../../../web/ui/v2/extensions.js) | V2 | 659 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/index.html](../../../web/ui/v2/index.html) | V2 | 2248 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/index.html](../../../web/ui/v2/index.html) | V2 | 2328 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/inspector.js](../../../web/ui/v2/inspector.js) | V2 | 266 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/main.js](../../../web/ui/v2/main.js) | V2 | 2539 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/lifecycle.js](../../../web/ui/v2/lifecycle.js) | V2 | 117 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/main.js](../../../web/ui/v2/main.js) | V2 | 3017 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/maintenance.js](../../../web/ui/v2/maintenance.js) | V2 | 126 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/mcp.js](../../../web/ui/v2/mcp.js) | V2 | 378 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/media.js](../../../web/ui/v2/media.js) | V2 | 426 | 原生源码、平台脚本或界面资源 |
@@ -644,10 +648,12 @@
 | [web/ui/v2/memory-semantics.js](../../../web/ui/v2/memory-semantics.js) | V2 | 252 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/model-output.js](../../../web/ui/v2/model-output.js) | V2 | 26 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/models.js](../../../web/ui/v2/models.js) | V2 | 672 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/operations.js](../../../web/ui/v2/operations.js) | V2 | 352 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/omniweave.js](../../../web/ui/v2/omniweave.js) | V2 | 504 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/operations.js](../../../web/ui/v2/operations.js) | V2 | 356 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/people.js](../../../web/ui/v2/people.js) | V2 | 319 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/persona.js](../../../web/ui/v2/persona.js) | V2 | 87 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/qq.js](../../../web/ui/v2/qq.js) | V2 | 181 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/queue.js](../../../web/ui/v2/queue.js) | V2 | 240 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/reflections.js](../../../web/ui/v2/reflections.js) | V2 | 232 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/routing.js](../../../web/ui/v2/routing.js) | V2 | 221 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/schedules.js](../../../web/ui/v2/schedules.js) | V2 | 523 | 原生源码、平台脚本或界面资源 |
@@ -655,11 +661,12 @@
 | [web/ui/v2/skills.js](../../../web/ui/v2/skills.js) | V2 | 458 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminal-reviews.js](../../../web/ui/v2/terminal-reviews.js) | V2 | 254 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/terminals.js](../../../web/ui/v2/terminals.js) | V2 | 564 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/timeline.js](../../../web/ui/v2/timeline.js) | V2 | 317 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/tokens.js](../../../web/ui/v2/tokens.js) | V2 | 81 | 原生源码、平台脚本或界面资源 |
 | [web/ui/v2/v1/components.css](../../../web/ui/v2/v1/components.css) | V2 | 655 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/v1/frame.css](../../../web/ui/v2/v1/frame.css) | V2 | 938 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/v1/workbench.css](../../../web/ui/v2/v1/workbench.css) | V2 | 4453 | 原生源码、平台脚本或界面资源 |
-| [web/ui/v2/workbench.css](../../../web/ui/v2/workbench.css) | V2 | 4486 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/v1/frame.css](../../../web/ui/v2/v1/frame.css) | V2 | 935 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/v1/workbench.css](../../../web/ui/v2/v1/workbench.css) | V2 | 4447 | 原生源码、平台脚本或界面资源 |
+| [web/ui/v2/workbench.css](../../../web/ui/v2/workbench.css) | V2 | 5909 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/v/reference/V2_REFACTOR.md](../../../docs/v/reference/V2_REFACTOR.md)
 
@@ -1010,7 +1017,7 @@
 | [web/ui/shared.js](../../../web/ui/shared.js) | V1 | 341 | 原生源码、平台脚本或界面资源 |
 | [web/ui/terminal-theme.js](../../../web/ui/terminal-theme.js) | V1 | 68 | 原生源码、平台脚本或界面资源 |
 | [web/ui/theme.js](../../../web/ui/theme.js) | 共享 | 96 | 原生源码、平台脚本或界面资源 |
-| [web/ui/tokens.css](../../../web/ui/tokens.css) | 共享 | 259 | 原生源码、平台脚本或界面资源 |
+| [web/ui/tokens.css](../../../web/ui/tokens.css) | 共享 | 297 | 原生源码、平台脚本或界面资源 |
 | [web/ui/workbench.css](../../../web/ui/workbench.css) | V1 | 4443 | 原生源码、平台脚本或界面资源 |
 
 文档：[docs/v/reference/UI_QA.md](../../../docs/v/reference/UI_QA.md)
