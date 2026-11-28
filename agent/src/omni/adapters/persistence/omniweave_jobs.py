@@ -404,7 +404,14 @@ class OmniWeaveJobRepositories(RepositoryBase):
             return
         unit = cast(UnitOfWork, self)
         if job["state"] == "queued":
-            # The enclosing Run cancellation releases any session claim.
+            # The request stays on record even though a queued job collapses to
+            # its terminal receipt immediately; the enclosing Run cancellation
+            # releases any session claim.
+            self.connection.execute(
+                update(_jobs)
+                .where(_jobs.c.agent_id == agent_id, _jobs.c.id == job["id"])
+                .values(cancel_requested_at=self.clock.now())
+            )
             self._job_terminal(
                 job, "cancelled", {"outcome": "cancelled", "error_code": "owa_job_cancelled"}, "owa_job_cancelled"
             )

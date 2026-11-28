@@ -418,6 +418,9 @@ def test_job_public_status_and_cancel_by_job_id(tmp_path):
         receipt = _submit(client, base, tmp_path)
         view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
         job_id = view["tasks"][0]["job"]["job_id"]
+        # waiting_external only proves the job was submitted; phase "executing"
+        # additionally requires the detached Run to be claimed, so wait for it.
+        _wait_job(tmp_path, "SELECT id FROM owa_jobs WHERE id=? AND state='running'", (job_id,))
         detail = client.get(base + f"/omniweave/jobs/{job_id}")
         assert detail.status_code == 200, detail.text
         body = detail.json()
@@ -521,12 +524,12 @@ def test_cancel_keeps_lease_and_claim_until_cleanup_completes(tmp_path):
 
 
 def test_goal_revision_cancels_undispatched_job_without_leaks(tmp_path, monkeypatch):
-    """A revision cancels a claimed-but-undispatched job in the same transaction; nothing replays."""
+    """A revision cancels a queued, undispatched job in the same transaction; nothing replays."""
     claim = LeaseRepositories.claim_runs
 
     def blocked_job_claims(self, limit, *, include_owa_deliveries=False, include_owa_jobs=True):
         # Hold managed-job Runs back from dispatch so the revision observes the
-        # claimed-but-undispatched window deterministically.
+        # job while it is still queued, deterministically.
         return claim(self, limit, include_owa_deliveries=include_owa_deliveries, include_owa_jobs=False)
 
     monkeypatch.setattr(LeaseRepositories, "claim_runs", blocked_job_claims)
@@ -560,11 +563,13 @@ def test_goal_revision_cancels_undispatched_job_without_leaks(tmp_path, monkeypa
         )
         assert (state, error, cancelled_at) == ("cancelled", "owa_job_cancelled", True)
         assert _rows(tmp_path, "SELECT state FROM runs WHERE id=?", (run_id,)) == [("cancelled",)]
+        # The cancelled Run's work item converges to the terminal work state and
+        # the queued job never held a claim.
         assert _rows(
             tmp_path,
             "SELECT state, claim_token IS NULL, lease_fence IS NULL FROM work_items WHERE run_id=?",
             (run_id,),
-        ) == [("pending", True, True)]
+        ) == [("cancelled", True, True)]
         assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(0,)]
         assert _rows(tmp_path, "SELECT count(*) FROM actions WHERE run_id=?", (run_id,)) == [(0,)]
 
@@ -590,6 +595,9 @@ def test_plain_turns_progress_while_job_holds_executor(tmp_path):
         view = _wait_tasks(client, base, receipt, {"build": "waiting_external"})
         job_id = view["tasks"][0]["job"]["job_id"]
         [(run_id,)] = _rows(tmp_path, "SELECT run_id FROM owa_jobs WHERE id=?", (job_id,))
+        # The session lease exists only once the detached Run is claimed; wait
+        # for the claim instead of racing the dispatcher's 0.25s wake.
+        _wait_job(tmp_path, "SELECT id FROM owa_jobs WHERE id=? AND state='running'", (job_id,))
         assert _rows(tmp_path, "SELECT count(*) FROM leases WHERE run_id=? AND state='held'", (run_id,)) == [(1,)]
 
         other = client.post("/api/v1/agents", json={"name": "Second"}).json()
@@ -637,20 +645,25 @@ def test_defer_releases_claim_of_terminal_job(tmp_path):
     try:
         with engine.connect() as connection:
             connection.info["omni_write"] = True
-            unit = Repositories(connection, SystemClock(), UUIDs(), "late-executor-boot")
+            boot = str(uuid.uuid4())
+            unit = Repositories(connection, SystemClock(), UUIDs(), boot)
             # Rebuild the leaked state the repair targets: a terminal job whose
-            # executor claim and session lease were never released.
+            # executor claim and session lease were never released. The new boot
+            # takes ownership with a fresh fence: lease_fence_monotone aborts a
+            # re-held lease whose fence did not advance, and ck_leases_bounds
+            # requires a full boot id.
+            fresh = int(fence) + 1
             connection.execute(
                 s.work_items.update()
                 .where(s.work_items.c.run_id == run_id)
-                .values(state="claimed", claimed_by="late-executor-boot", claim_token=token, lease_fence=fence)
+                .values(state="claimed", claimed_by=boot, claim_token=token, lease_fence=fresh)
             )
             connection.execute(
                 s.leases.update()
                 .where(s.leases.c.run_id == run_id)
-                .values(state="held", token=token, boot_id="late-executor-boot", fence=fence)
+                .values(state="held", token=token, boot_id=boot, fence=fresh)
             )
-            unit.omniweave_job_defer(agent, run_id, token, int(fence))
+            unit.omniweave_job_defer(agent, run_id, token, fresh)
             assert connection.execute(
                 select(s.work_items.c.state, s.work_items.c.claim_token).where(s.work_items.c.run_id == run_id)
             ).first() == ("cancelled", None)
@@ -667,10 +680,10 @@ def test_defer_releases_claim_of_terminal_job(tmp_path):
             connection.execute(
                 s.work_items.update()
                 .where(s.work_items.c.run_id == run_id)
-                .values(state="claimed", claimed_by="late-executor-boot", claim_token=token, lease_fence=fence)
+                .values(state="claimed", claimed_by=boot, claim_token=token, lease_fence=fresh)
             )
             with pytest.raises(BusinessError, match="stale executor"):
-                unit.omniweave_job_defer(agent, run_id, token, int(fence) + 1)
+                unit.omniweave_job_defer(agent, run_id, token, fresh + 1)
     finally:
         engine.dispose()
 
