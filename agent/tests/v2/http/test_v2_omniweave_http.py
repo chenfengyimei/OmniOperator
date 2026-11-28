@@ -661,8 +661,13 @@ def test_router_delivery_commits_once_in_original_session_after_restart(tmp_path
     claim = LeaseRepositories.claim_runs
     read = ObjectFiles.read
 
-    def claims(self, limit, *, include_owa_deliveries=False):
-        return claim(self, limit, include_owa_deliveries=include_owa_deliveries and allow_delivery.is_set())
+    def claims(self, limit, *, include_owa_deliveries=False, include_owa_jobs=False):
+        return claim(
+            self,
+            limit,
+            include_owa_deliveries=include_owa_deliveries and allow_delivery.is_set(),
+            include_owa_jobs=include_owa_jobs,
+        )
 
     async def read_blob(store, blob):
         data = await read(store, blob)

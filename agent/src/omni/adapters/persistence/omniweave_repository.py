@@ -15,6 +15,7 @@ from ...domain.delegation import SUMMARY_CHARS, TREE_BUDGET, tool_hash
 from ...domain.omniweave import (
     MAX_GOAL_VERSION,
     OBSERVE_DECISION,
+    OWA_JOB_START,
     OWNER_WEB_SOURCE,
     REPLY_PEER,
     REQUEST_PEER,
@@ -330,6 +331,8 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
         toolsets: dict[str, tuple[str, ...]] = {}
         for task in tasks:
             tools = task.tools
+            if task.jobs:
+                tools += (OWA_JOB_START.name,)
             if task.peers:
                 tools += (REQUEST_PEER.name,)
             if task.key in inbound:
@@ -564,13 +567,13 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
         root_id = str(ticket["run_id"])
         unit = cast(UnitOfWork, self)
         rows = self.connection.execute(
-            select(s.owa_tasks.c.task_key, latest_run_id(s.owa_tasks.c.id))
+            select(s.owa_tasks.c.id, s.owa_tasks.c.task_key, latest_run_id(s.owa_tasks.c.id))
             .where(s.owa_tasks.c.ticket_id == ticket["id"])
             .order_by(s.owa_tasks.c.task_key)
         ).all()
         tasks: list[JSON] = []
         summary_limit = SUMMARY_CHARS // max(1, len(rows))
-        for key, child_id in rows:
+        for task_pk, key, child_id in rows:
             result = unit.delegation_result(agent_id, root_id, child_id)
             item: Record = {
                 "key": key,
@@ -585,6 +588,27 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
                 item["state"] = "waiting_peer"
                 if include_results:
                     result["summary"] = ""
+            job = (
+                self.connection.execute(
+                    select(s.owa_jobs)
+                    .where(s.owa_jobs.c.agent_id == agent_id, s.owa_jobs.c.task_id == str(task_pk))
+                    .order_by(s.owa_jobs.c.created_at.desc())
+                    .limit(1)
+                )
+                .mappings()
+                .first()
+            )
+            if job is not None:
+                view = dict(job)
+                item["job"] = {
+                    "job_id": view["id"],
+                    "tool": view["tool"],
+                    "state": view["state"],
+                    "cancel_requested": view["cancel_requested_at"] is not None,
+                    "error_code": view["error_code"],
+                }
+                if view["state"] in ("queued", "running", "cancelling"):
+                    item["state"] = "waiting_external"
             if include_results:
                 summary = str(result["summary"])
                 item["result"] = summary[:summary_limit]
@@ -689,6 +713,21 @@ class OmniWeaveRepositories(OmniWeaveDeliveryRepositories):
         if any(state != "succeeded" for _, state in needs):
             return "waiting"
         if any(waiting_for_peer(self, agent_id, child_id) for child_id, _state in needs):
+            return "waiting"
+        if (
+            self.connection.execute(
+                select(s.owa_jobs.c.id)
+                .where(
+                    s.owa_jobs.c.agent_id == agent_id,
+                    s.owa_jobs.c.task_id.in_([child_id for child_id, _state in needs]),
+                    s.owa_jobs.c.state.in_(("queued", "running", "cancelling")),
+                )
+                .limit(1)
+            ).first()
+            is not None
+        ):
+            # A managed long job holds the task's external wait; dependents and
+            # delivery must not read mid-flight results.
             return "waiting"
         for child_id, _state in needs:
             result = unit.delegation_result(agent_id, str(task["run_id"]), child_id)

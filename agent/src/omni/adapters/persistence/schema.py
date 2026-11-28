@@ -1595,6 +1595,53 @@ owa_task_attempts = scoped(
     scoped_fk("run_id", "runs"),
 )
 
+owa_jobs = scoped(
+    "owa_jobs",
+    Column("ticket_id", String(36), nullable=False),
+    Column("task_id", String(36), nullable=False),
+    Column("goal_version", Integer, nullable=False),
+    Column("request_key", String(80), nullable=False),
+    Column("request_sha256", String(64), nullable=False),
+    Column("tool", String(80), nullable=False),
+    Column("arguments", JSON, nullable=False),
+    Column("action_id", String(36)),
+    Column("run_id", String(36)),
+    Column("state", String(12), nullable=False, server_default="queued"),
+    Column("receipt", JSON(none_as_null=True)),
+    Column("receipt_sha256", String(64)),
+    Column("cancel_requested_at", String(40)),
+    Column("deadline_at", String(40)),
+    Column("resumes", Integer, nullable=False, server_default="0"),
+    Column("followup_run_id", String(36)),
+    Column("updated_at", String(40), nullable=False),
+    Column("ended_at", String(40)),
+    Column("error_code", String(80), nullable=False, server_default=""),
+    UniqueConstraint("task_id", "request_key"),
+    UniqueConstraint("run_id"),
+    scoped_fk("ticket_id", "owa_tickets"),
+    scoped_fk("task_id", "owa_tasks"),
+    scoped_fk("action_id", "actions"),
+    scoped_fk("run_id", "runs"),
+    scoped_fk("followup_run_id", "runs"),
+    CheckConstraint("goal_version BETWEEN 1 AND 64", name="goal_version"),
+    CheckConstraint(
+        "state IN ('queued','running','cancelling','succeeded','failed','cancelled','interrupted')", name="state"
+    ),
+    CheckConstraint(
+        "(receipt IS NULL AND receipt_sha256 IS NULL AND ended_at IS NULL) OR "
+        "(receipt IS NOT NULL AND receipt_sha256 IS NOT NULL AND length(receipt_sha256)=64 "
+        "AND receipt_sha256 NOT GLOB '*[^0-9a-f]*' AND ended_at IS NOT NULL AND json_valid(receipt) "
+        "AND json_type(receipt)='object')",
+        name="receipt",
+    ),
+)
+Index(
+    "uq_owa_jobs_live",
+    owa_jobs.c.task_id,
+    unique=True,
+    sqlite_where=owa_jobs.c.state.in_(("queued", "running", "cancelling")),
+)
+
 owa_peer_links = scoped(
     "owa_peer_links",
     Column("sender_id", String(36), nullable=False),

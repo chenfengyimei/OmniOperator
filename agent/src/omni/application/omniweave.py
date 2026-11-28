@@ -11,6 +11,7 @@ from typing import cast
 from ..domain.contracts import JSON, ActionResult, BusinessError, InvocationContext, Outcome, ToolSpec
 from ..domain.objects import Blob
 from ..domain.omniweave import (
+    OWA_JOB_START,
     OWA_PLAN,
     OWA_STATUS,
     PEER_TOOL_NAMES,
@@ -46,7 +47,7 @@ class OmniWeaveService:
             for spec in self.worker_tool_specs
             if spec.name in WORKER_TOOLS and spec.writes == (spec.name not in WORKER_READ_TOOLS)
         }
-        return {**workspace, **{spec.name: spec for spec in (*PEER_TOOLS, *ARTIFACT_TOOLS)}}
+        return {**workspace, **{spec.name: spec for spec in (*PEER_TOOLS, *ARTIFACT_TOOLS, OWA_JOB_START)}}
 
     async def main_session(self, agent_id: str) -> Record:
         session_id = await self.database.read(lambda unit: unit.omniweave_main_session(agent_id))
@@ -139,6 +140,11 @@ class OmniWeaveService:
             elif name in PEER_TOOL_NAMES:
                 result = await self.database.write(
                     lambda unit: unit.omniweave_peer_command(agent_id, run_id, name, dict(arguments))
+                )
+                self.notify()
+            elif name == OWA_JOB_START.name:
+                result = await self.database.write(
+                    lambda unit: unit.omniweave_job_start(agent_id, run_id, dict(arguments))
                 )
                 self.notify()
             elif name == PUBLISH_ARTIFACT.name:

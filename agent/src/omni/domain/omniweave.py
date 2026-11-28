@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from graphlib import CycleError, TopologicalSorter
 from typing import Literal, cast
@@ -138,6 +139,7 @@ OWA_PLAN = ToolSpec(
                             "required": ["task_key", "goal_version"],
                             "additionalProperties": False,
                         },
+                        "jobs": {"type": "boolean"},
                     },
                     "required": ["key", "goal"],
                     "additionalProperties": False,
@@ -200,7 +202,58 @@ REPLY_PEER = ToolSpec(
 )
 PEER_TOOLS = (REQUEST_PEER, REPLY_PEER)
 PEER_TOOL_NAMES = frozenset(tool.name for tool in PEER_TOOLS)
-WORKER_INTERNAL_TOOL_NAMES = PEER_TOOL_NAMES | ARTIFACT_TOOL_NAMES
+
+JOB_LIVE_STATES = ("queued", "running", "cancelling")
+JOB_TERMINAL_STATES = ("succeeded", "failed", "cancelled", "interrupted")
+JOB_STATES = (*JOB_LIVE_STATES, *JOB_TERMINAL_STATES)
+JOBS_PER_TASK = 1
+JOB_ARGUMENTS_CHARS = 16_000
+_JOB_ARGUMENTS: dict[str, JSON] = {
+    "type": "object",
+    "maxProperties": 16,
+    "additionalProperties": {"type": ["string", "integer", "number", "boolean"]},
+}
+OWA_JOB_START = ToolSpec(
+    "owa_job_start",
+    "Start one bounded managed long call on this task. It runs detached with a stable job id, "
+    "recorded receipts and its own lease; a write still needs owner approval. Finish this turn "
+    "at a safe boundary after submitting. The next turn receives the job receipt in this same "
+    "private conversation. Use the same key to retry the same request.",
+    {
+        "type": "object",
+        "properties": {
+            "key": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,80}$"},
+            "tool": {"type": "string"},
+            "arguments": _JOB_ARGUMENTS,
+            "deadline_seconds": {"type": "integer", "minimum": 1, "maximum": ROOT_DEADLINE_S},
+        },
+        "required": ["key", "tool", "arguments"],
+        "additionalProperties": False,
+    },
+    resource="omniweave",
+)
+JOB_TOOL_NAMES = frozenset({OWA_JOB_START.name})
+WORKER_INTERNAL_TOOL_NAMES = PEER_TOOL_NAMES | ARTIFACT_TOOL_NAMES | JOB_TOOL_NAMES
+
+
+def checked_job(value: JSON, granted: Iterable[str]) -> tuple[str, dict[str, JSON], int | None]:
+    if not isinstance(value, dict) or set(value) - {"key", "tool", "arguments", "deadline_seconds"}:
+        raise BusinessError("owa_job_invalid", "Managed job requests must name a key, tool and arguments", status=422)
+    key, name, arguments = value.get("key"), value.get("tool"), value.get("arguments")
+    deadline = value.get("deadline_seconds")
+    if (
+        not isinstance(key, str)
+        or re.fullmatch(r"^[A-Za-z0-9._-]{1,80}$", key) is None
+        or not isinstance(name, str)
+        or name not in granted
+        or not isinstance(arguments, dict)
+        or len(json.dumps(arguments, ensure_ascii=False)) > JOB_ARGUMENTS_CHARS
+        or (deadline is not None and (type(deadline) is not int or not 1 <= deadline <= ROOT_DEADLINE_S))
+    ):
+        raise BusinessError("owa_job_invalid", "Managed job request is malformed or uses an ungranted tool", status=422)
+    return key, cast(dict[str, JSON], arguments), deadline
+
+
 PEER_REQUESTS_PER_ROOT = 16
 PEER_REQUESTS_PER_SENDER = 4
 PEER_CAUSAL_DEPTH = 4
@@ -218,6 +271,7 @@ class WorkerTask:
     peers: tuple[str, ...]
     artifact_readers: tuple[str, ...]
     reuse: tuple[str, int] | None = None
+    jobs: bool = False
 
 
 def checked_plan(value: dict[str, JSON], reservation: int) -> list[WorkerTask]:
@@ -257,6 +311,7 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
     profile = value.get("profile", "coding")
     deadline = value.get("deadline_seconds")
     reuse = value.get("reuse")
+    jobs = value.get("jobs", False)
     if (
         not isinstance(key, str)
         or not re.fullmatch(_KEY, key)
@@ -271,6 +326,8 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         or not isinstance(profile, str)
         or profile not in WORKER_PROFILES
         or (deadline is not None and (type(deadline) is not int or not 1 <= deadline <= ROOT_DEADLINE_S))
+        or jobs is not True
+        and jobs is not False
     ):
         raise invalid_plan()
     carried: tuple[str, int] | None = None
@@ -287,6 +344,7 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
             or deadline is not None
             or peers
             or readers
+            or jobs
         ):
             raise invalid_plan()
         carried = (prior_key, prior_version)
@@ -308,7 +366,17 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
             name: item
             for name, item in value.items()
             if name
-            not in {"key", "depends_on", "tools", "profile", "deadline_seconds", "peers", "artifact_readers", "reuse"}
+            not in {
+                "key",
+                "depends_on",
+                "tools",
+                "profile",
+                "deadline_seconds",
+                "peers",
+                "artifact_readers",
+                "reuse",
+                "jobs",
+            }
         },
         reservation,
     )
@@ -322,6 +390,7 @@ def _checked_task(value: JSON, reservation: int) -> WorkerTask:
         tuple(sorted(authorized_peers)),
         tuple(sorted(artifact_readers)),
         carried,
+        bool(jobs),
     )
 
 

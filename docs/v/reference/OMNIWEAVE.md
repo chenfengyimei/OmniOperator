@@ -112,3 +112,11 @@ Profile 与 Mandate 批 `5e7baa36` 通过 64 项生产入口与内核专项、59
 ### 校园助手全链离线场景
 
 Phase 3 的完整链路由一条生产入口场景验收：所有者在私有 Web 主会话发起"校园助手"目标，Router 规划 Research、Coding、Verification、Documentation；Research 发布调查产物并与 Coding 完成带引用的定向问答；Coding 在私有工作区写盘、读回核验后发布原型；Verification 读取调查与原型；Documentation 依赖三者并发布手册。实例重启后同一 Ticket 续接，所有者在原会话追加要求并修订到第 2 版：沿用的三个任务按已验收计入，新 Documentation 在工作区产出更新手册，交付在原会话提交一次，沿用证据保持可下载。[场景测试](../../../agent/tests/v2/http/test_v2_omniweave_campus.py)
+
+## Phase 4 受管长作业
+
+`v2_0064` 在同一个业务库登记作业身份、参数指纹、取消请求与终态回执。Router 的任务计划显式授予长作业能力后，Worker 可以调用 `owa_job_start`，同一任务和请求键返回稳定的 `job_id`。活动作业投影为 `waiting_external`，通过现有 Worker 邮箱续接已落盘的回执。 [迁移](../../../agent/src/omni/adapters/persistence/migrations/versions/v0064.py) · [作业仓储](../../../agent/src/omni/adapters/persistence/omniweave_jobs.py)
+
+作业复用 V2 执行器、审批和动作账本。结算时同事务更新作业回执、释放领取并结束 Run。取消或结算后到达的旧执行者受领取代次约束。重启时未派发可重新领取，已结算动作沿用原账本，派发结果未知时进入现有核查流程。 [作业恢复专项](../../../agent/tests/v2/http/test_v2_omniweave_jobs.py)
+
+Watchdog、长作业的稳定状态与取消入口以及清理期间的资源归属继续按 Phase 4 的验收矩阵核对。

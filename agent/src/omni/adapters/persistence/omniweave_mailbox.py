@@ -13,6 +13,7 @@ from sqlalchemy import func, or_, select, union, update
 from ...application.ports import Record, UnitOfWork
 from ...domain.contracts import JSON, BusinessError, ToolSpec
 from ...domain.omniweave import (
+    OWA_JOB_START,
     PEER_CAUSAL_DEPTH,
     PEER_DEADLINE_S,
     PEER_REQUESTS_PER_ROOT,
@@ -320,7 +321,9 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
         if captured is None or captured["task_id"] is None:
             return ()
         tools = cast(Record, captured["tools"])
-        return tuple(spec for spec in (*PEER_TOOLS, *ARTIFACT_TOOLS) if tools.get(spec.name) == mandate_tool(spec))
+        return tuple(
+            spec for spec in (*PEER_TOOLS, *ARTIFACT_TOOLS, OWA_JOB_START) if tools.get(spec.name) == mandate_tool(spec)
+        )
 
     def omniweave_peer_command(self, agent_id: str, run_id: str, name: str, arguments: Record) -> Record:
         unit = cast(UnitOfWork, self)
@@ -574,21 +577,26 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
         ).all()
         for task_id, agent_id, run_id in rows:
             self._owa_deliver(agent_id, task_id, run_id)
+        receipts = self.connection.execute(
+            select(s.owa_jobs.c.id, s.owa_tasks.c.id.label("task_id"), s.owa_tasks.c.agent_id)
+            .join(s.owa_tasks, s.owa_tasks.c.id == s.owa_jobs.c.task_id)
+            .join(s.owa_executions, s.owa_executions.c.ticket_id == s.owa_tasks.c.ticket_id)
+            .where(
+                s.owa_jobs.c.state.in_(("succeeded", "failed", "cancelled")),
+                s.owa_jobs.c.followup_run_id.is_(None),
+                s.owa_executions.c.cancelled_at.is_(None),
+            )
+            .order_by(s.owa_jobs.c.created_at, s.owa_jobs.c.id)
+            .limit(16)
+        ).all()
+        for job_id, task_id, agent_id in receipts:
+            self._owa_deliver_job(agent_id, task_id, job_id)
 
-    def _owa_deliver(self, agent_id: str, task_id: str, run_id: str) -> None:
+    def _owa_mailbox_hold(self, agent_id: str, run_id: str) -> bool:
         unit = cast(UnitOfWork, self)
         previous = unit.get_run(agent_id, run_id)
-        parent_id = str(previous["parent_id"])
-        captured = mandate(self, agent_id, run_id)
-        if captured is None:
-            return
-        try:
-            authorize(self, agent_id, run_id)
-            unit.assert_model_authorized(agent_id, run_id)
-        except BusinessError:
-            return
-        result = unit.delegation_result(agent_id, parent_id, run_id)
-        if (
+        result = unit.delegation_result(agent_id, str(previous["parent_id"]), run_id)
+        return bool(
             result["unknown_effect"]
             or result["unknown_model_calls"]
             or self.connection.execute(
@@ -612,7 +620,73 @@ class OmniWeaveMailboxRepositories(OmniWeaveArtifactRepositories):
                 )
                 .limit(1)
             ).first()
-        ):
+        )
+
+    def _owa_deliver_job(self, agent_id: str, task_id: str, job_id: str) -> None:
+        unit = cast(UnitOfWork, self)
+        job = (
+            self.connection.execute(
+                select(s.owa_jobs).where(s.owa_jobs.c.agent_id == agent_id, s.owa_jobs.c.id == job_id)
+            )
+            .mappings()
+            .first()
+        )
+        if job is None:
+            return
+        run_id = self.connection.execute(select(latest_run_id(str(task_id)))).scalar_one_or_none()
+        if run_id is None:
+            return
+        previous = unit.get_run(agent_id, str(run_id))
+        captured = mandate(self, agent_id, str(run_id))
+        if captured is None or captured["goal_version"] != job["goal_version"]:
+            return
+        try:
+            authorize(self, agent_id, str(run_id))
+            unit.assert_model_authorized(agent_id, str(run_id))
+        except BusinessError:
+            return
+        if previous["state"] != "succeeded" or self._owa_mailbox_hold(agent_id, str(run_id)):
+            return
+        events: list[Record] = [
+            {
+                "type": "job.receipt",
+                "job_id": job["id"],
+                "key": job["request_key"],
+                "tool": job["tool"],
+                "state": job["state"],
+                "error_code": job["error_code"],
+                "receipt": job["receipt"],
+            }
+        ]
+        text = _MAILBOX_TURN_HEAD + "\n" + json.dumps({"events": events}, ensure_ascii=False)
+        try:
+            unit.require_turn_capacity(1)
+            unit.delegation_check_budget(
+                agent_id, str(run_id), cast(int, unit.run_settings(agent_id, str(run_id))["call_reservation_micro"])
+            )
+        except BusinessError:
+            return
+        resumed_id = self._enqueue_owa_attempt(agent_id, task_id, previous, text, cast(int, captured["goal_version"]))
+        self.connection.execute(
+            update(s.owa_jobs)
+            .where(s.owa_jobs.c.agent_id == agent_id, s.owa_jobs.c.id == job_id, s.owa_jobs.c.followup_run_id.is_(None))
+            .values(followup_run_id=resumed_id)
+        )
+
+    def _owa_deliver(self, agent_id: str, task_id: str, run_id: str) -> None:
+        unit = cast(UnitOfWork, self)
+        previous = unit.get_run(agent_id, run_id)
+        parent_id = str(previous["parent_id"])
+        captured = mandate(self, agent_id, run_id)
+        if captured is None:
+            return
+        try:
+            authorize(self, agent_id, run_id)
+            unit.assert_model_authorized(agent_id, run_id)
+        except BusinessError:
+            return
+        result = unit.delegation_result(agent_id, parent_id, run_id)
+        if result["unknown_effect"] or result["unknown_model_calls"] or self._owa_mailbox_hold(agent_id, run_id):
             return
         events: list[Record] = []
         receipts: list[tuple[str, str]] = []

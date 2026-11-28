@@ -22,12 +22,26 @@ def mandate(repo: RepositoryBase, agent_id: str, run_id: str) -> Record | None:
         )
         .exists()
     )
+    # A managed long job executes detached from its submitting attempt but keeps
+    # the task's captured Mandate, so its executor run resolves the same authority.
+    current_job = (
+        select(s.owa_jobs.c.id)
+        .where(
+            s.owa_jobs.c.run_id == run_id,
+            s.owa_jobs.c.agent_id == agent_id,
+            s.owa_jobs.c.task_id == s.owa_mandates.c.task_id,
+            s.owa_jobs.c.goal_version == s.owa_mandates.c.goal_version,
+        )
+        .exists()
+    )
     row = (
         repo.connection.execute(
             select(s.owa_mandates)
             .where(
                 s.owa_mandates.c.agent_id == agent_id,
-                ((s.owa_mandates.c.run_id == run_id) & s.owa_mandates.c.task_id.is_(None)) | current_attempt,
+                ((s.owa_mandates.c.run_id == run_id) & s.owa_mandates.c.task_id.is_(None))
+                | current_attempt
+                | current_job,
             )
             .order_by(s.owa_mandates.c.goal_version.desc())
             .limit(1)

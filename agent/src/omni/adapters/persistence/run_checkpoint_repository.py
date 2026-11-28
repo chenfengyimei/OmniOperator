@@ -136,6 +136,9 @@ class RunCheckpointRepositories(LeaseRepositories):
         unit = cast(UnitOfWork, self)
         work = self._work(agent_id, run_id)
         checkpoint = cast(Record, work["payload"])
+        job_id = checkpoint.get("owa_job")
+        if job_id is not None:
+            return self._requeue_job(agent_id, run_id, work, str(job_id))
         if checkpoint.get("schema") != 1:
             return False
         resumes = cast(int, checkpoint["resumes"])
@@ -160,6 +163,40 @@ class RunCheckpointRepositories(LeaseRepositories):
             "run.resume_queued",
             {"confirmed_actions": len(actions), "next_step": checkpoint["next_step"]},
         )
+        return True
+
+    def _requeue_job(self, agent_id: str, run_id: str, work: Record, job_id: str) -> bool:
+        """A managed job resumes only from a proven boundary: no dispatched-but-unsettled action."""
+        unit = cast(UnitOfWork, self)
+        job = (
+            self.connection.execute(
+                select(s.owa_jobs).where(s.owa_jobs.c.agent_id == agent_id, s.owa_jobs.c.id == job_id)
+            )
+            .mappings()
+            .first()
+        )
+        if job is None or job["state"] in ("succeeded", "failed", "cancelled", "interrupted"):
+            return False
+        action_state = ""
+        if job["action_id"]:
+            action_state = str(
+                self.connection.execute(
+                    select(s.actions.c.state).where(
+                        s.actions.c.agent_id == agent_id, s.actions.c.id == job["action_id"]
+                    )
+                ).scalar_one_or_none()
+                or ""
+            )
+        resumes = cast(int, job["resumes"])
+        if action_state in ("unknown", "executing") or resumes >= MAX_AUTO_RESUMES:
+            return False
+        self._requeue_turn(run_id, str(work["id"]))
+        self.connection.execute(
+            update(s.owa_jobs)
+            .where(s.owa_jobs.c.agent_id == agent_id, s.owa_jobs.c.id == job_id)
+            .values(resumes=resumes + 1, state="queued", updated_at=self.clock.now())
+        )
+        unit.event(agent_id, run_id, "run.resume_queued", {"job_id": job_id, "action_state": action_state})
         return True
 
     def consume_run_checkpoint(self, agent_id: str, run_id: str) -> Record | None:

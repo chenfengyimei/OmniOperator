@@ -320,6 +320,8 @@
         "agent/src/omni/adapters/persistence/migrations/versions/v0061.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0062.py",
         "agent/src/omni/adapters/persistence/migrations/versions/v0063.py",
+        "agent/src/omni/adapters/persistence/migrations/versions/v0064.py",
+        "agent/src/omni/adapters/persistence/omniweave_jobs.py#OmniWeaveJobRepositories.omniweave_job_settle",
         "agent/src/omni/adapters/persistence/omniweave_delivery.py#OmniWeaveDeliveryRepositories.omniweave_finish_delivery",
         "agent/src/omni/adapters/persistence/omniweave_mailbox.py#OmniWeaveMailboxRepositories._owa_peer_citations",
         "agent/src/omni/adapters/persistence/omniweave_goals.py#prior_goal_blocker",
@@ -343,6 +345,7 @@
         "agent/tests/v2/http/test_v2_omniweave_http.py",
         "agent/tests/v2/http/test_v2_omniweave_campus.py",
         "agent/tests/v2/http/test_v2_omniweave_receipt_resume.py",
+        "agent/tests/v2/http/test_v2_omniweave_jobs.py",
         "agent/tests/v2/core/test_v2_omniweave_migration.py",
         "agent/tests/v2/ui/test_v2_agents_ui.py"
       ]

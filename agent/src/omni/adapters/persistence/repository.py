@@ -44,6 +44,7 @@ from .media_repository import MediaRepositories
 from .memory_organization_repository import MemoryOrganizationRepositories
 from .memory_semantic_repository import MemorySemanticRepositories
 from .object_repository import ObjectRepositories
+from .omniweave_jobs import OmniWeaveJobRepositories
 from .omniweave_repository import OmniWeaveRepositories
 from .operations_repository import OperationsRepositories
 from .people_repository import PeopleRepositories
@@ -100,6 +101,7 @@ class Repositories(
     SessionSearchRepositories,
     ObjectRepositories,
     OmniWeaveRepositories,
+    OmniWeaveJobRepositories,
     PeopleRepositories,
     ContextRepositories,
     ScheduleRepositories,
@@ -1071,6 +1073,7 @@ class Repositories(
 
     def cancel(self, agent_id: str, run_id: str) -> None:
         self.omniweave_cancel(agent_id, run_id)
+        self.omniweave_job_cancel(agent_id, run_id)
         for child_id in self.delegation_children(agent_id, run_id):
             self.cancel(agent_id, child_id)
         run = self.get_run(agent_id, run_id)
@@ -1260,6 +1263,7 @@ class Repositories(
         )
         self.cancel_approvals()
         self.connection.execute(update(s.leases).where(s.leases.c.state == "held").values(state="released"))
+        self.omniweave_job_recover()
         return {
             "interrupted_runs": len(interrupted) - resumed,
             "resumed_runs": resumed,

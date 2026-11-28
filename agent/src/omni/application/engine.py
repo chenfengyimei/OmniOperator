@@ -278,7 +278,11 @@ class Application:
                 if room > 0 and self._omniweave_delivery is not None:
                     delivery_cursor = await self._db.write(lambda u: u.omniweave_delivery_tick(delivery_cursor))
                 claims = await self._db.write(
-                    lambda u: u.claim_runs(room, include_owa_deliveries=self._omniweave_delivery is not None)
+                    lambda u: u.claim_runs(
+                        room,
+                        include_owa_deliveries=self._omniweave_delivery is not None,
+                        include_owa_jobs=self._worker_workspace is not None,
+                    )
                 )
                 if self._worker_workspace is not None:
                     worker_ceiling = min(WORKER_CONCURRENCY, max(1, self._concurrency - 1))
@@ -298,14 +302,16 @@ class Application:
                         self._worker_ids.add(run_id)
                     elif run.get("delegated"):
                         self._child_ids.add(run_id)
+                    workspace_id = str(run["worker_workspace_id"]) if run.get("worker_workspace_id") else None
                     task = asyncio.create_task(
                         self._run(
                             str(run["agent_id"]),
                             run_id,
                             str(run["claim_token"]),
                             self._revision(run["lease_fence"]),
-                            worker_workspace_id=str(run["worker_workspace_id"]) if run.get("owa_worker") else None,
+                            worker_workspace_id=workspace_id,
                             owa_delivery=run.get("owa_delivery") is True,
+                            owa_job=str(run["owa_job"]) if run.get("owa_job") else None,
                         ),
                         name="run-" + run_id,
                     )
@@ -355,6 +361,7 @@ class Application:
         *,
         worker_workspace_id: str | None = None,
         owa_delivery: bool = False,
+        owa_job: str | None = None,
     ) -> None:
         with self._observer.context(agent_id=agent_id, run_id=run_id), self._observer.span("agent.turn") as measured:
             if measured:
@@ -364,6 +371,11 @@ class Application:
                     if self._omniweave_delivery is None:
                         raise BusinessError("owa_dispatch_disabled", "OmniWeave delivery is unavailable")
                     await self._omniweave_delivery(agent_id, run_id, token, fence)
+                    if measured:
+                        measured.result(Outcome.OK)
+                    return
+                if owa_job is not None:
+                    await self._execute_job(agent_id, run_id, token, fence, worker_workspace_id)
                     if measured:
                         measured.result(Outcome.OK)
                     return
@@ -394,19 +406,25 @@ class Application:
                 if owa_delivery:
                     await self._db.write(lambda u: u.omniweave_defer_delivery(agent_id, run_id, token, fence))
                     raise
+                if owa_job is not None:
+                    # The job branch already deferred or settled the receipt; a cancel
+                    # completes only after its cleanup.
+                    raise
                 await self._cancel_join_children(agent_id, run_id)
                 await self._end_error(agent_id, run_id, "cancelled", "run_cancelled")
                 raise
             except BusinessError as exc:
                 if measured:
                     measured.result(Outcome.UNKNOWN if exc.code == "action_outcome_unknown" else Outcome.ERROR)
-                await self._cancel_join_children(agent_id, run_id)
-                await self._end_error(agent_id, run_id, "failed", exc.code)
+                if owa_job is None:
+                    await self._cancel_join_children(agent_id, run_id)
+                    await self._end_error(agent_id, run_id, "failed", exc.code)
                 log.warning("Run ended", extra={"event": "run.failed", "error_code": exc.code})
             except Exception:
                 log.exception("Run failed", extra={"event": "run.failed", "error_code": "internal_error"})
-                await self._cancel_join_children(agent_id, run_id)
-                await self._end_error(agent_id, run_id, "failed", "internal_error")
+                if owa_job is None:
+                    await self._cancel_join_children(agent_id, run_id)
+                    await self._end_error(agent_id, run_id, "failed", "internal_error")
 
     async def _run_owner_command(self, agent_id: str, run_id: str, run: Record, command: Record) -> None:
         await self._checkpoint(agent_id, run_id)
@@ -426,6 +444,86 @@ class Application:
         if result.status != Outcome.OK:
             raise BusinessError(result.error_code or "owner_command_failed", result.text)
         await self._db.write(lambda u: u.finish(agent_id, run_id, result.text))
+
+    async def _execute_job(self, agent_id: str, run_id: str, token: str, fence: int, workspace_id: str | None) -> None:
+        try:
+            job = await self._db.read(lambda u: u.omniweave_job_manifest(agent_id, run_id, token, fence))
+            job_id = str(job["job_id"])
+            await self._db.write(lambda u: u.omniweave_job_dispatch(agent_id, run_id, token, fence, job_id))
+            current = await self._db.read(lambda u: u.settings(agent_id))
+            policy = self._revision(current["policy_revision"])
+            workspace = None
+            if workspace_id is not None:
+                if self._worker_workspace is None:
+                    raise BusinessError("owa_workspace_unavailable", "The private Worker workspace is unavailable")
+                workspace = self._worker_workspace(workspace_id)
+            action_id = str(job["action_id"] or "")
+            action = await self._db.read(lambda u: u.action(agent_id, action_id)) if action_id else None
+            if action is not None and action["state"] == "unknown":
+                raise BusinessError("owa_job_outcome_unknown", "The dispatched managed job action requires review")
+            if action is not None and action["state"] == "cancelled" and not job["cancel_requested"]:
+                # A restart cancelled the undispatched action; a re-claimed job prepares afresh.
+                action = None
+            if action is not None and action["state"] in ("ok", "error", "denied"):
+                outcome_record = action["result"] if isinstance(action["result"], dict) else {}
+                receipt: Record = {
+                    "action_id": action_id,
+                    "tool": str(action["tool"]),
+                    "status": str(action["state"]),
+                    "effect": str(action["effect"]),
+                    "error_code": str(outcome_record.get("error_code") or ""),
+                }
+                outcome = "succeeded" if action["state"] == "ok" else "failed"
+                error = (
+                    "approval_denied" if action["state"] == "denied" else str(outcome_record.get("error_code") or "")
+                )
+                await self._db.write(
+                    lambda u: u.omniweave_job_settle(agent_id, run_id, token, fence, outcome, error, receipt)
+                )
+                return
+            if job["deadline_at"] is not None and str(job["deadline_at"]) <= self._clock.now():
+                raise BusinessError("owa_job_deadline", "The managed job deadline passed before dispatch")
+            if job["cancel_requested"]:
+                raise BusinessError("owa_job_cancelled", "The managed job was cancelled before dispatch")
+            result = await self._execute(
+                agent_id,
+                run_id,
+                str(job["tool"]),
+                cast(Record, job["arguments"]),
+                policy,
+                workspace=workspace,
+                job_bind=run_id,
+            )
+            if result.effect == Effect.UNKNOWN:
+                raise BusinessError("action_outcome_unknown", "Managed job action requires independent verification")
+            outcome = "succeeded" if result.status == Outcome.OK else "failed"
+            receipt = {"status": result.status.value, "effect": result.effect.value, "error_code": result.error_code}
+            await self._db.write(
+                lambda u: u.omniweave_job_settle(agent_id, run_id, token, fence, outcome, result.error_code, receipt)
+            )
+        except asyncio.CancelledError:
+            try:
+                await self._db.write(lambda u: u.omniweave_job_defer(agent_id, run_id, token, fence))
+            except BusinessError:
+                pass
+            raise
+        except BusinessError as exc:
+            code = exc.code
+            try:
+                await self._db.write(
+                    lambda u: u.omniweave_job_settle(agent_id, run_id, token, fence, "failed", code, {})
+                )
+            except BusinessError:
+                pass
+            raise
+        except Exception:
+            try:
+                await self._db.write(
+                    lambda u: u.omniweave_job_settle(agent_id, run_id, token, fence, "failed", "internal_error", {})
+                )
+            except BusinessError:
+                pass
+            raise
 
     async def _turn(self, agent_id: str, run_id: str, run: Record, *, workspace: str | None = None) -> None:
         delegated = await self._db.read(lambda u: u.delegation_link(agent_id, run_id))
@@ -1203,6 +1301,7 @@ class Application:
         *,
         registry: Mapping[str, Capability] | None = None,
         workspace: str | None = None,
+        job_bind: str | None = None,
     ) -> ActionResult:
         cap = (registry if registry is not None else self._tools).get(name)
         if cap is None:
@@ -1215,6 +1314,10 @@ class Application:
             )
         action = await self._db.write(lambda u: u.prepare_action(agent_id, run_id, cap.spec, arguments, policy))
         action_id = str(action["id"])
+        if job_bind is not None:
+            # The managed job's action identity is the external-intent anchor: bind it
+            # before any dispatch so a crash can replay the receipt instead of re-running.
+            await self._db.write(lambda u: u.omniweave_job_bind(agent_id, job_bind, action_id))
         if cap.spec.writes:
             while True:
                 await self._checkpoint(agent_id, run_id)

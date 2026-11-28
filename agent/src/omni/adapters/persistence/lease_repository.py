@@ -278,14 +278,35 @@ class LeaseRepositories(RepositoryBase):
             )
         )
         payload = work["payload"]
+        job_id = str(payload["owa_job"]) if isinstance(payload, dict) and payload.get("owa_job") else None
+        workspace_id = None
+        if job_id:
+            task_id = self.connection.execute(
+                select(s.owa_jobs.c.task_id).where(s.owa_jobs.c.agent_id == agent_id, s.owa_jobs.c.id == job_id)
+            ).scalar_one_or_none()
+            workspace_id = (
+                str(
+                    self.connection.execute(
+                        select(s.owa_tasks.c.run_id).where(
+                            s.owa_tasks.c.agent_id == agent_id, s.owa_tasks.c.id == task_id
+                        )
+                    ).scalar_one()
+                )
+                if task_id
+                else None
+            )
         return {
             **run,
             "claim_token": lease["token"],
             "lease_fence": lease["fence"],
             "owa_delivery": isinstance(payload, dict) and payload.get("owa_delivery") is True,
+            "owa_job": job_id,
+            "worker_workspace_id": workspace_id,
         }
 
-    def claim_runs(self, limit: int, *, include_owa_deliveries: bool = False) -> list[Record]:
+    def claim_runs(
+        self, limit: int, *, include_owa_deliveries: bool = False, include_owa_jobs: bool = False
+    ) -> list[Record]:
         result: list[Record] = []
         rows = self.connection.execute(
             select(s.work_items.c.agent_id, s.work_items.c.run_id)
@@ -304,6 +325,7 @@ class LeaseRepositories(RepositoryBase):
                     if include_owa_deliveries
                     else (func.json_extract(s.work_items.c.payload, "$.owa_delivery").is_not(True),)
                 ),
+                *(() if include_owa_jobs else (func.json_extract(s.work_items.c.payload, "$.owa_job").is_(None),)),
             )
             .order_by(s.work_items.c.queue_sequence)
             .limit(64)
