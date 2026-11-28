@@ -36,7 +36,7 @@ uv run --no-sync python scripts/project_index.py --feature 排查安卓截图
 
 ## Mac mini
 
-负责 macOS 原生 helper、TCC、用户域服务和交付实测。Linux 桌面与容器在独立 Linux 环境验证，记录架构和会话类型。开始前核对 arm64 环境、基线和工作树，交接时提供任务分支、SHA、原生结果及下一项所需资源。
+负责 macOS 原生 helper、TCC、用户域服务和交付实测。Linux 桌面与容器在独立 Linux 环境验证，记录架构和会话类型。开始前核对 arm64 环境、基线和工作树，交接时提供任务分支、SHA、原生结果及下一项所需资源。 开发顺序、真机门槛和 OWA Phase 5 接续见 [Mac mini 长程开发交接](MAC-MINI-HANDOFF.md)。
 
 两端均以 `v2` 集成，任务分支直接用短名，例如 `macos-helper-tcc`。同一批共享数据库、协议、依赖锁或 CI 变更由一个会话负责。每批跑受影响模块与调用方专项，按 [开发规则](../../AGENTS.md) 和 [测试纪律](reference/TESTING.md) 协调全量。
 
